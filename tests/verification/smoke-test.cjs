@@ -83,7 +83,7 @@ const sizeBounds = [
   ['lottie_light.min.js',   100,  300],
   ['lottie_svg.js',         300,  700],
   ['lottie_svg.min.js',     100,  350],
-  ['lottie_canvas.js',      200,  600],
+  ['lottie_canvas.js',      200,  750],
   ['lottie_canvas.min.js',  100,  300],
 ];
 

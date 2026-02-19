@@ -12,7 +12,8 @@
     "build": "npx eslint ./player/js/**/* && rollup -c && node tasks/build_worker",
     "lint": "npx eslint ./player/js/**/*",
     "lint:fix": "npx eslint ./player/js/**/* --fix",
-    "test": "node tests/verification/smoke-test.cjs",
+    "test": "vitest run",
+    "test:smoke": "node tests/verification/smoke-test.cjs",
     "test:e2e": "node tests/verification/puppeteer-test.cjs",
     "test:e2e:capture": "node tests/verification/puppeteer-test.cjs --capture",
     "test:create": "node test/index.js",
@@ -27,12 +28,10 @@
     "export"
   ],
   "devDependencies": {
-    "@babel/core": "^7.16.0",
-    "@babel/plugin-transform-runtime": "^7.17.0",
-    "@babel/preset-env": "^7.16.4",
-    "@rollup/plugin-babel": "^6.1.0",
     "@rollup/plugin-node-resolve": "^16.0.3",
     "@rollup/plugin-terser": "^0.4.4",
+    "@rollup/plugin-typescript": "^12.3.0",
+    "@vitest/coverage-v8": "^4.0.18",
     "cheerio": "^1.0.0-rc.2",
     "command-line-args": "^5.2.1",
     "eslint": "^7.16.0",
@@ -42,7 +41,10 @@
     "pixelmatch": "^5.3.0",
     "pngjs": "^7.0.0",
     "puppeteer": "^20.5.0",
-    "rollup": "^4.57.1"
+    "rollup": "^4.57.1",
+    "tslib": "^2.8.1",
+    "typescript": "^5.9.3",
+    "vitest": "^4.0.18"
   },
   "types": "./index.d.ts",
   "license": "MIT"

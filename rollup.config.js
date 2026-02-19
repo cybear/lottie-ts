@@ -1,6 +1,6 @@
 import { nodeResolve } from '@rollup/plugin-node-resolve';
 import terser from '@rollup/plugin-terser';
-import babel from '@rollup/plugin-babel';
+import typescript from '@rollup/plugin-typescript';
 import { createRequire } from 'node:module';
 
 const { version } = createRequire(import.meta.url)('./package.json');
@@ -141,9 +141,13 @@ const builds = [
 
 const plugins = [
   nodeResolve(),
-  babel({
-    babelHelpers: 'runtime',
-    skipPreflightCheck: true,
+  typescript({
+    tsconfig: './tsconfig.json',
+    include: ['player/js/**/*.js'],
+    declaration: false,
+    sourceMap: false,
+    outDir: '.',
+    importHelpers: true,
   }),
   // noTreeShakingForStandalonePlugin(),
   injectVersion(),
