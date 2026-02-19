@@ -63,8 +63,9 @@ Expected: exits 0.
 npm test
 ```
 
-Currently: runs `tests/verification/functional-tests.js`.  
-After Phase 2.3: runs Vitest.
+Runs `tests/verification/smoke-test.cjs` — pure Node.js, no browser required.
+Checks build artefacts, file sizes, version strings, API surface, guards, and workers.  
+After Phase 2.3 (Vitest): `npm test` will run Vitest unit tests instead.
 
 Expected: all tests pass, exit 0.
 
@@ -129,35 +130,29 @@ resolves types correctly in all module resolution modes (Node16, Bundler, etc.).
 ### 3a. Capture reference screenshots (run once to establish baseline)
 
 ```bash
-# Start the local test server
-node -e "
-const express = require('express');
-const app = express();
-app.use(express.static('.'));
-app.listen(3000, () => console.log('Listening on http://localhost:3000'));
-" &
-
-# Capture reference screenshots for all demo animations
-node tests/verification/visual-tests.js --capture
+npm run test:e2e:capture
 ```
 
-Commit the screenshots in `tests/verification/screenshots/` (or `e2e/snapshots/`
-after Phase 4 clean-up). These are the reference images that must not change.
+Launches Puppeteer, loads `bodymovin` and `adrock` demo animations in all three
+renderers (svg, canvas, html), snaps frame 0, and writes PNG files to
+`tests/verification/screenshots/baseline/`. Commit these files — they are the
+reference images that must not change.
+
+Baseline is already committed on `main` (captured 2026-02-19).
 
 ### 3b. Compare against reference (run to detect regressions)
 
 ```bash
-node tests/verification/visual-tests.js --compare
+npm run test:e2e
 ```
 
-Expected:  
-- Exit 0 if every animation frame is pixel-identical (or within the configured
-  tolerance) compared to the reference
-- Exit 1 and print a diff report (`visual-verification-report.json`) if any frame
-  deviates
+Also runs the full functional API test suite (loadAnimation, version, frameRate,
+goToAndStop) in a real Chromium browser via Puppeteer.  
 
-The current reference report is at
-`tests/verification/functional-verification-report.json`.
+Expected:
+- Exit 0 — all 24 checks pass (15 API + 3 variant-build smoke + 6 visual)
+- Exit 1 + diff PNG saved to `tests/verification/screenshots/diff-<label>.png`
+  if any pixel differs beyond the 0.1 threshold
 
 ### 3c. Manual browser smoke test
 
@@ -181,8 +176,8 @@ npx serve . -p 8080
 
 | PLAN.md step | Minimum verification |
 |---|---|
-| Step 0.1–0.3 | Tier 2a + Tier 3b baseline captured |
-| Step 1.1 (remove Bower) | Tier 1a |
+| Step 0.1–0.3 | `npm test` (53 checks) + `npm run test:e2e` (24 checks) — **DONE ✅** |
+| Step 1.1 (remove Bower) | `npm test` |
 | Step 1.2 (gitignore build) | `git status` shows no surprise changes; Tier 1a |
 | Step 1.3 (delete legacy build) | Tier 1a + Tier 2b |
 | Step 1.4 (upgrade Rollup) | Tier 1a + Tier 2b + diff UMD bundle size |

@@ -166,7 +166,7 @@ const UMDModule = {
 };
 
 const ESMModule = {
-  plugins: [nodeResolve()],
+  plugins: [nodeResolve(), injectVersion()],
   treeshake: false,
   output: [
     {
