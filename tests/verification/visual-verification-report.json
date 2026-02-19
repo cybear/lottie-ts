@@ -1,0 +1,71 @@
+{
+  "timestamp": "2025-08-25T14:16:09.722Z",
+  "tests": [
+    {
+      "name": "Test animations directory exists",
+      "status": "PASS",
+      "details": "11 animation files found",
+      "timestamp": "2025-08-25T14:16:09.724Z"
+    },
+    {
+      "name": "Test animation exists: simple.json",
+      "status": "SKIP",
+      "details": "Not found",
+      "timestamp": "2025-08-25T14:16:09.724Z"
+    },
+    {
+      "name": "Test animation exists: complex.json",
+      "status": "SKIP",
+      "details": "Not found",
+      "timestamp": "2025-08-25T14:16:09.724Z"
+    },
+    {
+      "name": "Test animation exists: with-effects.json",
+      "status": "SKIP",
+      "details": "Not found",
+      "timestamp": "2025-08-25T14:16:09.724Z"
+    },
+    {
+      "name": "Demo animations exist",
+      "status": "PASS",
+      "details": "8 demo directories found",
+      "timestamp": "2025-08-25T14:16:09.724Z"
+    },
+    {
+      "name": "Screenshots directory exists",
+      "status": "PASS",
+      "details": "Directory already exists",
+      "timestamp": "2025-08-25T14:16:09.725Z"
+    },
+    {
+      "name": "Baseline screenshots directory exists",
+      "status": "PASS",
+      "details": "0 baseline images found",
+      "timestamp": "2025-08-25T14:16:09.725Z"
+    },
+    {
+      "name": "New screenshots directory exists",
+      "status": "PASS",
+      "details": "Directory already exists",
+      "timestamp": "2025-08-25T14:16:09.725Z"
+    },
+    {
+      "name": "Visual test HTML file created",
+      "status": "PASS",
+      "details": "Test file generated successfully",
+      "timestamp": "2025-08-25T14:16:09.725Z"
+    },
+    {
+      "name": "Puppeteer dependency check",
+      "status": "SKIP",
+      "details": "Puppeteer not required for basic verification",
+      "timestamp": "2025-08-25T14:16:09.725Z"
+    }
+  ],
+  "summary": {
+    "total": 10,
+    "passed": 6,
+    "failed": 0,
+    "skipped": 4
+  }
+}

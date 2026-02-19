@@ -1,5 +1,5 @@
 const fs = require('fs');
-const UglifyJS = require("uglify-js");
+const { minify } = require("terser");
 const packageFile = require("../package.json");
 
 const buildFolder = 'build/player/';
@@ -26,28 +26,20 @@ function wrapScriptWithModule(code, build) {
 	});
 }
 
-function uglifyCode(code) {
-	return new Promise((resolve, reject)=>{
-		try {
-			const result = UglifyJS.minify(code, {
-				output: 
-					{
-						ascii_only:true
-					},
-					toplevel:true,
-					mangle: {
-						reserved: ['lottie']
-					}
-				});
-			if (result.error) {
-				reject(result.error)
-			} else {
-				resolve(result.code)
-			}
-		} catch(err) {
-			reject(err)
-		}
-	})
+async function uglifyCode(code) {
+	const result = await minify(code, {
+		output: {
+			ascii_only: true,
+		},
+		toplevel: true,
+		mangle: {
+			reserved: ['lottie'],
+		},
+	});
+	if (result.error) {
+		throw result.error;
+	}
+	return result.code;
 }
 
 async function modularizeCode(code, build) {

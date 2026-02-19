@@ -2,8 +2,6 @@
 player/exports/
 player/tests/
 node_modules/
-node_modules/
-tests/
 esprima/
 bodymovinCert.p12
 ZXPSignCmd.exe
@@ -11,3 +9,8 @@ signer.bat
 commands.txt
 debug.txt
 package-lock.json
+
+# Build output — not committed; produced by npm run build
+build/player/
+build/extension/
+dist/
