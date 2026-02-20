@@ -5,7 +5,7 @@ import { degToRads, BMMath } from '../common';
 import { createTypedArray } from '../helpers/arrays';
 import BezierFactory from '../../3rd_party/BezierEaser';
 import shapePool from '../pooling/shape_pool';
-import seedrandom from '../../3rd_party/seedrandom';
+import seedrandom from 'seedrandom';
 import propTypes from '../helpers/propTypes';
 
 const ExpressionManager = (function () {
@@ -19,7 +19,13 @@ const ExpressionManager = (function () {
   const fetch = null;
   const frames = null;
   let _lottieGlobal = {};
-  seedrandom(BMMath);
+  // Patch BMMath with a seedable PRNG so that expression randomness can be made
+  // deterministic.  Uses the npm `seedrandom` package (MIT) instead of the
+  // previously vendored copy, which had a custom `initialize(mathObj)` wrapper.
+  BMMath.random = seedrandom();
+  BMMath.seedrandom = function (seed: string | number) {
+    BMMath.random = seedrandom(String(seed));
+  };
 
   function resetFrame() {
     _lottieGlobal = {};

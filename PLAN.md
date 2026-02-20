@@ -412,5 +412,5 @@ npm run build:custom -- --animations demo/happy2016/data.json --renderer svg
 | **M4** — no build artefacts in git, CI publishes | Phase 4 complete ✅ |
 | **M5** — full quality gates (lint, format, pre-commit) | Phase 5 complete ✅ |
 | **M6** — meaningful test coverage | Phase 6 complete ✅ |
-| **M7** — vendor deps audited, seedrandom & howler on npm | Phase 7 not started |
+| **M7** — vendor deps audited, seedrandom & howler on npm | Phase 7 complete ✅ |
 | **M8** — custom build pipeline (tree-shaking by animation) | Phase 8 not started |

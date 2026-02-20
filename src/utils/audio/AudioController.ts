@@ -1,4 +1,4 @@
-// import Howl from '../../3rd_party/howler';
+// import { Howl } from 'howler'; // ready to enable — package installed, vendored copy removed
 
 interface AudioItem {
   pause(): void;

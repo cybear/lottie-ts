@@ -1,4 +1,5 @@
 import { nodeResolve } from '@rollup/plugin-node-resolve';
+import commonjs from '@rollup/plugin-commonjs';
 import terser from '@rollup/plugin-terser';
 import typescript from '@rollup/plugin-typescript';
 import { createRequire } from 'node:module';
@@ -140,6 +141,7 @@ const builds = [
 ];
 
 const plugins = [
+  commonjs(),
   nodeResolve(),
   typescript({
     tsconfig: './tsconfig.json',
@@ -160,6 +162,7 @@ const pluginsWithTerser = [
 ]
 
 const esmPlugins = [
+  commonjs(),
   nodeResolve(),
   typescript({
     tsconfig: './tsconfig.json',

@@ -1,4 +1,20 @@
 /* eslint-disable */
+/**
+ * WHY THIS FILE IS VENDORED (not replaced by the `bezier-easing` npm package)
+ * ─────────────────────────────────────────────────────────────────────────────
+ * The upstream `bezier-easing` npm package (MIT, Gaëtan Renaudeau) exposes:
+ *   bezierEasing(x1, y1, x2, y2)(t)  →  easing value
+ *
+ * Lottie-web extends that with a string-keyed instance cache via the extra
+ * `nm` (name) argument in `getBezierEasing(a, b, c, d, nm)`.  This cache is
+ * depended upon in four source files (PropertyFactory, ShapeProperty,
+ * ExpressionManager, TextSelectorProperty).  Replacing the package would
+ * require a non-trivial adapter that adds more code than it removes.
+ *
+ * Original source: https://github.com/gre/bezier-easing  (MIT)
+ * Local modifications: added named-instance cache (`nm` parameter + `beziers`
+ * object) and re-exported as `BezierFactory.getBezierEasing`.
+ */
 const BezierFactory = (function () {
   /**
      * BezierEasing - use bezier curve for transition easing function

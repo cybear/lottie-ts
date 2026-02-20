@@ -1,3 +1,25 @@
+/**
+ * WHY THIS FILE IS VENDORED (not replaced by the `transformation-matrix` npm package)
+ * ─────────────────────────────────────────────────────────────────────────────
+ * This is Epistemex Transformation Matrix v2.0 (MIT), intentionally modified
+ * for lottie-web in two ways:
+ *
+ *   1. The typed-array allocations inside matrix operations use lottie's own
+ *      `createTypedArray` helper (imported below) instead of bare `new Float32Array()`.
+ *      This plugs the matrix path into lottie's typed-array pool, reducing GC
+ *      pressure during animation playback.
+ *
+ *   2. The npm `transformation-matrix` package is now at v3.x which has
+ *      breaking API changes (named exports, different method signatures).
+ *      Migrating would require updating every call site across ~15 source files.
+ *
+ * To replace this file in the future:
+ *   - Audit v3 API differences against usages in src/ (Matrix.{multiply, clone,
+ *     applyToPoint, …})
+ *   - Replace `createTypedArray` calls with the npm version's allocations OR
+ *     continue injecting lottie's pool via monkey-patching.
+ *   - Update all 15 import sites.
+ */
 import {
   createTypedArray,
 } from '../utils/helpers/arrays';
