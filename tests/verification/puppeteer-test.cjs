@@ -221,6 +221,9 @@ async function main() {
     const animFixtures = [
       { name: 'bodymovin', file: 'demo/bodymovin/data.json' },
       { name: 'adrock',    file: 'demo/adrock/data.json' },
+      { name: 'gatin',     file: 'demo/gatin/data.json' },
+      { name: 'happy2016', file: 'demo/happy2016/data.json' },
+      { name: 'navidad',   file: 'demo/navidad/data.json' },
     ].filter(f => fs.existsSync(path.join(ROOT, f.file)));
 
     if (animFixtures.length === 0) {
