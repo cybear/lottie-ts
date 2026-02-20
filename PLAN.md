@@ -277,14 +277,98 @@ npx husky init
 
 ---
 
+## Phase 7 — Custom build pipeline (tree-shaking by animation features)
+
+**Goal:** allow a developer to pass one or more Lottie JSON files and receive a
+custom-built `lottie.custom.js` that contains only the code those files actually
+need, dramatically reducing bundle size.
+
+**PoC already done** (`tools/analyze-animation.cjs`, `npm run analyze`):
+
+```
+npm run analyze demo/happy2016/data.json -- --renderer svg
+```
+
+Produces a full feature manifest and module map.  For happy2016 (SVG renderer):
+- **Required**: SVGRenderer, SVGShapeElement, SVGCompElement, MaskElement
+- **Strippable**: both other renderers, text stack, audio, image preloader,
+  expression engine, all unused shape modifiers
+- **Estimated custom bundle**: ~73 KB  vs  620 KB full `lottie_svg.js` (~88% smaller)
+
+### Why it isn't trivial yet
+
+The source uses `extendPrototype()` mixin patterns that Rollup cannot statically
+eliminate.  Every feature is wired together at runtime.  Two implementation paths:
+
+| Approach | Effort | Quality |
+|---|---|---|
+| **Feature-flag guards** — wrap each renderer/shape handler in `if (FEATURE_X)` conditions, replace at Rollup build time via `@rollup/plugin-replace` | Medium (~2 weeks) | Good; works with current architecture |
+| **Module boundary refactor** — restructure each shape type, renderer, and effect as a proper ES module imported only when needed | Large (~6+ weeks) | Excellent; enables full tree-shaking and correct types |
+
+### Step 7.1 — Extend the analyser
+
+- Support multiple input files (`npm run analyze anim1.json anim2.json`)
+- Output a machine-readable feature flags file (`.lottie-features.json`) consumed
+  by the build
+- Add `--strict` mode that errors if the animation uses features not yet
+  guard-wrapped
+
+### Step 7.2 — Feature-flag the renderers (quick win)
+
+- Introduce `LOTTIE_INCLUDE_SVG`, `LOTTIE_INCLUDE_CANVAS`, `LOTTIE_INCLUDE_HTML`
+  build-time constants in `rollup.config.js`
+- Wrap renderer registration with `if (LOTTIE_INCLUDE_CANVAS) { … }`
+- Verify: a `--renderer svg` custom build omits all canvas/HTML element classes
+- Estimated saving: **~45%** from renderer-only flag (canvas + HTML renderers
+  account for ~1200 source lines in the modelled set)
+
+### Step 7.3 — Feature-flag large optional subsystems
+
+Guard each subsystem behind a compile-time constant:
+
+| Constant | Guards |
+|---|---|
+| `LOTTIE_INCLUDE_EXPRESSIONS` | ExpressionManager + all Expression*Interface files |
+| `LOTTIE_INCLUDE_TEXT` | TextProperty, TextAnimatorProperty, FontManager, *TextElement |
+| `LOTTIE_INCLUDE_AUDIO` | AudioController, AudioElement |
+| `LOTTIE_INCLUDE_IMAGES` | ImagePreloader, CVImageElement, HImageElement |
+| `LOTTIE_INCLUDE_GRADIENTS` | GradientProperty |
+| `LOTTIE_INCLUDE_EFFECTS` | SVGEffects, CVEffects, HEffects, effect type files |
+| `LOTTIE_INCLUDE_3D` | HCameraElement, HybridRenderer 3D containers |
+
+### Step 7.4 — Feature-flag shape modifiers
+
+Individual flags for: `TRIM`, `REPEATER`, `ZIGZAG`, `ROUND_CORNERS`,
+`PUCKER_BLOAT`, `OFFSET_PATH`, `MERGE`, `GRADIENTS`.
+
+### Step 7.5 — Custom build CLI
+
+```bash
+npm run build:custom -- --animations demo/happy2016/data.json --renderer svg
+# → build/player/lottie.custom.js  (auto-detected flags injected)
+```
+
+- Reads the animation JSON(s) via the analyser
+- Auto-generates the `@rollup/plugin-replace` config
+- Produces a named output file with a build manifest comment at the top
+
+### Step 7.6 — Verification test
+
+- After custom build: load the animation in Puppeteer, compare pixel output
+  against the full-build baseline
+- Any missing feature causes a visible regression → test fails
+
+---
+
 ## Milestone summary
 
 | Milestone | When done |
 |---|---|
-| **M0** — baseline verified, npm test works | Phase 0 complete |
-| **M1** — repo is clean (no Bower, no legacy build, no deprecated deps) | Phase 1 complete |
-| **M2** — TypeScript toolchain installed, Babel removed | Phase 2 complete |
-| **M3** — all source in TypeScript, strict mode enabled | Phase 3 complete |
-| **M4** — no build artefacts in git, CI publishes | Phase 4 complete |
-| **M5** — full quality gates (lint, format, pre-commit) | Phase 5 complete |
-| **M6** — meaningful test coverage | Phase 6 complete |
+| **M0** — baseline verified, npm test works | Phase 0 complete ✅ |
+| **M1** — repo is clean (no Bower, no legacy build, no deprecated deps) | Phase 1 complete ✅ |
+| **M2** — TypeScript toolchain installed, Babel removed | Phase 2 complete ✅ |
+| **M3** — all source in TypeScript, strict mode enabled | Phase 3 complete ✅ |
+| **M4** — no build artefacts in git, CI publishes | Phase 4 complete ✅ |
+| **M5** — full quality gates (lint, format, pre-commit) | Phase 5 complete ✅ |
+| **M6** — meaningful test coverage | Phase 6 complete ✅ |
+| **M7** — custom build pipeline (tree-shaking by animation) | Phase 7 in progress 🔧 |
