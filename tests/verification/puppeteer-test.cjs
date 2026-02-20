@@ -214,7 +214,49 @@ async function main() {
       }
     }
 
-    // ── Section 3: Visual regression ─────────────────────────────────────────
+    // ── Section 3: Demo HTML pages ────────────────────────────────────────────
+
+    console.log('\n\uD83C\uDF10  Demo pages (served via HTTP)\n');
+
+    const demoPages = [
+      'bodymovin', 'adrock', 'gatin', 'happy2016', 'navidad',
+    ].filter(name => fs.existsSync(path.join(ROOT, 'demo', name, 'index.html')));
+
+    for (const name of demoPages) {
+      const page = await browser.newPage();
+      const pageErrors = [];
+      page.on('pageerror', e  => pageErrors.push(e.message));
+      page.on('requestfailed', r => pageErrors.push('net fail: ' + r.url().split('/').pop()));
+      try {
+        await withTimeout(
+          page.goto(`${BASE}/demo/${name}/index.html`, { waitUntil: 'networkidle2' }),
+          10000,
+        );
+        // Allow up to 2 s for the first frame to paint
+        await new Promise(r => setTimeout(r, 2000));
+
+        const childCount = await page.evaluate(() => {
+          // demos use either id="bodymovin" or class="bodymovin"
+          const el = document.querySelector('#bodymovin, .bodymovin');
+          return el ? el.childElementCount : -1;
+        });
+
+        if (childCount > 0) {
+          pass(`${name} demo renders (${childCount} child elements)`);
+        } else if (childCount === 0) {
+          const errSummary = pageErrors.slice(0, 2).join(' | ') || 'no page errors caught';
+          fail(`${name} demo renders`, 'wrapper is empty — ' + errSummary);
+        } else {
+          fail(`${name} demo renders`, '#bodymovin wrapper not found in page');
+        }
+      } catch (e) {
+        fail(`${name} demo`, e.message);
+      } finally {
+        try { await page.close(); } catch (_) { /* ignore */ }
+      }
+    }
+
+    // ── Section 4: Visual regression ─────────────────────────────────────────
 
     console.log(`\n\uD83D\uDCF8  Visual regression (${CAPTURE_MODE ? 'CAPTURE' : 'COMPARE'} mode)\n`);
 
