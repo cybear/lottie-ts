@@ -1,4 +1,4 @@
-// import { Howl } from 'howler'; // ready to enable — package installed, vendored copy removed
+import { Howl } from 'howler';
 
 interface AudioItem {
   pause(): void;
@@ -54,29 +54,9 @@ const audioControllerFactory = (function () {
       if (this.audioFactory) {
         return this.audioFactory(assetPath);
       }
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      if ((window as any).Howl) {
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        return new (window as any).Howl({
-          src: [assetPath],
-        });
-      }
-      return {
-        isPlaying: false,
-        play() {
-          (this as { isPlaying: boolean }).isPlaying = true;
-        },
-        seek() {
-          (this as { isPlaying: boolean }).isPlaying = false;
-        },
-        playing() {},
-        rate() {},
-        // eslint-disable-next-line @typescript-eslint/no-unused-vars
-        setVolume(_vol: number) {},
-        pause() {},
-        resume() {},
-        volume() {},
-      } as unknown as AudioItem;
+      return new Howl({
+        src: [assetPath],
+      }) as unknown as AudioItem;
     },
     setAudioFactory(this: AudioControllerThis, audioFactory: AudioFactory) {
       this.audioFactory = audioFactory;
