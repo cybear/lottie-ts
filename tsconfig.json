@@ -11,6 +11,6 @@
     "esModuleInterop": true,
     "lib": ["ES2017", "DOM"]
   },
-  "include": ["player/js/**/*"],
+  "include": ["src/**/*"],
   "exclude": ["node_modules", "build", "dist"]
 }

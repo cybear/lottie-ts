@@ -3,7 +3,7 @@ const { minify } = require("terser");
 const packageFile = require("../package.json");
 
 const buildFolder = 'build/player/';
-const rootFolder = 'player/';
+const rootFolder = 'src/';
 const bm_version = packageFile.version;
 const defaultBuilds = [ 'canvas_worker', 'lottie_worker']
 
@@ -16,7 +16,7 @@ function wrapScriptWithModule(code, build) {
 		try {
 			// Wrapping with module
 			let moduleFileName = 'worker_wrapper';
-			let wrappedCode = fs.readFileSync(`${rootFolder}js/${moduleFileName}.js`, "utf8");
+			let wrappedCode = fs.readFileSync(`${rootFolder}${moduleFileName}.ts`, "utf8");
 			wrappedCode = wrappedCode.replace('/* <%= contents %> */',code);
 			wrappedCode = wrappedCode.replace('[[BM_VERSION]]',bm_version);
 			resolve(wrappedCode);
