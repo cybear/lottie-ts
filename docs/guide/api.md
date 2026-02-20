@@ -75,6 +75,10 @@ Resume frozen animations.
 
 Destroy all animations, or the named one. Empties the container element.
 
+### `lottie.togglePause(name?)`
+
+Toggle pause on all animations, or the named one.
+
 ### `lottie.inBrowser()`
 
 Returns `true` when running in a browser environment.
@@ -86,6 +90,28 @@ Notify all animations that their container was resized.
 ### `lottie.version`
 
 The lottie-ts version string (e.g. `"6.0.0"`).
+
+### `lottie.setIDPrefix(prefix)`
+
+Prepend a string to all SVG element IDs — useful when multiple animations on
+the same page would otherwise generate conflicting IDs.
+
+### `lottie.setSubframeRendering(flag)`
+
+Enable (`true`) or disable (`false`) sub-frame rendering globally.
+
+### `lottie.useWebWorker(flag)`
+
+Enable or disable Web Worker rendering for canvas animations
+(`lottie_canvas_worker` build only).
+
+### `lottie.setVolume(volume, name?)`
+
+Set the audio volume (0–1) for all animations, or the named one.
+
+### `lottie.mute(name?)` / `lottie.unmute(name?)`
+
+Mute or unmute audio for all animations, or the named one.
 
 ---
 
@@ -156,10 +182,11 @@ anim.destroy()
 ### Text layers
 
 ```ts
-anim.updateDocumentData(layerQuery, documentData, index?)
+// path = array of layer names/indices navigating to the target text layer
+anim.updateDocumentData(path: (string | number)[], documentData: Partial<TextDocumentData>, index?: number)
 ```
 
-See [Text Layers](../advanced/text-layers) for details.
+See [Text Layers](../advanced/text-layers) for the full field reference.
 
 ### Misc
 
@@ -175,20 +202,30 @@ All types are exported from the package entry point:
 
 ```ts
 import type {
+  // Player
+  LottiePlayer,
+  // Animation instance
   AnimationItem,
+  // Config
   AnimationConfigWithPath,
   AnimationConfigWithData,
   AnimationDirection,
   AnimationSegment,
-  AnimationEventName,
-  AnimationEventCallback,
+  RendererType,
   SVGRendererConfig,
   CanvasRendererConfig,
   HTMLRendererConfig,
+  FilterSizeConfig,
+  // Events
+  AnimationEventName,
+  AnimationEventCallback,
+  AnimationEvents,
   BMCompleteEvent,
   BMCompleteLoopEvent,
   BMEnterFrameEvent,
   BMSegmentStartEvent,
   BMDestroyEvent,
+  // Text
+  TextDocumentData,
 } from 'lottie-ts';
 ```

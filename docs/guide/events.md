@@ -47,6 +47,7 @@ anim.removeEventListener('enterFrame');
 | `data_ready` | — | All animation data has been loaded and parsed |
 | `data_failed` | — | Part of the animation data could not be loaded |
 | `loaded_images` | — | All image assets have loaded (or failed) |
+| `error` | — | A rendering error occurred |
 | `DOMLoaded` | — | Elements have been added to the DOM (SVG/HTML renderer) |
 | `destroy` | `BMDestroyEvent` | `anim.destroy()` was called |
 
