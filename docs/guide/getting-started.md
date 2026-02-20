@@ -30,7 +30,7 @@ const animation = lottie.loadAnimation({
 |---|---|---|---|
 | `container` | `HTMLElement` | — | The DOM element that will contain the animation (**required**) |
 | `renderer` | `'svg' \| 'canvas' \| 'html'` | `'svg'` | Rendering backend |
-| `loop` | `boolean \| number` | `false` | `true` = loop forever, `number` = loop N times |
+| `loop` | `boolean \| number` | `true` | `true` = loop forever, `number` = loop N times, `false` = play once |
 | `autoplay` | `boolean` | `true` | Start playing immediately once ready |
 | `path` | `string` | — | URL to the animation JSON file |
 | `animationData` | `object` | — | Inline animation data (alternative to `path`) |
