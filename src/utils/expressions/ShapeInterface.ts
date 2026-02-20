@@ -186,6 +186,7 @@ const ShapeExpressionInterface = (function () {
 
   function strokeInterfaceFactory(shape, view, propertyGroup) {
     const _propertyGroup = propertyGroupFactory(interfaceFunction, propertyGroup);
+    const dashOb = {};
     const _dashPropertyGroup = propertyGroupFactory(dashOb, _propertyGroup);
     function addPropertyToDashOb(i) {
       Object.defineProperty(dashOb, shape.d[i].nm, {
@@ -194,7 +195,6 @@ const ShapeExpressionInterface = (function () {
     }
     let i;
     const len = shape.d ? shape.d.length : 0;
-    const dashOb = {};
     for (i = 0; i < len; i += 1) {
       addPropertyToDashOb(i);
       view.d.dataProps[i].p.setGroupProperty(_dashPropertyGroup);
