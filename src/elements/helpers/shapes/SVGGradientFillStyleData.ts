@@ -1,20 +1,12 @@
 // @ts-nocheck
-import {
-  degToRads,
-  createElementID,
-} from '../../../utils/common';
+import { degToRads, createElementID } from '../../../utils/common';
 import { getLocationHref } from '../../../main';
-import {
-  extendPrototype,
-} from '../../../utils/functionExtensions';
+import { extendPrototype } from '../../../utils/functionExtensions';
 import DynamicPropertyContainer from '../../../utils/helpers/dynamicProperties';
 import PropertyFactory from '../../../utils/PropertyFactory';
 import createNS from '../../../utils/helpers/svg_elements';
 import GradientProperty from '../../../utils/shapes/GradientProperty';
-import {
-  lineCapEnum,
-  lineJoinEnum,
-} from '../../../utils/helpers/shapeEnums';
+import { lineCapEnum, lineJoinEnum } from '../../../utils/helpers/shapeEnums';
 
 function SVGGradientFillStyleData(elem, data, styleOb) {
   this.initDynamicPropertyContainer(elem);
@@ -37,16 +29,15 @@ SVGGradientFillStyleData.prototype.initGradientData = function (elem, data, styl
 };
 
 SVGGradientFillStyleData.prototype.setGradientData = function (pathElement, data) {
-  var gradientId = createElementID();
-  var gfill = createNS(data.t === 1 ? 'linearGradient' : 'radialGradient');
+  const gradientId = createElementID();
+  const gfill = createNS(data.t === 1 ? 'linearGradient' : 'radialGradient');
   gfill.setAttribute('id', gradientId);
   gfill.setAttribute('spreadMethod', 'pad');
   gfill.setAttribute('gradientUnits', 'userSpaceOnUse');
-  var stops = [];
-  var stop;
-  var j;
-  var jLen;
-  jLen = data.g.p * 4;
+  const stops = [];
+  let stop;
+  let j;
+  const jLen = data.g.p * 4;
   for (j = 0; j < jLen; j += 4) {
     stop = createNS('stop');
     gfill.appendChild(stop);
@@ -59,21 +50,20 @@ SVGGradientFillStyleData.prototype.setGradientData = function (pathElement, data
 
 SVGGradientFillStyleData.prototype.setGradientOpacity = function (data, styleOb) {
   if (this.g._hasOpacity && !this.g._collapsable) {
-    var stop;
-    var j;
-    var jLen;
-    var mask = createNS('mask');
-    var maskElement = createNS('path');
+    let stop;
+    let j;
+    const mask = createNS('mask');
+    const maskElement = createNS('path');
     mask.appendChild(maskElement);
-    var opacityId = createElementID();
-    var maskId = createElementID();
+    const opacityId = createElementID();
+    const maskId = createElementID();
     mask.setAttribute('id', maskId);
-    var opFill = createNS(data.t === 1 ? 'linearGradient' : 'radialGradient');
+    const opFill = createNS(data.t === 1 ? 'linearGradient' : 'radialGradient');
     opFill.setAttribute('id', opacityId);
     opFill.setAttribute('spreadMethod', 'pad');
     opFill.setAttribute('gradientUnits', 'userSpaceOnUse');
-    jLen = data.g.k.k[0].s ? data.g.k.k[0].s.length : data.g.k.k.length;
-    var stops = this.stops;
+    const jLen = data.g.k.k[0].s ? data.g.k.k[0].s.length : data.g.k.k.length;
+    const stops = this.stops;
     for (j = data.g.p * 4; j < jLen; j += 2) {
       stop = createNS('stop');
       stop.setAttribute('stop-color', 'rgb(255,255,255)');

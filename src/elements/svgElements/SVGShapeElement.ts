@@ -1,7 +1,5 @@
 // @ts-nocheck
-import {
-  extendPrototype,
-} from '../../utils/functionExtensions';
+import { extendPrototype } from '../../utils/functionExtensions';
 import { getLocationHref } from '../../main';
 import ShapePropertyFactory from '../../utils/shapes/ShapeProperty';
 import BaseElement from '../BaseElement';
@@ -15,10 +13,7 @@ import Matrix from '../../3rd_party/transformation-matrix';
 import IShapeElement from '../ShapeElement';
 import TransformPropertyFactory from '../../utils/TransformProperty';
 import { ShapeModifiers } from '../../utils/shapes/ShapeModifiers';
-import {
-  lineCapEnum,
-  lineJoinEnum,
-} from '../../utils/helpers/shapeEnums';
+import { lineCapEnum, lineJoinEnum } from '../../utils/helpers/shapeEnums';
 import SVGShapeData from '../helpers/shapes/SVGShapeData';
 import SVGStyleData from '../helpers/shapes/SVGStyleData';
 import SVGStrokeStyleData from '../helpers/shapes/SVGStrokeStyleData';
@@ -52,10 +47,12 @@ function SVGShapeElement(data, globalData, comp) {
   // Moving any property that doesn't get too much access after initialization because of v8 way of handling more than 10 properties.
 }
 
-extendPrototype([BaseElement, TransformElement, SVGBaseElement, IShapeElement, HierarchyElement, FrameElement, RenderableDOMElement], SVGShapeElement);
+extendPrototype(
+  [BaseElement, TransformElement, SVGBaseElement, IShapeElement, HierarchyElement, FrameElement, RenderableDOMElement],
+  SVGShapeElement,
+);
 
-SVGShapeElement.prototype.initSecondaryElement = function () {
-};
+SVGShapeElement.prototype.initSecondaryElement = function () {};
 
 SVGShapeElement.prototype.identityMatrix = new Matrix();
 
@@ -70,14 +67,14 @@ SVGShapeElement.prototype.createContent = function () {
 This method searches for multiple shapes that affect a single element and one of them is animated
 */
 SVGShapeElement.prototype.filterUniqueShapes = function () {
-  var i;
-  var len = this.shapes.length;
-  var shape;
-  var j;
-  var jLen = this.stylesList.length;
-  var style;
-  var tempShapes = [];
-  var areAnimated = false;
+  let i;
+  const len = this.shapes.length;
+  let shape;
+  let j;
+  const jLen = this.stylesList.length;
+  let style;
+  const tempShapes = [];
+  let areAnimated = false;
   for (j = 0; j < jLen; j += 1) {
     style = this.stylesList[j];
     areAnimated = false;
@@ -96,8 +93,8 @@ SVGShapeElement.prototype.filterUniqueShapes = function () {
 };
 
 SVGShapeElement.prototype.setShapesAsAnimated = function (shapes) {
-  var i;
-  var len = shapes.length;
+  let i;
+  const len = shapes.length;
   for (i = 0; i < len; i += 1) {
     shapes[i].setAsAnimated();
   }
@@ -105,16 +102,16 @@ SVGShapeElement.prototype.setShapesAsAnimated = function (shapes) {
 
 SVGShapeElement.prototype.createStyleElement = function (data, level) {
   // TODO: prevent drawing of hidden styles
-  var elementData;
-  var styleOb = new SVGStyleData(data, level);
+  let elementData;
+  const styleOb = new SVGStyleData(data, level);
 
-  var pathElement = styleOb.pElem;
+  const pathElement = styleOb.pElem;
   if (data.ty === 'st') {
     elementData = new SVGStrokeStyleData(this, data, styleOb);
   } else if (data.ty === 'fl') {
     elementData = new SVGFillStyleData(this, data, styleOb);
   } else if (data.ty === 'gf' || data.ty === 'gs') {
-    var GradientConstructor = data.ty === 'gf' ? SVGGradientFillStyleData : SVGGradientStrokeStyleData;
+    const GradientConstructor = data.ty === 'gf' ? SVGGradientFillStyleData : SVGGradientStrokeStyleData;
     elementData = new GradientConstructor(this, data, styleOb);
     this.globalData.defs.appendChild(elementData.gf);
     if (elementData.maskId) {
@@ -154,7 +151,7 @@ SVGShapeElement.prototype.createStyleElement = function (data, level) {
 };
 
 SVGShapeElement.prototype.createGroupElement = function (data) {
-  var elementData = new ShapeGroupData();
+  const elementData = new ShapeGroupData();
   if (data.ln) {
     elementData.gr.setAttribute('id', data.ln);
   }
@@ -168,14 +165,14 @@ SVGShapeElement.prototype.createGroupElement = function (data) {
 };
 
 SVGShapeElement.prototype.createTransformElement = function (data, container) {
-  var transformProperty = TransformPropertyFactory.getTransformProperty(this, data, this);
-  var elementData = new SVGTransformData(transformProperty, transformProperty.o, container);
+  const transformProperty = TransformPropertyFactory.getTransformProperty(this, data, this);
+  const elementData = new SVGTransformData(transformProperty, transformProperty.o, container);
   this.addToAnimatedContents(data, elementData);
   return elementData;
 };
 
 SVGShapeElement.prototype.createShapeElement = function (data, ownTransformers, level) {
-  var ty = 4;
+  let ty = 4;
   if (data.ty === 'rc') {
     ty = 5;
   } else if (data.ty === 'el') {
@@ -183,8 +180,8 @@ SVGShapeElement.prototype.createShapeElement = function (data, ownTransformers, 
   } else if (data.ty === 'sr') {
     ty = 7;
   }
-  var shapeProperty = ShapePropertyFactory.getShapeProp(this, data, ty, this);
-  var elementData = new SVGShapeData(ownTransformers, level, shapeProperty);
+  const shapeProperty = ShapePropertyFactory.getShapeProp(this, data, ty, this);
+  const elementData = new SVGShapeData(ownTransformers, level, shapeProperty);
   this.shapes.push(elementData);
   this.addShapeToModifiers(elementData);
   this.addToAnimatedContents(data, elementData);
@@ -192,8 +189,8 @@ SVGShapeElement.prototype.createShapeElement = function (data, ownTransformers, 
 };
 
 SVGShapeElement.prototype.addToAnimatedContents = function (data, element) {
-  var i = 0;
-  var len = this.animatedContents.length;
+  let i = 0;
+  const len = this.animatedContents.length;
   while (i < len) {
     if (this.animatedContents[i].element === element) {
       return;
@@ -208,9 +205,9 @@ SVGShapeElement.prototype.addToAnimatedContents = function (data, element) {
 };
 
 SVGShapeElement.prototype.setElementStyles = function (elementData) {
-  var arr = elementData.styles;
-  var j;
-  var jLen = this.stylesList.length;
+  const arr = elementData.styles;
+  let j;
+  const jLen = this.stylesList.length;
   for (j = 0; j < jLen; j += 1) {
     if (arr.indexOf(this.stylesList[j]) === -1 && !this.stylesList[j].closed) {
       arr.push(this.stylesList[j]);
@@ -220,8 +217,8 @@ SVGShapeElement.prototype.setElementStyles = function (elementData) {
 
 SVGShapeElement.prototype.reloadShapes = function () {
   this._isFirstFrame = true;
-  var i;
-  var len = this.itemsData.length;
+  let i;
+  let len = this.itemsData.length;
   for (i = 0; i < len; i += 1) {
     this.prevViewData[i] = this.itemsData[i];
   }
@@ -234,17 +231,25 @@ SVGShapeElement.prototype.reloadShapes = function () {
   this.renderModifiers();
 };
 
-SVGShapeElement.prototype.searchShapes = function (arr, itemsData, prevViewData, container, level, transformers, render) {
-  var ownTransformers = [].concat(transformers);
-  var i;
-  var len = arr.length - 1;
-  var j;
-  var jLen;
-  var ownStyles = [];
-  var ownModifiers = [];
-  var currentTransform;
-  var modifier;
-  var processedPos;
+SVGShapeElement.prototype.searchShapes = function (
+  arr,
+  itemsData,
+  prevViewData,
+  container,
+  level,
+  transformers,
+  render,
+) {
+  const ownTransformers = [].concat(transformers);
+  let i;
+  let len = arr.length - 1;
+  let j;
+  let jLen;
+  const ownStyles = [];
+  const ownModifiers = [];
+  let currentTransform;
+  let modifier;
+  let processedPos;
   for (i = len; i >= 0; i -= 1) {
     processedPos = this.searchProcessedElement(arr[i]);
     if (!processedPos) {
@@ -273,7 +278,15 @@ SVGShapeElement.prototype.searchShapes = function (arr, itemsData, prevViewData,
           itemsData[i].prevViewData[j] = itemsData[i].it[j];
         }
       }
-      this.searchShapes(arr[i].it, itemsData[i].it, itemsData[i].prevViewData, itemsData[i].gr, level + 1, ownTransformers, render);
+      this.searchShapes(
+        arr[i].it,
+        itemsData[i].it,
+        itemsData[i].prevViewData,
+        itemsData[i].gr,
+        level + 1,
+        ownTransformers,
+        render,
+      );
       if (arr[i]._render) {
         if (itemsData[i].gr.parentNode !== container) {
           container.appendChild(itemsData[i].gr);
@@ -290,7 +303,14 @@ SVGShapeElement.prototype.searchShapes = function (arr, itemsData, prevViewData,
         itemsData[i] = this.createShapeElement(arr[i], ownTransformers, level);
       }
       this.setElementStyles(itemsData[i]);
-    } else if (arr[i].ty === 'tm' || arr[i].ty === 'rd' || arr[i].ty === 'ms' || arr[i].ty === 'pb' || arr[i].ty === 'zz' || arr[i].ty === 'op') {
+    } else if (
+      arr[i].ty === 'tm' ||
+      arr[i].ty === 'rd' ||
+      arr[i].ty === 'ms' ||
+      arr[i].ty === 'pb' ||
+      arr[i].ty === 'zz' ||
+      arr[i].ty === 'op'
+    ) {
       if (!processedPos) {
         modifier = ShapeModifiers.getModifier(arr[i].ty);
         modifier.init(this, arr[i]);
@@ -328,8 +348,8 @@ SVGShapeElement.prototype.searchShapes = function (arr, itemsData, prevViewData,
 
 SVGShapeElement.prototype.renderInnerContent = function () {
   this.renderModifiers();
-  var i;
-  var len = this.stylesList.length;
+  let i;
+  const len = this.stylesList.length;
   for (i = 0; i < len; i += 1) {
     this.stylesList[i].reset();
   }
@@ -347,9 +367,9 @@ SVGShapeElement.prototype.renderInnerContent = function () {
 };
 
 SVGShapeElement.prototype.renderShape = function () {
-  var i;
-  var len = this.animatedContents.length;
-  var animatedContent;
+  let i;
+  const len = this.animatedContents.length;
+  let animatedContent;
   for (i = 0; i < len; i += 1) {
     animatedContent = this.animatedContents[i];
     if ((this._isFirstFrame || animatedContent.element._isAnimated) && animatedContent.data !== true) {

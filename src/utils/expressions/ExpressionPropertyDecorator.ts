@@ -1,17 +1,10 @@
 // @ts-nocheck
-import {
-  extendPrototype,
-} from '../functionExtensions';
-import {
-  createSizedArray,
-  createTypedArray,
-} from '../helpers/arrays';
+import { extendPrototype } from '../functionExtensions';
+import { createSizedArray, createTypedArray } from '../helpers/arrays';
 import ShapePropertyFactory from '../shapes/ShapeProperty';
 import PropertyFactory from '../PropertyFactory';
 import shapePool from '../pooling/shape_pool';
-import {
-  initialDefaultFrame,
-} from '../../main';
+import { initialDefaultFrame } from '../../main';
 import bez from '../bez';
 import Matrix from '../../3rd_party/transformation-matrix';
 import TransformPropertyFactory from '../TransformProperty';
@@ -24,14 +17,14 @@ function addPropertyDecorator() {
       return this.pv;
     }
     type = type ? type.toLowerCase() : '';
-    var currentFrame = this.comp.renderedFrame;
-    var keyframes = this.keyframes;
-    var lastKeyFrame = keyframes[keyframes.length - 1].t;
+    const currentFrame = this.comp.renderedFrame;
+    const keyframes = this.keyframes;
+    const lastKeyFrame = keyframes[keyframes.length - 1].t;
     if (currentFrame <= lastKeyFrame) {
       return this.pv;
     }
-    var cycleDuration;
-    var firstKeyFrame;
+    let cycleDuration;
+    let firstKeyFrame;
     if (!durationFlag) {
       if (!duration || duration > keyframes.length - 1) {
         duration = keyframes.length - 1;
@@ -46,19 +39,26 @@ function addPropertyDecorator() {
       }
       firstKeyFrame = lastKeyFrame - cycleDuration;
     }
-    var i;
-    var len;
-    var ret;
+    let i;
+    let len;
+    let ret;
     if (type === 'pingpong') {
-      var iterations = Math.floor((currentFrame - firstKeyFrame) / cycleDuration);
+      const iterations = Math.floor((currentFrame - firstKeyFrame) / cycleDuration);
       if (iterations % 2 !== 0) {
-          return this.getValueAtTime(((cycleDuration - (currentFrame - firstKeyFrame) % cycleDuration + firstKeyFrame)) / this.comp.globalData.frameRate, 0); // eslint-disable-line
+        return this.getValueAtTime(
+          (cycleDuration - ((currentFrame - firstKeyFrame) % cycleDuration) + firstKeyFrame) /
+            this.comp.globalData.frameRate,
+          0,
+        ); // eslint-disable-line
       }
     } else if (type === 'offset') {
-      var initV = this.getValueAtTime(firstKeyFrame / this.comp.globalData.frameRate, 0);
-      var endV = this.getValueAtTime(lastKeyFrame / this.comp.globalData.frameRate, 0);
-        var current = this.getValueAtTime(((currentFrame - firstKeyFrame) % cycleDuration + firstKeyFrame) / this.comp.globalData.frameRate, 0); // eslint-disable-line
-      var repeats = Math.floor((currentFrame - firstKeyFrame) / cycleDuration);
+      const initV = this.getValueAtTime(firstKeyFrame / this.comp.globalData.frameRate, 0);
+      const endV = this.getValueAtTime(lastKeyFrame / this.comp.globalData.frameRate, 0);
+      const current = this.getValueAtTime(
+        (((currentFrame - firstKeyFrame) % cycleDuration) + firstKeyFrame) / this.comp.globalData.frameRate,
+        0,
+      ); // eslint-disable-line
+      const repeats = Math.floor((currentFrame - firstKeyFrame) / cycleDuration);
       if (this.pv.length) {
         ret = new Array(initV.length);
         len = ret.length;
@@ -69,20 +69,25 @@ function addPropertyDecorator() {
       }
       return (endV - initV) * repeats + current;
     } else if (type === 'continue') {
-      var lastValue = this.getValueAtTime(lastKeyFrame / this.comp.globalData.frameRate, 0);
-      var nextLastValue = this.getValueAtTime((lastKeyFrame - 0.001) / this.comp.globalData.frameRate, 0);
+      const lastValue = this.getValueAtTime(lastKeyFrame / this.comp.globalData.frameRate, 0);
+      const nextLastValue = this.getValueAtTime((lastKeyFrame - 0.001) / this.comp.globalData.frameRate, 0);
       if (this.pv.length) {
         ret = new Array(lastValue.length);
         len = ret.length;
         for (i = 0; i < len; i += 1) {
-            ret[i] = lastValue[i] + (lastValue[i] - nextLastValue[i]) * ((currentFrame - lastKeyFrame) / this.comp.globalData.frameRate) / 0.0005; // eslint-disable-line
+          ret[i] =
+            lastValue[i] +
+            ((lastValue[i] - nextLastValue[i]) * ((currentFrame - lastKeyFrame) / this.comp.globalData.frameRate)) /
+              0.0005; // eslint-disable-line
         }
         return ret;
       }
-      return lastValue + (lastValue - nextLastValue) * (((currentFrame - lastKeyFrame)) / 0.001);
+      return lastValue + (lastValue - nextLastValue) * ((currentFrame - lastKeyFrame) / 0.001);
     }
-      return this.getValueAtTime((((currentFrame - firstKeyFrame) % cycleDuration + firstKeyFrame)) / this.comp.globalData.frameRate, 0); // eslint-disable-line
-
+    return this.getValueAtTime(
+      (((currentFrame - firstKeyFrame) % cycleDuration) + firstKeyFrame) / this.comp.globalData.frameRate,
+      0,
+    ); // eslint-disable-line
   }
 
   function loopIn(type, duration, durationFlag) {
@@ -90,14 +95,14 @@ function addPropertyDecorator() {
       return this.pv;
     }
     type = type ? type.toLowerCase() : '';
-    var currentFrame = this.comp.renderedFrame;
-    var keyframes = this.keyframes;
-    var firstKeyFrame = keyframes[0].t;
+    const currentFrame = this.comp.renderedFrame;
+    const keyframes = this.keyframes;
+    const firstKeyFrame = keyframes[0].t;
     if (currentFrame >= firstKeyFrame) {
       return this.pv;
     }
-    var cycleDuration;
-    var lastKeyFrame;
+    let cycleDuration;
+    let lastKeyFrame;
     if (!durationFlag) {
       if (!duration || duration > keyframes.length - 1) {
         duration = keyframes.length - 1;
@@ -112,19 +117,26 @@ function addPropertyDecorator() {
       }
       lastKeyFrame = firstKeyFrame + cycleDuration;
     }
-    var i;
-    var len;
-    var ret;
+    let i;
+    let len;
+    let ret;
     if (type === 'pingpong') {
-      var iterations = Math.floor((firstKeyFrame - currentFrame) / cycleDuration);
+      const iterations = Math.floor((firstKeyFrame - currentFrame) / cycleDuration);
       if (iterations % 2 === 0) {
-          return this.getValueAtTime((((firstKeyFrame - currentFrame) % cycleDuration + firstKeyFrame)) / this.comp.globalData.frameRate, 0); // eslint-disable-line
+        return this.getValueAtTime(
+          (((firstKeyFrame - currentFrame) % cycleDuration) + firstKeyFrame) / this.comp.globalData.frameRate,
+          0,
+        ); // eslint-disable-line
       }
     } else if (type === 'offset') {
-      var initV = this.getValueAtTime(firstKeyFrame / this.comp.globalData.frameRate, 0);
-      var endV = this.getValueAtTime(lastKeyFrame / this.comp.globalData.frameRate, 0);
-      var current = this.getValueAtTime((cycleDuration - ((firstKeyFrame - currentFrame) % cycleDuration) + firstKeyFrame) / this.comp.globalData.frameRate, 0);
-      var repeats = Math.floor((firstKeyFrame - currentFrame) / cycleDuration) + 1;
+      const initV = this.getValueAtTime(firstKeyFrame / this.comp.globalData.frameRate, 0);
+      const endV = this.getValueAtTime(lastKeyFrame / this.comp.globalData.frameRate, 0);
+      const current = this.getValueAtTime(
+        (cycleDuration - ((firstKeyFrame - currentFrame) % cycleDuration) + firstKeyFrame) /
+          this.comp.globalData.frameRate,
+        0,
+      );
+      const repeats = Math.floor((firstKeyFrame - currentFrame) / cycleDuration) + 1;
       if (this.pv.length) {
         ret = new Array(initV.length);
         len = ret.length;
@@ -135,8 +147,8 @@ function addPropertyDecorator() {
       }
       return current - (endV - initV) * repeats;
     } else if (type === 'continue') {
-      var firstValue = this.getValueAtTime(firstKeyFrame / this.comp.globalData.frameRate, 0);
-      var nextFirstValue = this.getValueAtTime((firstKeyFrame + 0.001) / this.comp.globalData.frameRate, 0);
+      const firstValue = this.getValueAtTime(firstKeyFrame / this.comp.globalData.frameRate, 0);
+      const nextFirstValue = this.getValueAtTime((firstKeyFrame + 0.001) / this.comp.globalData.frameRate, 0);
       if (this.pv.length) {
         ret = new Array(firstValue.length);
         len = ret.length;
@@ -147,8 +159,11 @@ function addPropertyDecorator() {
       }
       return firstValue + ((firstValue - nextFirstValue) * (firstKeyFrame - currentFrame)) / 0.001;
     }
-      return this.getValueAtTime(((cycleDuration - ((firstKeyFrame - currentFrame) % cycleDuration + firstKeyFrame))) / this.comp.globalData.frameRate, 0); // eslint-disable-line
-
+    return this.getValueAtTime(
+      (cycleDuration - (((firstKeyFrame - currentFrame) % cycleDuration) + firstKeyFrame)) /
+        this.comp.globalData.frameRate,
+      0,
+    ); // eslint-disable-line
   }
 
   function smooth(width, samples) {
@@ -160,19 +175,19 @@ function addPropertyDecorator() {
     if (samples <= 1) {
       return this.pv;
     }
-    var currentTime = this.comp.renderedFrame / this.comp.globalData.frameRate;
-    var initFrame = currentTime - width;
-    var endFrame = currentTime + width;
-    var sampleFrequency = samples > 1 ? (endFrame - initFrame) / (samples - 1) : 1;
-    var i = 0;
-    var j = 0;
-    var value;
+    const currentTime = this.comp.renderedFrame / this.comp.globalData.frameRate;
+    const initFrame = currentTime - width;
+    const endFrame = currentTime + width;
+    const sampleFrequency = samples > 1 ? (endFrame - initFrame) / (samples - 1) : 1;
+    let i = 0;
+    let j = 0;
+    let value;
     if (this.pv.length) {
       value = createTypedArray('float32', this.pv.length);
     } else {
       value = 0;
     }
-    var sampleValue;
+    let sampleValue;
     while (i < samples) {
       sampleValue = this.getValueAtTime(initFrame + i * sampleFrequency);
       if (this.pv.length) {
@@ -201,38 +216,31 @@ function addPropertyDecorator() {
       };
     }
     /// /
-    var matrix = this._transformCachingAtTime.v;
+    const matrix = this._transformCachingAtTime.v;
     matrix.cloneFromProps(this.pre.props);
     if (this.appliedTransformations < 1) {
-      var anchor = this.a.getValueAtTime(time);
-      matrix.translate(
-        -anchor[0] * this.a.mult,
-        -anchor[1] * this.a.mult,
-        anchor[2] * this.a.mult
-      );
+      const anchor = this.a.getValueAtTime(time);
+      matrix.translate(-anchor[0] * this.a.mult, -anchor[1] * this.a.mult, anchor[2] * this.a.mult);
     }
     if (this.appliedTransformations < 2) {
-      var scale = this.s.getValueAtTime(time);
-      matrix.scale(
-        scale[0] * this.s.mult,
-        scale[1] * this.s.mult,
-        scale[2] * this.s.mult
-      );
+      const scale = this.s.getValueAtTime(time);
+      matrix.scale(scale[0] * this.s.mult, scale[1] * this.s.mult, scale[2] * this.s.mult);
     }
     if (this.sk && this.appliedTransformations < 3) {
-      var skew = this.sk.getValueAtTime(time);
-      var skewAxis = this.sa.getValueAtTime(time);
+      const skew = this.sk.getValueAtTime(time);
+      const skewAxis = this.sa.getValueAtTime(time);
       matrix.skewFromAxis(-skew * this.sk.mult, skewAxis * this.sa.mult);
     }
     if (this.r && this.appliedTransformations < 4) {
-      var rotation = this.r.getValueAtTime(time);
+      const rotation = this.r.getValueAtTime(time);
       matrix.rotate(-rotation * this.r.mult);
     } else if (!this.r && this.appliedTransformations < 4) {
-      var rotationZ = this.rz.getValueAtTime(time);
-      var rotationY = this.ry.getValueAtTime(time);
-      var rotationX = this.rx.getValueAtTime(time);
-      var orientation = this.or.getValueAtTime(time);
-      matrix.rotateZ(-rotationZ * this.rz.mult)
+      const rotationZ = this.rz.getValueAtTime(time);
+      const rotationY = this.ry.getValueAtTime(time);
+      const rotationX = this.rx.getValueAtTime(time);
+      const orientation = this.or.getValueAtTime(time);
+      matrix
+        .rotateZ(-rotationZ * this.rz.mult)
         .rotateY(rotationY * this.ry.mult)
         .rotateX(rotationX * this.rx.mult)
         .rotateZ(-orientation[2] * this.or.mult)
@@ -240,25 +248,17 @@ function addPropertyDecorator() {
         .rotateX(orientation[0] * this.or.mult);
     }
     if (this.data.p && this.data.p.s) {
-      var positionX = this.px.getValueAtTime(time);
-      var positionY = this.py.getValueAtTime(time);
+      const positionX = this.px.getValueAtTime(time);
+      const positionY = this.py.getValueAtTime(time);
       if (this.data.p.z) {
-        var positionZ = this.pz.getValueAtTime(time);
-        matrix.translate(
-          positionX * this.px.mult,
-          positionY * this.py.mult,
-          -positionZ * this.pz.mult
-        );
+        const positionZ = this.pz.getValueAtTime(time);
+        matrix.translate(positionX * this.px.mult, positionY * this.py.mult, -positionZ * this.pz.mult);
       } else {
         matrix.translate(positionX * this.px.mult, positionY * this.py.mult, 0);
       }
     } else {
-      var position = this.p.getValueAtTime(time);
-      matrix.translate(
-        position[0] * this.p.mult,
-        position[1] * this.p.mult,
-        -position[2] * this.p.mult
-      );
+      const position = this.p.getValueAtTime(time);
+      matrix.translate(position[0] * this.p.mult, position[1] * this.p.mult, -position[2] * this.p.mult);
     }
     return matrix;
     /// /
@@ -268,9 +268,9 @@ function addPropertyDecorator() {
     return this.v.clone(new Matrix());
   }
 
-  var getTransformProperty = TransformPropertyFactory.getTransformProperty;
+  const getTransformProperty = TransformPropertyFactory.getTransformProperty;
   TransformPropertyFactory.getTransformProperty = function (elem, data, container) {
-    var prop = getTransformProperty(elem, data, container);
+    const prop = getTransformProperty(elem, data, container);
     if (prop.dynamicProperties.length) {
       prop.getValueAtTime = getTransformValueAtTime.bind(prop);
     } else {
@@ -280,9 +280,9 @@ function addPropertyDecorator() {
     return prop;
   };
 
-  var propertyGetProp = PropertyFactory.getProp;
+  const propertyGetProp = PropertyFactory.getProp;
   PropertyFactory.getProp = function (elem, data, type, mult, container) {
-    var prop = propertyGetProp(elem, data, type, mult, container);
+    const prop = propertyGetProp(elem, data, type, mult, container);
     // prop.getVelocityAtTime = getVelocityAtTime;
     // prop.loopOut = loopOut;
     // prop.loopIn = loopIn;
@@ -299,7 +299,7 @@ function addPropertyDecorator() {
     prop.getSpeedAtTime = expressionHelpers.getSpeedAtTime.bind(prop);
     prop.numKeys = data.a === 1 ? data.k.length : 0;
     prop.propertyIndex = data.ix;
-    var value = 0;
+    let value = 0;
     if (type !== 0) {
       value = createTypedArray('float32', data.a === 1 ? data.k[0].s.length : data.k.length);
     }
@@ -336,8 +336,8 @@ function addPropertyDecorator() {
     return this._cachingAtTime.shapeValue;
   }
 
-  var ShapePropertyConstructorFunction = ShapePropertyFactory.getConstructorFunction();
-  var KeyframedShapePropertyConstructorFunction = ShapePropertyFactory.getKeyframedConstructorFunction();
+  const ShapePropertyConstructorFunction = ShapePropertyFactory.getConstructorFunction();
+  const KeyframedShapePropertyConstructorFunction = ShapePropertyFactory.getKeyframedConstructorFunction();
 
   function ShapeExpressions() {}
   ShapeExpressions.prototype = {
@@ -345,15 +345,15 @@ function addPropertyDecorator() {
       if (this.k) {
         this.getValue();
       }
-      var shapePath = this.v;
+      let shapePath = this.v;
       if (time !== undefined) {
         shapePath = this.getValueAtTime(time, 0);
       }
-      var i;
-      var len = shapePath._length;
-      var vertices = shapePath[prop];
-      var points = shapePath.v;
-      var arr = createSizedArray(len);
+      let i;
+      const len = shapePath._length;
+      const vertices = shapePath[prop];
+      const points = shapePath.v;
+      const arr = createSizedArray(len);
       for (i = 0; i < len; i += 1) {
         if (prop === 'i' || prop === 'o') {
           arr[i] = [vertices[i][0] - points[i][0], vertices[i][1] - points[i][1]];
@@ -376,7 +376,7 @@ function addPropertyDecorator() {
       return this.v.c;
     },
     pointOnPath: function (perc, time) {
-      var shapePath = this.v;
+      let shapePath = this.v;
       if (time !== undefined) {
         shapePath = this.getValueAtTime(time, 0);
       }
@@ -384,19 +384,26 @@ function addPropertyDecorator() {
         this._segmentsLength = bez.getSegmentsLength(shapePath);
       }
 
-      var segmentsLength = this._segmentsLength;
-      var lengths = segmentsLength.lengths;
-      var lengthPos = segmentsLength.totalLength * perc;
-      var i = 0;
-      var len = lengths.length;
-      var accumulatedLength = 0;
-      var pt;
+      const segmentsLength = this._segmentsLength;
+      const lengths = segmentsLength.lengths;
+      const lengthPos = segmentsLength.totalLength * perc;
+      let i = 0;
+      const len = lengths.length;
+      let accumulatedLength = 0;
+      let pt;
       while (i < len) {
         if (accumulatedLength + lengths[i].addedLength > lengthPos) {
-          var initIndex = i;
-          var endIndex = (shapePath.c && i === len - 1) ? 0 : i + 1;
-          var segmentPerc = (lengthPos - accumulatedLength) / lengths[i].addedLength;
-          pt = bez.getPointInSegment(shapePath.v[initIndex], shapePath.v[endIndex], shapePath.o[initIndex], shapePath.i[endIndex], segmentPerc, lengths[i]);
+          const initIndex = i;
+          const endIndex = shapePath.c && i === len - 1 ? 0 : i + 1;
+          const segmentPerc = (lengthPos - accumulatedLength) / lengths[i].addedLength;
+          pt = bez.getPointInSegment(
+            shapePath.v[initIndex],
+            shapePath.v[endIndex],
+            shapePath.o[initIndex],
+            shapePath.i[endIndex],
+            segmentPerc,
+            lengths[i],
+          );
           break;
         } else {
           accumulatedLength += lengths[i].addedLength;
@@ -404,26 +411,33 @@ function addPropertyDecorator() {
         i += 1;
       }
       if (!pt) {
-        pt = shapePath.c ? [shapePath.v[0][0], shapePath.v[0][1]] : [shapePath.v[shapePath._length - 1][0], shapePath.v[shapePath._length - 1][1]];
+        pt = shapePath.c
+          ? [shapePath.v[0][0], shapePath.v[0][1]]
+          : [shapePath.v[shapePath._length - 1][0], shapePath.v[shapePath._length - 1][1]];
       }
       return pt;
     },
     vectorOnPath: function (perc, time, vectorType) {
       // perc doesn't use triple equality because it can be a Number object as well as a primitive.
-      if (perc == 1) { // eslint-disable-line eqeqeq
+      if (perc == 1) {
+        // eslint-disable-line eqeqeq
         perc = this.v.c;
-      } else if (perc == 0) { // eslint-disable-line eqeqeq
+      } else if (perc == 0) {
+        // eslint-disable-line eqeqeq
         perc = 0.999;
       }
-      var pt1 = this.pointOnPath(perc, time);
-      var pt2 = this.pointOnPath(perc + 0.001, time);
-      var xLength = pt2[0] - pt1[0];
-      var yLength = pt2[1] - pt1[1];
-      var magnitude = Math.sqrt(Math.pow(xLength, 2) + Math.pow(yLength, 2));
+      const pt1 = this.pointOnPath(perc, time);
+      const pt2 = this.pointOnPath(perc + 0.001, time);
+      const xLength = pt2[0] - pt1[0];
+      const yLength = pt2[1] - pt1[1];
+      const magnitude = Math.sqrt(Math.pow(xLength, 2) + Math.pow(yLength, 2));
       if (magnitude === 0) {
         return [0, 0];
       }
-      var unitVector = vectorType === 'tangent' ? [xLength / magnitude, yLength / magnitude] : [-yLength / magnitude, xLength / magnitude];
+      const unitVector =
+        vectorType === 'tangent'
+          ? [xLength / magnitude, yLength / magnitude]
+          : [-yLength / magnitude, xLength / magnitude];
       return unitVector;
     },
     tangentOnPath: function (perc, time) {
@@ -440,9 +454,9 @@ function addPropertyDecorator() {
   KeyframedShapePropertyConstructorFunction.prototype.getValueAtTime = getShapeValueAtTime;
   KeyframedShapePropertyConstructorFunction.prototype.initiateExpression = ExpressionManager.initiateExpression;
 
-  var propertyGetShapeProp = ShapePropertyFactory.getShapeProp;
+  const propertyGetShapeProp = ShapePropertyFactory.getShapeProp;
   ShapePropertyFactory.getShapeProp = function (elem, data, type, arr, trims) {
-    var prop = propertyGetShapeProp(elem, data, type, arr, trims);
+    const prop = propertyGetShapeProp(elem, data, type, arr, trims);
     prop.propertyIndex = data.ix;
     prop.lock = false;
     if (type === 3) {

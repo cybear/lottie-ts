@@ -1,7 +1,7 @@
 // @ts-nocheck
 const PropertyInterface = (function () {
   return function (propertyName, propertyGroup) {
-    var interfaceFunction = {
+    const interfaceFunction = {
       _name: propertyName,
     };
 
@@ -15,6 +15,6 @@ const PropertyInterface = (function () {
 
     return _propertyGroup;
   };
-}());
+})();
 
 export default PropertyInterface;

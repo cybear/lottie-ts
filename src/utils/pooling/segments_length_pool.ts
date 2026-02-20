@@ -30,6 +30,6 @@ const segmentsLengthPool = (function () {
   }
 
   return poolFactory(8, create, release);
-}());
+})();
 
 export default segmentsLengthPool;

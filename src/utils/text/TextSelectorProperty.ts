@@ -1,15 +1,13 @@
 // @ts-nocheck
-import {
-  extendPrototype,
-} from '../functionExtensions';
+import { extendPrototype } from '../functionExtensions';
 import DynamicPropertyContainer from '../helpers/dynamicProperties';
 import PropertyFactory from '../PropertyFactory';
 import BezierFactory from '../../3rd_party/BezierEaser';
 
 const TextSelectorProp = (function () {
-  var max = Math.max;
-  var min = Math.min;
-  var floor = Math.floor;
+  const max = Math.max;
+  const min = Math.min;
+  const floor = Math.floor;
 
   function TextSelectorPropFactory(elem, data) {
     this._currentTextLength = -1;
@@ -41,10 +39,10 @@ const TextSelectorProp = (function () {
       if (this._currentTextLength !== this.elem.textProperty.currentData.l.length) {
         this.getValue();
       }
-      var x1 = 0;
-      var y1 = 0;
-      var x2 = 1;
-      var y2 = 1;
+      let x1 = 0;
+      let y1 = 0;
+      let x2 = 1;
+      let y2 = 1;
       if (this.ne.v > 0) {
         x1 = this.ne.v / 100.0;
       } else {
@@ -55,12 +53,12 @@ const TextSelectorProp = (function () {
       } else {
         y2 = 1.0 + this.xe.v / 100.0;
       }
-      var easer = BezierFactory.getBezierEasing(x1, y1, x2, y2).get;
+      const easer = BezierFactory.getBezierEasing(x1, y1, x2, y2).get;
 
-      var mult = 0;
-      var s = this.finalS;
-      var e = this.finalE;
-      var type = this.data.sh;
+      let mult = 0;
+      const s = this.finalS;
+      const e = this.finalE;
+      const type = this.data.sh;
       if (type === 2) {
         if (e === s) {
           mult = ind >= e ? 1 : 0;
@@ -92,12 +90,12 @@ const TextSelectorProp = (function () {
         if (e === s) {
           mult = 0;
         } else {
-          var tot = e - s;
+          const tot = e - s;
           /* ind += 0.5;
                     mult = -4/(tot*tot)*(ind*ind)+(4/tot)*ind; */
           ind = min(max(0, ind + 0.5 - s), e - s);
-          var x = -tot / 2 + ind;
-          var a = tot / 2;
+          const x = -tot / 2 + ind;
+          const a = tot / 2;
           mult = Math.sqrt(1 - (x * x) / (a * a));
         }
         mult = easer(mult);
@@ -106,7 +104,7 @@ const TextSelectorProp = (function () {
           mult = 0;
         } else {
           ind = min(max(0, ind + 0.5 - s), e - s);
-          mult = (1 + (Math.cos((Math.PI + Math.PI * 2 * (ind) / (e - s))))) / 2; // eslint-disable-line
+          mult = (1 + Math.cos(Math.PI + (Math.PI * 2 * ind) / (e - s))) / 2; // eslint-disable-line
         }
         mult = easer(mult);
       } else {
@@ -130,11 +128,11 @@ const TextSelectorProp = (function () {
       //     - divide it by the smoothness (this will return the range to [0; 1])
       // Note: If it doesn't work on some scenarios, consider applying it before the easer.
       if (this.sm.v !== 100) {
-        var smoothness = this.sm.v * 0.01;
+        let smoothness = this.sm.v * 0.01;
         if (smoothness === 0) {
           smoothness = 0.00000001;
         }
-        var threshold = 0.5 - smoothness * 0.5;
+        const threshold = 0.5 - smoothness * 0.5;
         if (mult < threshold) {
           mult = 0;
         } else {
@@ -153,12 +151,12 @@ const TextSelectorProp = (function () {
       if (newCharsFlag && this.data.r === 2) {
         this.e.v = this._currentTextLength;
       }
-      var divisor = this.data.r === 2 ? 1 : 100 / this.data.totalChars;
-      var o = this.o.v / divisor;
-      var s = this.s.v / divisor + o;
-      var e = (this.e.v / divisor) + o;
+      const divisor = this.data.r === 2 ? 1 : 100 / this.data.totalChars;
+      const o = this.o.v / divisor;
+      let s = this.s.v / divisor + o;
+      let e = this.e.v / divisor + o;
       if (s > e) {
-        var _s = s;
+        const _s = s;
         s = e;
         e = _s;
       }
@@ -175,6 +173,6 @@ const TextSelectorProp = (function () {
   return {
     getTextSelectorProp: getTextSelectorProp,
   };
-}());
+})();
 
 export default TextSelectorProp;

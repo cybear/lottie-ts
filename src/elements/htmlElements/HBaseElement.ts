@@ -1,7 +1,5 @@
 // @ts-nocheck
-import {
-  styleDiv,
-} from '../../utils/common';
+import { styleDiv } from '../../utils/common';
 import createNS from '../../utils/helpers/svg_elements';
 import createTag from '../../utils/helpers/html_elements';
 import BaseRenderer from '../../renderers/BaseRenderer';
@@ -40,9 +38,9 @@ HBaseElement.prototype = {
     }
   },
   renderElement: function () {
-    var transformedElementStyle = this.transformedElement ? this.transformedElement.style : {};
+    const transformedElementStyle = this.transformedElement ? this.transformedElement.style : {};
     if (this.finalTransform._matMdf) {
-      var matrixValue = this.finalTransform.mat.toCSS();
+      const matrixValue = this.finalTransform.mat.toCSS();
       transformedElementStyle.transform = matrixValue;
       transformedElementStyle.webkitTransform = matrixValue;
     }
@@ -78,8 +76,7 @@ HBaseElement.prototype = {
   createRenderableComponents: function () {
     this.maskManager = new MaskElement(this.data, this, this.globalData);
   },
-  addEffects: function () {
-  },
+  addEffects: function () {},
   setMatte: function () {},
 };
 HBaseElement.prototype.getBaseElement = SVGBaseElement.prototype.getBaseElement;

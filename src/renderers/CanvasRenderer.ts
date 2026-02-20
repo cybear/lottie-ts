@@ -1,7 +1,5 @@
 // @ts-nocheck
-import {
-  extendPrototype,
-} from '../utils/functionExtensions';
+import { extendPrototype } from '../utils/functionExtensions';
 import Matrix from '../3rd_party/transformation-matrix';
 import CanvasRendererBase from './CanvasRendererBase';
 import CVContextData from '../elements/canvasElements/CVContextData';
@@ -10,7 +8,7 @@ import CVCompElement from '../elements/canvasElements/CVCompElement';
 function CanvasRenderer(animationItem, config) {
   this.animationItem = animationItem;
   this.renderConfig = {
-    clearCanvas: (config && config.clearCanvas !== undefined) ? config.clearCanvas : true,
+    clearCanvas: config && config.clearCanvas !== undefined ? config.clearCanvas : true,
     context: (config && config.context) || null,
     progressiveLoad: (config && config.progressiveLoad) || false,
     preserveAspectRatio: (config && config.preserveAspectRatio) || 'xMidYMid meet',

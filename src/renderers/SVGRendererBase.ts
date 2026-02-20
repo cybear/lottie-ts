@@ -1,25 +1,17 @@
 // @ts-nocheck
 import { getLocationHref } from '../main';
-import {
-  createElementID,
-  getExpressionsPlugin,
-} from '../utils/common';
-import {
-  extendPrototype,
-} from '../utils/functionExtensions';
-import {
-  createSizedArray,
-} from '../utils/helpers/arrays';
+import { createElementID, getExpressionsPlugin } from '../utils/common';
+import { extendPrototype } from '../utils/functionExtensions';
+import { createSizedArray } from '../utils/helpers/arrays';
 import createNS from '../utils/helpers/svg_elements';
 import BaseRenderer from './BaseRenderer';
 import IImageElement from '../elements/ImageElement';
 import SVGShapeElement from '../elements/svgElements/SVGShapeElement';
-import SVGTextLottieElement from '../elements/svgElements/SVGTextElement'; // eslint-disable-line import/no-cycle
+import SVGTextLottieElement from '../elements/svgElements/SVGTextElement';
 import ISolidElement from '../elements/SolidElement';
 import NullElement from '../elements/NullElement';
 
-function SVGRendererBase() {
-}
+function SVGRendererBase() {}
 
 extendPrototype([BaseRenderer], SVGRendererBase);
 
@@ -80,19 +72,19 @@ SVGRendererBase.prototype.configAnimation = function (animData) {
   // this.layerElement.style.transformOrigin = this.layerElement.style.mozTransformOrigin = this.layerElement.style.webkitTransformOrigin = this.layerElement.style['-webkit-transform'] = "0px 0px 0px";
   this.animationItem.wrapper.appendChild(this.svgElement);
   // Mask animation
-  var defs = this.globalData.defs;
+  const defs = this.globalData.defs;
 
   this.setupGlobalData(animData, defs);
   this.globalData.progressiveLoad = this.renderConfig.progressiveLoad;
   this.data = animData;
 
-  var maskElement = createNS('clipPath');
-  var rect = createNS('rect');
+  const maskElement = createNS('clipPath');
+  const rect = createNS('rect');
   rect.setAttribute('width', animData.w);
   rect.setAttribute('height', animData.h);
   rect.setAttribute('x', 0);
   rect.setAttribute('y', 0);
-  var maskId = createElementID();
+  const maskId = createElementID();
   maskElement.setAttribute('id', maskId);
   maskElement.appendChild(rect);
   this.layerElement.setAttribute('clip-path', 'url(' + getLocationHref() + '#' + maskId + ')');
@@ -108,8 +100,8 @@ SVGRendererBase.prototype.destroy = function () {
   }
   this.layerElement = null;
   this.globalData.defs = null;
-  var i;
-  var len = this.layers ? this.layers.length : 0;
+  let i;
+  const len = this.layers ? this.layers.length : 0;
   for (i = 0; i < len; i += 1) {
     if (this.elements[i] && this.elements[i].destroy) {
       this.elements[i].destroy();
@@ -120,12 +112,11 @@ SVGRendererBase.prototype.destroy = function () {
   this.animationItem = null;
 };
 
-SVGRendererBase.prototype.updateContainerSize = function () {
-};
+SVGRendererBase.prototype.updateContainerSize = function () {};
 
 SVGRendererBase.prototype.findIndexByInd = function (ind) {
-  var i = 0;
-  var len = this.layers.length;
+  let i = 0;
+  const len = this.layers.length;
   for (i = 0; i < len; i += 1) {
     if (this.layers[i].ind === ind) {
       return i;
@@ -135,12 +126,12 @@ SVGRendererBase.prototype.findIndexByInd = function (ind) {
 };
 
 SVGRendererBase.prototype.buildItem = function (pos) {
-  var elements = this.elements;
+  const elements = this.elements;
   if (elements[pos] || this.layers[pos].ty === 99) {
     return;
   }
   elements[pos] = true;
-  var element = this.createItem(this.layers[pos]);
+  const element = this.createItem(this.layers[pos]);
 
   elements[pos] = element;
   if (getExpressionsPlugin()) {
@@ -151,9 +142,7 @@ SVGRendererBase.prototype.buildItem = function (pos) {
   }
   this.appendElementInPos(element, pos);
   if (this.layers[pos].tt) {
-    var elementIndex = ('tp' in this.layers[pos])
-      ? this.findIndexByInd(this.layers[pos].tp)
-      : pos - 1;
+    const elementIndex = 'tp' in this.layers[pos] ? this.findIndexByInd(this.layers[pos].tp) : pos - 1;
     if (elementIndex === -1) {
       return;
     }
@@ -161,8 +150,8 @@ SVGRendererBase.prototype.buildItem = function (pos) {
       this.buildItem(elementIndex);
       this.addPendingElement(element);
     } else {
-      var matteElement = elements[elementIndex];
-      var matteMask = matteElement.getMatte(this.layers[pos].tt);
+      const matteElement = elements[elementIndex];
+      const matteMask = matteElement.getMatte(this.layers[pos].tt);
       element.setMatte(matteMask);
     }
   }
@@ -170,18 +159,16 @@ SVGRendererBase.prototype.buildItem = function (pos) {
 
 SVGRendererBase.prototype.checkPendingElements = function () {
   while (this.pendingElements.length) {
-    var element = this.pendingElements.pop();
+    const element = this.pendingElements.pop();
     element.checkParenting();
     if (element.data.tt) {
-      var i = 0;
-      var len = this.elements.length;
+      let i = 0;
+      const len = this.elements.length;
       while (i < len) {
         if (this.elements[i] === element) {
-          var elementIndex = 'tp' in element.data
-            ? this.findIndexByInd(element.data.tp)
-            : i - 1;
-          var matteElement = this.elements[elementIndex];
-          var matteMask = matteElement.getMatte(this.layers[i].tt);
+          const elementIndex = 'tp' in element.data ? this.findIndexByInd(element.data.tp) : i - 1;
+          const matteElement = this.elements[elementIndex];
+          const matteMask = matteElement.getMatte(this.layers[i].tt);
           element.setMatte(matteMask);
           break;
         }
@@ -206,8 +193,8 @@ SVGRendererBase.prototype.renderFrame = function (num) {
   this.globalData.frameId += 1;
   this.globalData.projectInterface.currentFrame = num;
   this.globalData._mdf = false;
-  var i;
-  var len = this.layers.length;
+  let i;
+  const len = this.layers.length;
   if (!this.completeLayers) {
     this.checkLayers(num);
   }
@@ -226,12 +213,12 @@ SVGRendererBase.prototype.renderFrame = function (num) {
 };
 
 SVGRendererBase.prototype.appendElementInPos = function (element, pos) {
-  var newElement = element.getBaseElement();
+  const newElement = element.getBaseElement();
   if (!newElement) {
     return;
   }
-  var i = 0;
-  var nextElement;
+  let i = 0;
+  let nextElement;
   while (i < pos) {
     if (this.elements[i] && this.elements[i] !== true && this.elements[i].getBaseElement()) {
       nextElement = this.elements[i].getBaseElement();

@@ -1,7 +1,5 @@
 // @ts-nocheck
-import {
-  extendPrototype,
-} from '../utils/functionExtensions';
+import { extendPrototype } from '../utils/functionExtensions';
 import HybridRendererBase from './HybridRendererBase';
 import HCompElement from '../elements/htmlElements/HCompElement';
 import SVGCompElement from '../elements/svgElements/SVGCompElement';

@@ -1,9 +1,6 @@
 // @ts-nocheck
 import lottie from './main';
-import {
-  setExpressionsPlugin,
-  setExpressionInterfaces,
-} from '../utils/common';
+import { setExpressionsPlugin, setExpressionInterfaces } from '../utils/common';
 import { ShapeModifiers } from '../utils/shapes/ShapeModifiers';
 import TrimModifier from '../utils/shapes/TrimModifier';
 import PuckerAndBloatModifier from '../utils/shapes/PuckerAndBloatModifier';
@@ -14,9 +11,7 @@ import OffsetPathModifier from '../utils/shapes/OffsetPathModifier';
 import CanvasRenderer from '../renderers/CanvasRenderer';
 import HybridRenderer from '../renderers/HybridRenderer';
 import SVGRenderer from '../renderers/SVGRenderer';
-import {
-  registerRenderer,
-} from '../renderers/renderersManager';
+import { registerRenderer } from '../renderers/renderersManager';
 import Expressions from '../utils/expressions/Expressions';
 import interfacesProvider from '../utils/expressions/InterfacesProvider';
 import expressionPropertyDecorator from '../utils/expressions/ExpressionPropertyDecorator';

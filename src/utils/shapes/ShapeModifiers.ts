@@ -1,16 +1,12 @@
 // @ts-nocheck
-import {
-  extendPrototype,
-} from '../functionExtensions';
+import { extendPrototype } from '../functionExtensions';
 import DynamicPropertyContainer from '../helpers/dynamicProperties';
-import {
-  initialDefaultFrame,
-} from '../../main';
+import { initialDefaultFrame } from '../../main';
 import shapeCollectionPool from '../pooling/shapeCollection_pool';
 
 const ShapeModifiers = (function () {
-  var ob = {};
-  var modifiers = {};
+  const ob = {};
+  const modifiers = {};
   ob.registerModifier = registerModifier;
   ob.getModifier = getModifier;
 
@@ -25,7 +21,7 @@ const ShapeModifiers = (function () {
   }
 
   return ob;
-}());
+})();
 
 function ShapeModifier() {}
 ShapeModifier.prototype.initModifierProperties = function () {};
@@ -34,7 +30,7 @@ ShapeModifier.prototype.addShape = function (data) {
   if (!this.closed) {
     // Adding shape to dynamic properties. It covers the case where a shape has no effects applied, to reset it's _mdf state on every tick.
     data.sh.container.addDynamicProperty(data.sh);
-    var shapeData = { shape: data.sh, data: data, localShapeCollection: shapeCollectionPool.newShapeCollection() };
+    const shapeData = { shape: data.sh, data: data, localShapeCollection: shapeCollectionPool.newShapeCollection() };
     this.shapes.push(shapeData);
     this.addShapeToModifier(shapeData);
     if (this._isAnimated) {
@@ -66,7 +62,4 @@ ShapeModifier.prototype.processKeys = function () {
 
 extendPrototype([DynamicPropertyContainer], ShapeModifier);
 
-export {
-  ShapeModifiers,
-  ShapeModifier,
-};
+export { ShapeModifiers, ShapeModifier };

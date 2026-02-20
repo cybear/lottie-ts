@@ -6,10 +6,9 @@ import CVEffects from './CVEffects';
 import CVMaskElement from './CVMaskElement';
 import effectTypes from '../../utils/helpers/effectTypes';
 
-function CVBaseElement() {
-}
+function CVBaseElement() {}
 
-var operationsMap = {
+const operationsMap = {
   1: 'source-in',
   2: 'source-out',
   3: 'source-in',
@@ -27,10 +26,10 @@ CVBaseElement.prototype = {
     // It might be challenging because the layer most likely is transformed in some way
     if (this.data.tt >= 1) {
       this.buffers = [];
-      var canvasContext = this.globalData.canvasContext;
-      var bufferCanvas = assetManager.createCanvas(canvasContext.canvas.width, canvasContext.canvas.height);
+      const canvasContext = this.globalData.canvasContext;
+      const bufferCanvas = assetManager.createCanvas(canvasContext.canvas.width, canvasContext.canvas.height);
       this.buffers.push(bufferCanvas);
-      var bufferCanvas2 = assetManager.createCanvas(canvasContext.canvas.width, canvasContext.canvas.height);
+      const bufferCanvas2 = assetManager.createCanvas(canvasContext.canvas.width, canvasContext.canvas.height);
       this.buffers.push(bufferCanvas2);
       if (this.data.tt >= 3 && !document._isProxy) {
         assetManager.loadLumaCanvas();
@@ -43,10 +42,10 @@ CVBaseElement.prototype = {
   },
   createContent: function () {},
   setBlendMode: function () {
-    var globalData = this.globalData;
+    const globalData = this.globalData;
     if (globalData.blendMode !== this.data.bm) {
       globalData.blendMode = this.data.bm;
-      var blendModeValue = getBlendMode(this.data.bm);
+      const blendModeValue = getBlendMode(this.data.bm);
       globalData.canvasContext.globalCompositeOperation = blendModeValue;
     }
   },
@@ -71,13 +70,13 @@ CVBaseElement.prototype = {
       this.transformCanvas.tx,
       this.transformCanvas.ty,
       this.transformCanvas.w * this.transformCanvas.sx,
-      this.transformCanvas.h * this.transformCanvas.sy
+      this.transformCanvas.h * this.transformCanvas.sy,
     );
   },
   prepareLayer: function () {
     if (this.data.tt >= 1) {
-      var buffer = this.buffers[0];
-      var bufferCtx = buffer.getContext('2d');
+      const buffer = this.buffers[0];
+      const bufferCtx = buffer.getContext('2d');
       this.clearCanvas(bufferCtx);
       // on the first buffer we store the current state of the global drawing
       bufferCtx.drawImage(this.canvasContext.canvas, 0, 0);
@@ -91,11 +90,11 @@ CVBaseElement.prototype = {
   },
   exitLayer: function () {
     if (this.data.tt >= 1) {
-      var buffer = this.buffers[1];
+      const buffer = this.buffers[1];
       // On the second buffer we store the current state of the global drawing
       // that only contains the content of this layer
       // (if it is a composition, it also includes the nested layers)
-      var bufferCtx = buffer.getContext('2d');
+      const bufferCtx = buffer.getContext('2d');
       this.clearCanvas(bufferCtx);
       bufferCtx.drawImage(this.canvasContext.canvas, 0, 0);
       // We clear the canvas again
@@ -113,8 +112,8 @@ CVBaseElement.prototype = {
       if (this.data.tt >= 3 && !document._isProxy) {
         // We copy the painted mask to a buffer that has a color matrix filter applied to it
         // that applies the rgb values to the alpha channel
-        var lumaBuffer = assetManager.getLumaCanvas(this.canvasContext.canvas);
-        var lumaBufferCtx = lumaBuffer.getContext('2d');
+        const lumaBuffer = assetManager.getLumaCanvas(this.canvasContext.canvas);
+        const lumaBufferCtx = lumaBuffer.getContext('2d');
         lumaBufferCtx.drawImage(this.canvasContext.canvas, 0, 0);
         this.clearCanvas(this.canvasContext);
         // we repaint the context with the mask applied to it
@@ -142,7 +141,7 @@ CVBaseElement.prototype = {
     this.renderRenderable();
     this.renderLocalTransform();
     this.setBlendMode();
-    var forceRealStack = this.data.ty === 0;
+    const forceRealStack = this.data.ty === 0;
     this.prepareLayer();
     this.globalData.renderer.save(forceRealStack);
     this.globalData.renderer.ctxTransform(this.finalTransform.localMat.props);

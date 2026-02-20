@@ -19,13 +19,25 @@ interface PolynomialBezierInstance {
 }
 
 interface BoundingBox {
-  left: number; right: number; top: number; bottom: number;
-  width: number; height: number; cx: number; cy: number;
+  left: number;
+  right: number;
+  top: number;
+  bottom: number;
+  width: number;
+  height: number;
+  cx: number;
+  cy: number;
 }
 
 interface IntersectData {
-  cx: number; cy: number; width: number; height: number;
-  bez: PolynomialBezierInstance; t: number; t1: number; t2: number;
+  cx: number;
+  cy: number;
+  width: number;
+  height: number;
+  bez: PolynomialBezierInstance;
+  t: number;
+  t1: number;
+  t2: number;
 }
 
 function floatEqual(a: number, b: number): boolean {
@@ -55,12 +67,7 @@ function quadRoots(a: number, b: number, c: number): number[] {
 }
 
 function polynomialCoefficients(p0: number, p1: number, p2: number, p3: number): [number, number, number, number] {
-  return [
-    -p0 + 3 * p1 - 3 * p2 + p3,
-    3 * p0 - 6 * p1 + 3 * p2,
-    -3 * p0 + 3 * p1,
-    p0,
-  ];
+  return [-p0 + 3 * p1 - 3 * p2 + p3, 3 * p0 - 6 * p1 + 3 * p2, -3 * p0 + 3 * p1, p0];
 }
 
 function singlePoint(p: Point2D): PolynomialBezierInstance {
@@ -68,7 +75,14 @@ function singlePoint(p: Point2D): PolynomialBezierInstance {
   return new (PolynomialBezier as any)(p, p, p, p, false) as PolynomialBezierInstance;
 }
 
-function PolynomialBezier(this: PolynomialBezierInstance, p0: Point2D, p1: Point2D, p2: Point2D, p3: Point2D, linearize: boolean) {
+function PolynomialBezier(
+  this: PolynomialBezierInstance,
+  p0: Point2D,
+  p1: Point2D,
+  p2: Point2D,
+  p3: Point2D,
+  linearize: boolean,
+) {
   if (linearize && pointEqual(p0, p1)) {
     p1 = lerpPoint(p0, p3, 1 / 3);
   }
@@ -86,16 +100,13 @@ function PolynomialBezier(this: PolynomialBezierInstance, p0: Point2D, p1: Point
 
 PolynomialBezier.prototype.point = function (this: PolynomialBezierInstance, t: number): Point2D {
   return [
-    (((this.a[0] * t) + this.b[0]) * t + this.c[0]) * t + this.d[0],
-    (((this.a[1] * t) + this.b[1]) * t + this.c[1]) * t + this.d[1],
+    ((this.a[0] * t + this.b[0]) * t + this.c[0]) * t + this.d[0],
+    ((this.a[1] * t + this.b[1]) * t + this.c[1]) * t + this.d[1],
   ];
 };
 
 PolynomialBezier.prototype.derivative = function (this: PolynomialBezierInstance, t: number): Point2D {
-  return [
-    (3 * t * this.a[0] + 2 * this.b[0]) * t + this.c[0],
-    (3 * t * this.a[1] + 2 * this.b[1]) * t + this.c[1],
-  ];
+  return [(3 * t * this.a[0] + 2 * this.b[0]) * t + this.c[0], (3 * t * this.a[1] + 2 * this.b[1]) * t + this.c[1]];
 };
 
 PolynomialBezier.prototype.tangentAngle = function (this: PolynomialBezierInstance, t: number): number {
@@ -119,10 +130,15 @@ PolynomialBezier.prototype.inflectionPoints = function (this: PolynomialBezierIn
     if (root > 0 && root < 1) return [tcusp];
     return [];
   }
-  return [tcusp - root, tcusp + root].filter(function (r) { return r > 0 && r < 1; });
+  return [tcusp - root, tcusp + root].filter(function (r) {
+    return r > 0 && r < 1;
+  });
 };
 
-PolynomialBezier.prototype.split = function (this: PolynomialBezierInstance, t: number): [PolynomialBezierInstance, PolynomialBezierInstance] {
+PolynomialBezier.prototype.split = function (
+  this: PolynomialBezierInstance,
+  t: number,
+): [PolynomialBezierInstance, PolynomialBezierInstance] {
   if (t <= 0) return [singlePoint(this.points[0]), this];
   if (t >= 1) return [this, singlePoint(this.points[this.points.length - 1])];
   const p10 = lerpPoint(this.points[0], this.points[1], t);
@@ -182,27 +198,39 @@ PolynomialBezier.prototype.boundingBox = function (this: PolynomialBezierInstanc
 function intersectData(bez: PolynomialBezierInstance, t1: number, t2: number): IntersectData {
   const box = bez.boundingBox();
   return {
-    cx: box.cx, cy: box.cy, width: box.width, height: box.height,
-    bez, t: (t1 + t2) / 2, t1, t2,
+    cx: box.cx,
+    cy: box.cy,
+    width: box.width,
+    height: box.height,
+    bez,
+    t: (t1 + t2) / 2,
+    t1,
+    t2,
   };
 }
 
 function splitData(data: IntersectData): [IntersectData, IntersectData] {
   const split = data.bez.split(0.5);
-  return [
-    intersectData(split[0], data.t1, data.t),
-    intersectData(split[1], data.t, data.t2),
-  ];
+  return [intersectData(split[0], data.t1, data.t), intersectData(split[1], data.t, data.t2)];
 }
 
 function boxIntersect(b1: IntersectData, b2: IntersectData): boolean {
-  return Math.abs(b1.cx - b2.cx) * 2 < b1.width + b2.width
-    && Math.abs(b1.cy - b2.cy) * 2 < b1.height + b2.height;
+  return Math.abs(b1.cx - b2.cx) * 2 < b1.width + b2.width && Math.abs(b1.cy - b2.cy) * 2 < b1.height + b2.height;
 }
 
-function intersectsImpl(d1: IntersectData, d2: IntersectData, depth: number, tolerance: number, intersections: [number, number][], maxRecursion: number): void {
+function intersectsImpl(
+  d1: IntersectData,
+  d2: IntersectData,
+  depth: number,
+  tolerance: number,
+  intersections: [number, number][],
+  maxRecursion: number,
+): void {
   if (!boxIntersect(d1, d2)) return;
-  if (depth >= maxRecursion || (d1.width <= tolerance && d1.height <= tolerance && d2.width <= tolerance && d2.height <= tolerance)) {
+  if (
+    depth >= maxRecursion ||
+    (d1.width <= tolerance && d1.height <= tolerance && d2.width <= tolerance && d2.height <= tolerance)
+  ) {
     intersections.push([d1.t, d2.t]);
     return;
   }
@@ -214,7 +242,12 @@ function intersectsImpl(d1: IntersectData, d2: IntersectData, depth: number, tol
   intersectsImpl(d1s[1], d2s[1], depth + 1, tolerance, intersections, maxRecursion);
 }
 
-PolynomialBezier.prototype.intersections = function (this: PolynomialBezierInstance, other: PolynomialBezierInstance, tolerance?: number, maxRecursion?: number): [number, number][] {
+PolynomialBezier.prototype.intersections = function (
+  this: PolynomialBezierInstance,
+  other: PolynomialBezierInstance,
+  tolerance?: number,
+  maxRecursion?: number,
+): [number, number][] {
   if (tolerance === undefined) tolerance = 2;
   if (maxRecursion === undefined) maxRecursion = 7;
   const intersections: [number, number][] = [];
@@ -226,22 +259,30 @@ PolynomialBezier.prototype.intersections = function (this: PolynomialBezierInsta
 PolynomialBezier.shapeSegment = function (shapePath: any, index: number): PolynomialBezierInstance {
   const nextIndex = (index + 1) % shapePath.length();
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  return new (PolynomialBezier as any)(shapePath.v[index], shapePath.o[index], shapePath.i[nextIndex], shapePath.v[nextIndex], true) as PolynomialBezierInstance;
+  return new (PolynomialBezier as any)(
+    shapePath.v[index],
+    shapePath.o[index],
+    shapePath.i[nextIndex],
+    shapePath.v[nextIndex],
+    true,
+  ) as PolynomialBezierInstance;
 };
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 PolynomialBezier.shapeSegmentInverted = function (shapePath: any, index: number): PolynomialBezierInstance {
   const nextIndex = (index + 1) % shapePath.length();
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  return new (PolynomialBezier as any)(shapePath.v[nextIndex], shapePath.i[nextIndex], shapePath.o[index], shapePath.v[index], true) as PolynomialBezierInstance;
+  return new (PolynomialBezier as any)(
+    shapePath.v[nextIndex],
+    shapePath.i[nextIndex],
+    shapePath.o[index],
+    shapePath.v[index],
+    true,
+  ) as PolynomialBezierInstance;
 };
 
 function crossProduct(a: Point3D, b: Point3D): Point3D {
-  return [
-    a[1] * b[2] - a[2] * b[1],
-    a[2] * b[0] - a[0] * b[2],
-    a[0] * b[1] - a[1] * b[0],
-  ];
+  return [a[1] * b[2] - a[2] * b[1], a[2] * b[0] - a[0] * b[2], a[0] * b[1] - a[1] * b[0]];
 }
 
 function lineIntersection(start1: Point2D, end1: Point2D, start2: Point2D, end2: Point2D): Point2D | null {
@@ -258,10 +299,7 @@ function lineIntersection(start1: Point2D, end1: Point2D, start2: Point2D, end2:
 }
 
 function polarOffset(p: Point2D, angle: number, length: number): Point2D {
-  return [
-    p[0] + Math.cos(angle) * length,
-    p[1] - Math.sin(angle) * length,
-  ];
+  return [p[0] + Math.cos(angle) * length, p[1] - Math.sin(angle) * length];
 }
 
 function pointDistance(p1: Point2D, p2: Point2D): number {
@@ -272,11 +310,4 @@ function pointEqual(p1: Point2D, p2: Point2D): boolean {
   return floatEqual(p1[0], p2[0]) && floatEqual(p1[1], p2[1]);
 }
 
-export {
-  PolynomialBezier,
-  lineIntersection,
-  polarOffset,
-  pointDistance,
-  pointEqual,
-  floatEqual,
-};
+export { PolynomialBezier, lineIntersection, polarOffset, pointDistance, pointEqual, floatEqual };

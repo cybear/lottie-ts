@@ -1,10 +1,6 @@
 // @ts-nocheck
-import {
-  extendPrototype,
-} from '../../utils/functionExtensions';
-import {
-  createSizedArray,
-} from '../../utils/helpers/arrays';
+import { extendPrototype } from '../../utils/functionExtensions';
+import { createSizedArray } from '../../utils/helpers/arrays';
 import PropertyFactory from '../../utils/PropertyFactory';
 import HybridRendererBase from '../../renderers/HybridRendererBase';
 import HBaseElement from './HBaseElement';
@@ -37,8 +33,8 @@ HCompElement.prototype.createContainerElements = function () {
 };
 
 HCompElement.prototype.addTo3dContainer = function (elem, pos) {
-  var j = 0;
-  var nextElement;
+  let j = 0;
+  let nextElement;
   while (j < pos) {
     if (this.elements[j] && this.elements[j].getBaseElement) {
       nextElement = this.elements[j].getBaseElement();

@@ -1,14 +1,12 @@
 // @ts-nocheck
-import {
-  degToRads,
-} from '../common';
+import { degToRads } from '../common';
 import PropertyFactory from '../PropertyFactory';
 import TextSelectorProp from './TextSelectorProperty';
 
 function TextAnimatorDataProperty(elem, animatorProps, container) {
-  var defaultData = { propType: false };
-  var getProp = PropertyFactory.getProp;
-  var textAnimatorAnimatables = animatorProps.a;
+  const defaultData = { propType: false };
+  const getProp = PropertyFactory.getProp;
+  const textAnimatorAnimatables = animatorProps.a;
   this.a = {
     r: textAnimatorAnimatables.r ? getProp(elem, textAnimatorAnimatables.r, 0, degToRads, container) : defaultData,
     rx: textAnimatorAnimatables.rx ? getProp(elem, textAnimatorAnimatables.rx, 0, degToRads, container) : defaultData,

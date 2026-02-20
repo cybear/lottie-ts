@@ -1,10 +1,6 @@
 // @ts-nocheck
-import {
-  extendPrototype,
-} from '../utils/functionExtensions';
-import {
-  createSizedArray,
-} from '../utils/helpers/arrays';
+import { extendPrototype } from '../utils/functionExtensions';
+import { createSizedArray } from '../utils/helpers/arrays';
 import createTag from '../utils/helpers/html_elements';
 import SVGRenderer from './SVGRenderer';
 import BaseRenderer from './BaseRenderer';
@@ -13,8 +9,7 @@ import CVTextElement from '../elements/canvasElements/CVTextElement';
 import CVImageElement from '../elements/canvasElements/CVImageElement';
 import CVSolidElement from '../elements/canvasElements/CVSolidElement';
 
-function CanvasRendererBase() {
-}
+function CanvasRendererBase() {}
 extendPrototype([BaseRenderer], CanvasRendererBase);
 
 CanvasRendererBase.prototype.createShape = function (data) {
@@ -108,10 +103,10 @@ CanvasRendererBase.prototype.restore = function (actionFlag) {
 CanvasRendererBase.prototype.configAnimation = function (animData) {
   if (this.animationItem.wrapper) {
     this.animationItem.container = createTag('canvas');
-    var containerStyle = this.animationItem.container.style;
+    const containerStyle = this.animationItem.container.style;
     containerStyle.width = '100%';
     containerStyle.height = '100%';
-    var origin = '0px 0px 0px';
+    const origin = '0px 0px 0px';
     containerStyle.transformOrigin = origin;
     containerStyle.mozTransformOrigin = origin;
     containerStyle.webkitTransformOrigin = origin;
@@ -152,8 +147,8 @@ CanvasRendererBase.prototype.configAnimation = function (animData) {
 
 CanvasRendererBase.prototype.updateContainerSize = function (width, height) {
   this.reset();
-  var elementWidth;
-  var elementHeight;
+  let elementWidth;
+  let elementHeight;
   if (width) {
     elementWidth = width;
     elementHeight = height;
@@ -171,14 +166,17 @@ CanvasRendererBase.prototype.updateContainerSize = function (width, height) {
     this.canvasContext.canvas.height = elementHeight * this.renderConfig.dpr;
   }
 
-  var elementRel;
-  var animationRel;
-  if (this.renderConfig.preserveAspectRatio.indexOf('meet') !== -1 || this.renderConfig.preserveAspectRatio.indexOf('slice') !== -1) {
-    var par = this.renderConfig.preserveAspectRatio.split(' ');
-    var fillType = par[1] || 'meet';
-    var pos = par[0] || 'xMidYMid';
-    var xPos = pos.substr(0, 4);
-    var yPos = pos.substr(4);
+  let elementRel;
+  let animationRel;
+  if (
+    this.renderConfig.preserveAspectRatio.indexOf('meet') !== -1 ||
+    this.renderConfig.preserveAspectRatio.indexOf('slice') !== -1
+  ) {
+    const par = this.renderConfig.preserveAspectRatio.split(' ');
+    const fillType = par[1] || 'meet';
+    const pos = par[0] || 'xMidYMid';
+    const xPos = pos.substr(0, 4);
+    const yPos = pos.substr(4);
     elementRel = elementWidth / elementHeight;
     animationRel = this.transformCanvas.w / this.transformCanvas.h;
     if ((animationRel > elementRel && fillType === 'meet') || (animationRel < elementRel && fillType === 'slice')) {
@@ -189,17 +187,35 @@ CanvasRendererBase.prototype.updateContainerSize = function (width, height) {
       this.transformCanvas.sy = elementHeight / (this.transformCanvas.h / this.renderConfig.dpr);
     }
 
-    if (xPos === 'xMid' && ((animationRel < elementRel && fillType === 'meet') || (animationRel > elementRel && fillType === 'slice'))) {
-      this.transformCanvas.tx = ((elementWidth - this.transformCanvas.w * (elementHeight / this.transformCanvas.h)) / 2) * this.renderConfig.dpr;
-    } else if (xPos === 'xMax' && ((animationRel < elementRel && fillType === 'meet') || (animationRel > elementRel && fillType === 'slice'))) {
-      this.transformCanvas.tx = (elementWidth - this.transformCanvas.w * (elementHeight / this.transformCanvas.h)) * this.renderConfig.dpr;
+    if (
+      xPos === 'xMid' &&
+      ((animationRel < elementRel && fillType === 'meet') || (animationRel > elementRel && fillType === 'slice'))
+    ) {
+      this.transformCanvas.tx =
+        ((elementWidth - this.transformCanvas.w * (elementHeight / this.transformCanvas.h)) / 2) *
+        this.renderConfig.dpr;
+    } else if (
+      xPos === 'xMax' &&
+      ((animationRel < elementRel && fillType === 'meet') || (animationRel > elementRel && fillType === 'slice'))
+    ) {
+      this.transformCanvas.tx =
+        (elementWidth - this.transformCanvas.w * (elementHeight / this.transformCanvas.h)) * this.renderConfig.dpr;
     } else {
       this.transformCanvas.tx = 0;
     }
-    if (yPos === 'YMid' && ((animationRel > elementRel && fillType === 'meet') || (animationRel < elementRel && fillType === 'slice'))) {
-      this.transformCanvas.ty = ((elementHeight - this.transformCanvas.h * (elementWidth / this.transformCanvas.w)) / 2) * this.renderConfig.dpr;
-    } else if (yPos === 'YMax' && ((animationRel > elementRel && fillType === 'meet') || (animationRel < elementRel && fillType === 'slice'))) {
-      this.transformCanvas.ty = ((elementHeight - this.transformCanvas.h * (elementWidth / this.transformCanvas.w))) * this.renderConfig.dpr;
+    if (
+      yPos === 'YMid' &&
+      ((animationRel > elementRel && fillType === 'meet') || (animationRel < elementRel && fillType === 'slice'))
+    ) {
+      this.transformCanvas.ty =
+        ((elementHeight - this.transformCanvas.h * (elementWidth / this.transformCanvas.w)) / 2) *
+        this.renderConfig.dpr;
+    } else if (
+      yPos === 'YMax' &&
+      ((animationRel > elementRel && fillType === 'meet') || (animationRel < elementRel && fillType === 'slice'))
+    ) {
+      this.transformCanvas.ty =
+        (elementHeight - this.transformCanvas.h * (elementWidth / this.transformCanvas.w)) * this.renderConfig.dpr;
     } else {
       this.transformCanvas.ty = 0;
     }
@@ -214,7 +230,24 @@ CanvasRendererBase.prototype.updateContainerSize = function (width, height) {
     this.transformCanvas.tx = 0;
     this.transformCanvas.ty = 0;
   }
-  this.transformCanvas.props = [this.transformCanvas.sx, 0, 0, 0, 0, this.transformCanvas.sy, 0, 0, 0, 0, 1, 0, this.transformCanvas.tx, this.transformCanvas.ty, 0, 1];
+  this.transformCanvas.props = [
+    this.transformCanvas.sx,
+    0,
+    0,
+    0,
+    0,
+    this.transformCanvas.sy,
+    0,
+    0,
+    0,
+    0,
+    1,
+    0,
+    this.transformCanvas.tx,
+    this.transformCanvas.ty,
+    0,
+    1,
+  ];
   /* var i, len = this.elements.length;
     for(i=0;i<len;i+=1){
         if(this.elements[i] && this.elements[i].data.ty === 0){
@@ -234,8 +267,8 @@ CanvasRendererBase.prototype.destroy = function () {
   if (this.renderConfig.clearCanvas && this.animationItem.wrapper) {
     this.animationItem.wrapper.innerText = '';
   }
-  var i;
-  var len = this.layers ? this.layers.length : 0;
+  let i;
+  const len = this.layers ? this.layers.length : 0;
   for (i = len - 1; i >= 0; i -= 1) {
     if (this.elements[i] && this.elements[i].destroy) {
       this.elements[i].destroy();
@@ -248,7 +281,11 @@ CanvasRendererBase.prototype.destroy = function () {
 };
 
 CanvasRendererBase.prototype.renderFrame = function (num, forceRender) {
-  if ((this.renderedFrame === num && this.renderConfig.clearCanvas === true && !forceRender) || this.destroyed || num === -1) {
+  if (
+    (this.renderedFrame === num && this.renderConfig.clearCanvas === true && !forceRender) ||
+    this.destroyed ||
+    num === -1
+  ) {
     return;
   }
   this.renderedFrame = num;
@@ -259,8 +296,8 @@ CanvasRendererBase.prototype.renderFrame = function (num, forceRender) {
 
   // console.log('--------');
   // console.log('NEW: ',num);
-  var i;
-  var len = this.layers.length;
+  let i;
+  const len = this.layers.length;
   if (!this.completeLayers) {
     this.checkLayers(num);
   }
@@ -288,11 +325,11 @@ CanvasRendererBase.prototype.renderFrame = function (num, forceRender) {
 };
 
 CanvasRendererBase.prototype.buildItem = function (pos) {
-  var elements = this.elements;
+  const elements = this.elements;
   if (elements[pos] || this.layers[pos].ty === 99) {
     return;
   }
-  var element = this.createItem(this.layers[pos], this, this.globalData);
+  const element = this.createItem(this.layers[pos], this, this.globalData);
   elements[pos] = element;
   element.initExpressions();
   /* if(this.layers[pos].ty === 0){
@@ -302,7 +339,7 @@ CanvasRendererBase.prototype.buildItem = function (pos) {
 
 CanvasRendererBase.prototype.checkPendingElements = function () {
   while (this.pendingElements.length) {
-    var element = this.pendingElements.pop();
+    const element = this.pendingElements.pop();
     element.checkParenting();
   }
 };

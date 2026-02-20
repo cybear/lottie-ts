@@ -4,10 +4,11 @@
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const win = window as any;
 
-  for (let x = 0; x < vendors.length && !win.requestAnimationFrame; x += 1) { // eslint-disable-line no-plusplus
+  for (let x = 0; x < vendors.length && !win.requestAnimationFrame; x += 1) {
+    // eslint-disable-line no-plusplus
     win.requestAnimationFrame = win[vendors[x] + 'RequestAnimationFrame'];
-    win.cancelAnimationFrame = win[vendors[x] + 'CancelAnimationFrame']
-      || win[vendors[x] + 'CancelRequestAnimationFrame'];
+    win.cancelAnimationFrame =
+      win[vendors[x] + 'CancelAnimationFrame'] || win[vendors[x] + 'CancelRequestAnimationFrame'];
   }
 
   if (!win.requestAnimationFrame) {
@@ -27,4 +28,4 @@
       clearTimeout(id);
     };
   }
-}());
+})();

@@ -1,7 +1,5 @@
 // @ts-nocheck
-import {
-  createSizedArray,
-} from '../helpers/arrays';
+import { createSizedArray } from '../helpers/arrays';
 
 const MaskManagerInterface = (function () {
   function MaskInterface(mask, data) {
@@ -25,15 +23,15 @@ const MaskManagerInterface = (function () {
     },
   });
 
-  var MaskManager = function (maskManager) {
-    var _masksInterfaces = createSizedArray(maskManager.viewData.length);
-    var i;
-    var len = maskManager.viewData.length;
+  const MaskManager = function (maskManager) {
+    const _masksInterfaces = createSizedArray(maskManager.viewData.length);
+    let i;
+    const len = maskManager.viewData.length;
     for (i = 0; i < len; i += 1) {
       _masksInterfaces[i] = new MaskInterface(maskManager.viewData[i], maskManager.masksProperties[i]);
     }
 
-    var maskFunction = function (name) {
+    const maskFunction = function (name) {
       i = 0;
       while (i < len) {
         if (maskManager.masksProperties[i].nm === name) {
@@ -46,6 +44,6 @@ const MaskManagerInterface = (function () {
     return maskFunction;
   };
   return MaskManager;
-}());
+})();
 
 export default MaskManagerInterface;

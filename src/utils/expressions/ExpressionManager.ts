@@ -1,13 +1,8 @@
 // @ts-nocheck
 /* eslint-disable camelcase */
 
-import {
-  degToRads,
-  BMMath,
-} from '../common';
-import {
-  createTypedArray,
-} from '../helpers/arrays';
+import { degToRads, BMMath } from '../common';
+import { createTypedArray } from '../helpers/arrays';
 import BezierFactory from '../../3rd_party/BezierEaser';
 import shapePool from '../pooling/shape_pool';
 import seedrandom from '../../3rd_party/seedrandom';
@@ -16,14 +11,14 @@ import propTypes from '../helpers/propTypes';
 const ExpressionManager = (function () {
   'use strict';
 
-  var ob = {};
-  var Math = BMMath;
-  var window = null;
-  var document = null;
-  var XMLHttpRequest = null;
-  var fetch = null;
-  var frames = null;
-  var _lottieGlobal = {};
+  const ob = {};
+  const Math = BMMath;
+  const window = null;
+  const document = null;
+  const XMLHttpRequest = null;
+  const fetch = null;
+  const frames = null;
+  let _lottieGlobal = {};
   seedrandom(BMMath);
 
   function resetFrame() {
@@ -39,14 +34,14 @@ const ExpressionManager = (function () {
   }
 
   function $bm_neg(a) {
-    var tOfA = typeof a;
+    const tOfA = typeof a;
     if (tOfA === 'number' || a instanceof Number || tOfA === 'boolean') {
       return -a;
     }
     if ($bm_isInstanceOfArray(a)) {
-      var i;
-      var lenA = a.length;
-      var retArr = [];
+      let i;
+      const lenA = a.length;
+      const retArr = [];
       for (i = 0; i < lenA; i += 1) {
         retArr[i] = -a[i];
       }
@@ -58,13 +53,13 @@ const ExpressionManager = (function () {
     return -a;
   }
 
-  var easeInBez = BezierFactory.getBezierEasing(0.333, 0, 0.833, 0.833, 'easeIn').get;
-  var easeOutBez = BezierFactory.getBezierEasing(0.167, 0.167, 0.667, 1, 'easeOut').get;
-  var easeInOutBez = BezierFactory.getBezierEasing(0.33, 0, 0.667, 1, 'easeInOut').get;
+  const easeInBez = BezierFactory.getBezierEasing(0.333, 0, 0.833, 0.833, 'easeIn').get;
+  const easeOutBez = BezierFactory.getBezierEasing(0.167, 0.167, 0.667, 1, 'easeOut').get;
+  const easeInOutBez = BezierFactory.getBezierEasing(0.33, 0, 0.667, 1, 'easeInOut').get;
 
   function sum(a, b) {
-    var tOfA = typeof a;
-    var tOfB = typeof b;
+    const tOfA = typeof a;
+    const tOfB = typeof b;
     if ((isNumerable(tOfA, a) && isNumerable(tOfB, b)) || tOfA === 'string' || tOfB === 'string') {
       return a + b;
     }
@@ -79,12 +74,15 @@ const ExpressionManager = (function () {
       return b;
     }
     if ($bm_isInstanceOfArray(a) && $bm_isInstanceOfArray(b)) {
-      var i = 0;
-      var lenA = a.length;
-      var lenB = b.length;
-      var retArr = [];
+      let i = 0;
+      const lenA = a.length;
+      const lenB = b.length;
+      const retArr = [];
       while (i < lenA || i < lenB) {
-        if ((typeof a[i] === 'number' || a[i] instanceof Number) && (typeof b[i] === 'number' || b[i] instanceof Number)) {
+        if (
+          (typeof a[i] === 'number' || a[i] instanceof Number) &&
+          (typeof b[i] === 'number' || b[i] instanceof Number)
+        ) {
           retArr[i] = a[i] + b[i];
         } else {
           retArr[i] = b[i] === undefined ? a[i] : a[i] || b[i];
@@ -95,11 +93,11 @@ const ExpressionManager = (function () {
     }
     return 0;
   }
-  var add = sum;
+  const add = sum;
 
   function sub(a, b) {
-    var tOfA = typeof a;
-    var tOfB = typeof b;
+    const tOfA = typeof a;
+    const tOfB = typeof b;
     if (isNumerable(tOfA, a) && isNumerable(tOfB, b)) {
       if (tOfA === 'string') {
         a = parseInt(a, 10);
@@ -120,12 +118,15 @@ const ExpressionManager = (function () {
       return b;
     }
     if ($bm_isInstanceOfArray(a) && $bm_isInstanceOfArray(b)) {
-      var i = 0;
-      var lenA = a.length;
-      var lenB = b.length;
-      var retArr = [];
+      let i = 0;
+      const lenA = a.length;
+      const lenB = b.length;
+      const retArr = [];
       while (i < lenA || i < lenB) {
-        if ((typeof a[i] === 'number' || a[i] instanceof Number) && (typeof b[i] === 'number' || b[i] instanceof Number)) {
+        if (
+          (typeof a[i] === 'number' || a[i] instanceof Number) &&
+          (typeof b[i] === 'number' || b[i] instanceof Number)
+        ) {
           retArr[i] = a[i] - b[i];
         } else {
           retArr[i] = b[i] === undefined ? a[i] : a[i] || b[i];
@@ -138,15 +139,15 @@ const ExpressionManager = (function () {
   }
 
   function mul(a, b) {
-    var tOfA = typeof a;
-    var tOfB = typeof b;
-    var arr;
+    const tOfA = typeof a;
+    const tOfB = typeof b;
+    let arr;
     if (isNumerable(tOfA, a) && isNumerable(tOfB, b)) {
       return a * b;
     }
 
-    var i;
-    var len;
+    let i;
+    let len;
     if ($bm_isInstanceOfArray(a) && isNumerable(tOfB, b)) {
       len = a.length;
       arr = createTypedArray('float32', len);
@@ -167,14 +168,14 @@ const ExpressionManager = (function () {
   }
 
   function div(a, b) {
-    var tOfA = typeof a;
-    var tOfB = typeof b;
-    var arr;
+    const tOfA = typeof a;
+    const tOfB = typeof b;
+    let arr;
     if (isNumerable(tOfA, a) && isNumerable(tOfB, b)) {
       return a / b;
     }
-    var i;
-    var len;
+    let i;
+    let len;
     if ($bm_isInstanceOfArray(a) && isNumerable(tOfB, b)) {
       len = a.length;
       arr = createTypedArray('float32', len);
@@ -202,15 +203,15 @@ const ExpressionManager = (function () {
     }
     return a % b;
   }
-  var $bm_sum = sum;
-  var $bm_sub = sub;
-  var $bm_mul = mul;
-  var $bm_div = div;
-  var $bm_mod = mod;
+  const $bm_sum = sum;
+  const $bm_sub = sub;
+  const $bm_mul = mul;
+  const $bm_div = div;
+  const $bm_mod = mod;
 
   function clamp(num, min, max) {
     if (min > max) {
-      var mm = max;
+      const mm = max;
       max = min;
       min = mm;
     }
@@ -220,14 +221,14 @@ const ExpressionManager = (function () {
   function radiansToDegrees(val) {
     return val / degToRads;
   }
-  var radians_to_degrees = radiansToDegrees;
+  const radians_to_degrees = radiansToDegrees;
 
   function degreesToRadians(val) {
     return val * degToRads;
   }
-  var degrees_to_radians = radiansToDegrees;
+  const degrees_to_radians = radiansToDegrees;
 
-  var helperLengthArray = [0, 0, 0, 0, 0, 0];
+  const helperLengthArray = [0, 0, 0, 0, 0, 0];
 
   function length(arr1, arr2) {
     if (typeof arr1 === 'number' || arr1 instanceof Number) {
@@ -237,9 +238,9 @@ const ExpressionManager = (function () {
     if (!arr2) {
       arr2 = helperLengthArray;
     }
-    var i;
-    var len = Math.min(arr1.length, arr2.length);
-    var addedLength = 0;
+    let i;
+    const len = Math.min(arr1.length, arr2.length);
+    let addedLength = 0;
     for (i = 0; i < len; i += 1) {
       addedLength += Math.pow(arr2[i] - arr1[i], 2);
     }
@@ -251,24 +252,33 @@ const ExpressionManager = (function () {
   }
 
   function rgbToHsl(val) {
-    var r = val[0]; var g = val[1]; var b = val[2];
-    var max = Math.max(r, g, b);
-    var min = Math.min(r, g, b);
-    var h;
-    var s;
-    var l = (max + min) / 2;
+    const r = val[0];
+    const g = val[1];
+    const b = val[2];
+    const max = Math.max(r, g, b);
+    const min = Math.min(r, g, b);
+    let h;
+    let s;
+    const l = (max + min) / 2;
 
     if (max === min) {
       h = 0; // achromatic
       s = 0; // achromatic
     } else {
-      var d = max - min;
+      const d = max - min;
       s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
       switch (max) {
-        case r: h = (g - b) / d + (g < b ? 6 : 0); break;
-        case g: h = (b - r) / d + 2; break;
-        case b: h = (r - g) / d + 4; break;
-        default: break;
+        case r:
+          h = (g - b) / d + (g < b ? 6 : 0);
+          break;
+        case g:
+          h = (b - r) / d + 2;
+          break;
+        case b:
+          h = (r - g) / d + 4;
+          break;
+        default:
+          break;
       }
       h /= 6;
     }
@@ -286,21 +296,21 @@ const ExpressionManager = (function () {
   }
 
   function hslToRgb(val) {
-    var h = val[0];
-    var s = val[1];
-    var l = val[2];
+    const h = val[0];
+    const s = val[1];
+    const l = val[2];
 
-    var r;
-    var g;
-    var b;
+    let r;
+    let g;
+    let b;
 
     if (s === 0) {
       r = l; // achromatic
       b = l; // achromatic
       g = l; // achromatic
     } else {
-      var q = l < 0.5 ? l * (1 + s) : l + s - l * s;
-      var p = 2 * l - q;
+      const q = l < 0.5 ? l * (1 + s) : l + s - l * s;
+      const p = 2 * l - q;
       r = hue2rgb(p, q, h + 1 / 3);
       g = hue2rgb(p, q, h);
       b = hue2rgb(p, q, h - 1 / 3);
@@ -317,22 +327,23 @@ const ExpressionManager = (function () {
       tMax = 1;
     }
     if (tMax < tMin) {
-      var _tMin = tMax;
+      const _tMin = tMax;
       tMax = tMin;
       tMin = _tMin;
     }
     if (t <= tMin) {
       return value1;
-    } if (t >= tMax) {
+    }
+    if (t >= tMax) {
       return value2;
     }
-    var perc = tMax === tMin ? 0 : (t - tMin) / (tMax - tMin);
+    const perc = tMax === tMin ? 0 : (t - tMin) / (tMax - tMin);
     if (!value1.length) {
       return value1 + (value2 - value1) * perc;
     }
-    var i;
-    var len = value1.length;
-    var arr = createTypedArray('float32', len);
+    let i;
+    const len = value1.length;
+    const arr = createTypedArray('float32', len);
     for (i = 0; i < len; i += 1) {
       arr[i] = value1[i] + (value2[i] - value1[i]) * perc;
     }
@@ -349,13 +360,13 @@ const ExpressionManager = (function () {
       }
     }
     if (max.length) {
-      var i;
-      var len = max.length;
+      let i;
+      const len = max.length;
       if (!min) {
         min = createTypedArray('float32', len);
       }
-      var arr = createTypedArray('float32', len);
-      var rnd = BMMath.random();
+      const arr = createTypedArray('float32', len);
+      const rnd = BMMath.random();
       for (i = 0; i < len; i += 1) {
         arr[i] = min[i] + rnd * (max[i] - min[i]);
       }
@@ -364,22 +375,31 @@ const ExpressionManager = (function () {
     if (min === undefined) {
       min = 0;
     }
-    var rndm = BMMath.random();
+    const rndm = BMMath.random();
     return min + rndm * (max - min);
   }
 
   function createPath(points, inTangents, outTangents, closed) {
-    var i;
-    var len = points.length;
-    var path = shapePool.newElement();
+    let i;
+    const len = points.length;
+    const path = shapePool.newElement();
     path.setPathData(!!closed, len);
-    var arrPlaceholder = [0, 0];
-    var inVertexPoint;
-    var outVertexPoint;
+    const arrPlaceholder = [0, 0];
+    let inVertexPoint;
+    let outVertexPoint;
     for (i = 0; i < len; i += 1) {
-      inVertexPoint = (inTangents && inTangents[i]) ? inTangents[i] : arrPlaceholder;
-      outVertexPoint = (outTangents && outTangents[i]) ? outTangents[i] : arrPlaceholder;
-      path.setTripleAt(points[i][0], points[i][1], outVertexPoint[0] + points[i][0], outVertexPoint[1] + points[i][1], inVertexPoint[0] + points[i][0], inVertexPoint[1] + points[i][1], i, true);
+      inVertexPoint = inTangents && inTangents[i] ? inTangents[i] : arrPlaceholder;
+      outVertexPoint = outTangents && outTangents[i] ? outTangents[i] : arrPlaceholder;
+      path.setTripleAt(
+        points[i][0],
+        points[i][1],
+        outVertexPoint[0] + points[i][0],
+        outVertexPoint[1] + points[i][1],
+        inVertexPoint[0] + points[i][0],
+        inVertexPoint[1] + points[i][1],
+        i,
+        true,
+      );
     }
     return path;
   }
@@ -393,15 +413,15 @@ const ExpressionManager = (function () {
       return noOp;
     }
 
-    var val = data.x;
-    var needsVelocity = /velocity(?![\w\d])/.test(val);
-    var _needsRandom = val.indexOf('random') !== -1;
-    var elemType = elem.data.ty;
-    var transform;
-    var $bm_transform;
-    var content;
-    var effect;
-    var thisProperty = property;
+    const val = data.x;
+    const needsVelocity = /velocity(?![\w\d])/.test(val);
+    const _needsRandom = val.indexOf('random') !== -1;
+    const elemType = elem.data.ty;
+    let transform;
+    let $bm_transform;
+    let content;
+    let effect;
+    const thisProperty = property;
     thisProperty._name = elem.data.nm;
     thisProperty.valueAtTime = thisProperty.getValueAtTime;
     Object.defineProperty(thisProperty, 'value', {
@@ -411,45 +431,45 @@ const ExpressionManager = (function () {
     });
     elem.comp.frameDuration = 1 / elem.comp.globalData.frameRate;
     elem.comp.displayStartTime = 0;
-    var inPoint = elem.data.ip / elem.comp.globalData.frameRate;
-    var outPoint = elem.data.op / elem.comp.globalData.frameRate;
-    var width = elem.data.sw ? elem.data.sw : 0;
-    var height = elem.data.sh ? elem.data.sh : 0;
-    var name = elem.data.nm;
-    var loopIn;
-    var loop_in;
-    var loopOut;
-    var loop_out;
-    var smooth;
-    var toWorld;
-    var fromWorld;
-    var fromComp;
-    var toComp;
-    var fromCompToSurface;
-    var position;
-    var rotation;
-    var anchorPoint;
-    var scale;
-    var thisLayer;
-    var thisComp;
-    var mask;
-    var valueAtTime;
-    var velocityAtTime;
+    const inPoint = elem.data.ip / elem.comp.globalData.frameRate;
+    const outPoint = elem.data.op / elem.comp.globalData.frameRate;
+    const width = elem.data.sw ? elem.data.sw : 0;
+    const height = elem.data.sh ? elem.data.sh : 0;
+    const name = elem.data.nm;
+    let loopIn;
+    let loop_in;
+    let loopOut;
+    let loop_out;
+    let smooth;
+    let toWorld;
+    let fromWorld;
+    let fromComp;
+    let toComp;
+    let fromCompToSurface;
+    let position;
+    let rotation;
+    let anchorPoint;
+    let scale;
+    let thisLayer;
+    let thisComp;
+    let mask;
+    let valueAtTime;
+    let velocityAtTime;
 
-    var scoped_bm_rt;
+    let scoped_bm_rt;
     // val = val.replace(/(\\?"|')((http)(s)?(:\/))?\/.*?(\\?"|')/g, "\"\""); // deter potential network calls
-    var expression_function = eval('[function _expression_function(){' + val + ';scoped_bm_rt=$bm_rt}]')[0]; // eslint-disable-line no-eval
-    var numKeys = property.kf ? data.k.length : 0;
+    const expression_function = eval('[function _expression_function(){' + val + ';scoped_bm_rt=$bm_rt}]')[0]; // eslint-disable-line no-eval
+    const numKeys = property.kf ? data.k.length : 0;
 
-    var active = !this.data || this.data.hd !== true;
+    const active = !this.data || this.data.hd !== true;
 
-    var wiggle = function wiggle(freq, amp) {
-      var iWiggle;
-      var j;
-      var lenWiggle = this.pv.length ? this.pv.length : 1;
-      var addedAmps = createTypedArray('float32', lenWiggle);
+    const wiggle = function wiggle(freq, amp) {
+      let iWiggle;
+      let j;
+      const lenWiggle = this.pv.length ? this.pv.length : 1;
+      const addedAmps = createTypedArray('float32', lenWiggle);
       freq = 5;
-      var iterations = Math.floor(time * freq);
+      const iterations = Math.floor(time * freq);
       iWiggle = 0;
       j = 0;
       while (iWiggle < iterations) {
@@ -461,9 +481,9 @@ const ExpressionManager = (function () {
         iWiggle += 1;
       }
       // var rnd2 = BMMath.random();
-      var periods = time * freq;
-      var perc = periods - Math.floor(periods);
-      var arr = createTypedArray('float32', lenWiggle);
+      const periods = time * freq;
+      const perc = periods - Math.floor(periods);
+      const arr = createTypedArray('float32', lenWiggle);
       if (lenWiggle > 1) {
         for (j = 0; j < lenWiggle; j += 1) {
           arr[j] = this.pv[j] + addedAmps[j] + (-amp + amp * 2 * BMMath.random()) * perc;
@@ -505,12 +525,12 @@ const ExpressionManager = (function () {
       velocityAtTime = this.getVelocityAtTime.bind(this);
     }
 
-    var comp = elem.comp.globalData.projectInterface.bind(elem.comp.globalData.projectInterface);
+    const comp = elem.comp.globalData.projectInterface.bind(elem.comp.globalData.projectInterface);
 
     function lookAt(elem1, elem2) {
-      var fVec = [elem2[0] - elem1[0], elem2[1] - elem1[1], elem2[2] - elem1[2]];
-      var pitch = Math.atan2(fVec[0], Math.sqrt(fVec[1] * fVec[1] + fVec[2] * fVec[2])) / degToRads;
-      var yaw = -Math.atan2(fVec[1], fVec[2]) / degToRads;
+      const fVec = [elem2[0] - elem1[0], elem2[1] - elem1[1], elem2[2] - elem1[2]];
+      const pitch = Math.atan2(fVec[0], Math.sqrt(fVec[1] * fVec[1] + fVec[2] * fVec[2])) / degToRads;
+      const yaw = -Math.atan2(fVec[1], fVec[2]) / degToRads;
       return [yaw, pitch, 0];
     }
 
@@ -538,11 +558,11 @@ const ExpressionManager = (function () {
       } else if (t < 0) {
         t = 0;
       }
-      var mult = fn(t);
+      const mult = fn(t);
       if ($bm_isInstanceOfArray(val1)) {
-        var iKey;
-        var lenKey = val1.length;
-        var arr = createTypedArray('float32', lenKey);
+        let iKey;
+        const lenKey = val1.length;
+        const arr = createTypedArray('float32', lenKey);
         for (iKey = 0; iKey < lenKey; iKey += 1) {
           arr[iKey] = (val2[iKey] - val1[iKey]) * mult + val1[iKey];
         }
@@ -552,11 +572,11 @@ const ExpressionManager = (function () {
     }
 
     function nearestKey(time) {
-      var iKey;
-      var lenKey = data.k.length;
-      var index;
-      var keyTime;
-      if (!data.k.length || typeof (data.k[0]) === 'number') {
+      let iKey;
+      const lenKey = data.k.length;
+      let index;
+      let keyTime;
+      if (!data.k.length || typeof data.k[0] === 'number') {
         index = 0;
         keyTime = 0;
       } else {
@@ -588,27 +608,25 @@ const ExpressionManager = (function () {
           }
         }
       }
-      var obKey = {};
+      const obKey = {};
       obKey.index = index;
       obKey.time = keyTime / elem.comp.globalData.frameRate;
       return obKey;
     }
 
     function key(ind) {
-      var obKey;
-      var iKey;
-      var lenKey;
-      if (!data.k.length || typeof (data.k[0]) === 'number') {
+      let iKey;
+      if (!data.k.length || typeof data.k[0] === 'number') {
         throw new Error('The property has no keyframe at index ' + ind);
       }
       ind -= 1;
-      obKey = {
+      const obKey = {
         time: data.k[ind].t / elem.comp.globalData.frameRate,
         value: [],
       };
-      var arr = Object.prototype.hasOwnProperty.call(data.k[ind], 's') ? data.k[ind].s : data.k[ind - 1].e;
+      const arr = Object.prototype.hasOwnProperty.call(data.k[ind], 's') ? data.k[ind].s : data.k[ind - 1].e;
 
-      lenKey = arr.length;
+      const lenKey = arr.length;
       for (iKey = 0; iKey < lenKey; iKey += 1) {
         obKey[iKey] = arr[iKey];
         obKey.value[iKey] = arr[iKey];
@@ -666,18 +684,18 @@ const ExpressionManager = (function () {
       value = valueAtTime(time);
     }
 
-    var time;
-    var velocity;
-    var value;
-    var text;
-    var textIndex;
-    var textTotal;
-    var selectorValue;
-    var index = elem.data.ind;
-    var hasParent = !!(elem.hierarchy && elem.hierarchy.length);
-    var parent;
-    var randSeed = Math.floor(Math.random() * 1000000);
-    var globalData = elem.globalData;
+    let time;
+    let velocity;
+    let value;
+    let text;
+    let textIndex;
+    let textTotal;
+    let selectorValue;
+    const index = elem.data.ind;
+    let hasParent = !!(elem.hierarchy && elem.hierarchy.length);
+    let parent;
+    const randSeed = Math.floor(Math.random() * 1000000);
+    const globalData = elem.globalData;
 
     function executeExpression(_value) {
       // globalData.pushExpression();
@@ -734,20 +752,88 @@ const ExpressionManager = (function () {
 
       // TODO: Check if it's possible to return on ShapeInterface the .v value
       // Changed this to a ternary operation because Rollup failed compiling it correctly
-      scoped_bm_rt = scoped_bm_rt.propType === propTypes.SHAPE
-        ? scoped_bm_rt.v
-        : scoped_bm_rt;
+      scoped_bm_rt = scoped_bm_rt.propType === propTypes.SHAPE ? scoped_bm_rt.v : scoped_bm_rt;
       return scoped_bm_rt;
     }
     // Bundlers will see these as dead code and unless we reference them
-    executeExpression.__preventDeadCodeRemoval = [$bm_transform, anchorPoint, time, velocity, inPoint, outPoint, width, height, name, loop_in, loop_out, smooth, toComp, fromCompToSurface, toWorld, fromWorld, mask, position, rotation, scale, thisComp, numKeys, active, wiggle, loopInDuration, loopOutDuration, comp, lookAt, easeOut, easeIn, ease, nearestKey, key, text, textIndex, textTotal, selectorValue, framesToTime, timeToFrames, sourceRectAtTime, substring, substr, posterizeTime, index, globalData];
+    executeExpression.__preventDeadCodeRemoval = [
+      $bm_transform,
+      anchorPoint,
+      time,
+      velocity,
+      inPoint,
+      outPoint,
+      width,
+      height,
+      name,
+      loop_in,
+      loop_out,
+      smooth,
+      toComp,
+      fromCompToSurface,
+      toWorld,
+      fromWorld,
+      mask,
+      position,
+      rotation,
+      scale,
+      thisComp,
+      numKeys,
+      active,
+      wiggle,
+      loopInDuration,
+      loopOutDuration,
+      comp,
+      lookAt,
+      easeOut,
+      easeIn,
+      ease,
+      nearestKey,
+      key,
+      text,
+      textIndex,
+      textTotal,
+      selectorValue,
+      framesToTime,
+      timeToFrames,
+      sourceRectAtTime,
+      substring,
+      substr,
+      posterizeTime,
+      index,
+      globalData,
+    ];
     return executeExpression;
   }
 
   ob.initiateExpression = initiateExpression;
-  ob.__preventDeadCodeRemoval = [window, document, XMLHttpRequest, fetch, frames, $bm_neg, add, $bm_sum, $bm_sub, $bm_mul, $bm_div, $bm_mod, clamp, radians_to_degrees, degreesToRadians, degrees_to_radians, normalize, rgbToHsl, hslToRgb, linear, random, createPath, _lottieGlobal];
+  ob.__preventDeadCodeRemoval = [
+    window,
+    document,
+    XMLHttpRequest,
+    fetch,
+    frames,
+    $bm_neg,
+    add,
+    $bm_sum,
+    $bm_sub,
+    $bm_mul,
+    $bm_div,
+    $bm_mod,
+    clamp,
+    radians_to_degrees,
+    degreesToRadians,
+    degrees_to_radians,
+    normalize,
+    rgbToHsl,
+    hslToRgb,
+    linear,
+    random,
+    createPath,
+    _lottieGlobal,
+  ];
   ob.resetFrame = resetFrame;
   return ob;
-}());
+})();
 
 export default ExpressionManager;

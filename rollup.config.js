@@ -159,6 +159,19 @@ const pluginsWithTerser = [
   terser(),
 ]
 
+const esmPlugins = [
+  nodeResolve(),
+  typescript({
+    tsconfig: './tsconfig.json',
+    include: ['src/**/*.{js,ts}'],
+    declaration: false,
+    sourceMap: false,
+    outDir: '.',
+    importHelpers: true,
+  }),
+  injectVersion(),
+];
+
 const UMDModule = {
   output: {
     format: 'umd',
@@ -172,7 +185,7 @@ const UMDModule = {
 };
 
 const ESMModule = {
-  plugins: [nodeResolve(), injectVersion()],
+  plugins: esmPlugins,
   treeshake: false,
   output: [
     {

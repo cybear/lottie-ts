@@ -1,7 +1,5 @@
 // @ts-nocheck
-import {
-  extendPrototype,
-} from '../utils/functionExtensions';
+import { extendPrototype } from '../utils/functionExtensions';
 import createNS from '../utils/helpers/svg_elements';
 import IImageElement from './ImageElement';
 
@@ -11,7 +9,7 @@ function ISolidElement(data, globalData, comp) {
 extendPrototype([IImageElement], ISolidElement);
 
 ISolidElement.prototype.createContent = function () {
-  var rect = createNS('rect');
+  const rect = createNS('rect');
   /// /rect.style.width = this.data.sw;
   /// /rect.style.height = this.data.sh;
   /// /rect.style.fill = this.data.sc;

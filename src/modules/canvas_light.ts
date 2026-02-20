@@ -8,9 +8,7 @@ import RoundCornersModifier from '../utils/shapes/RoundCornersModifier';
 import ZigZagModifier from '../utils/shapes/ZigZagModifier';
 import OffsetPathModifier from '../utils/shapes/OffsetPathModifier';
 import CanvasRenderer from '../renderers/CanvasRenderer';
-import {
-  registerRenderer,
-} from '../renderers/renderersManager';
+import { registerRenderer } from '../renderers/renderersManager';
 
 // Registering renderers
 registerRenderer('canvas', CanvasRenderer);

@@ -1,15 +1,9 @@
 // @ts-nocheck
-import {
-  roundCorner,
-} from '../common';
-import {
-  extendPrototype,
-} from '../functionExtensions';
+import { roundCorner } from '../common';
+import { extendPrototype } from '../functionExtensions';
 import PropertyFactory from '../PropertyFactory';
 import shapePool from '../pooling/shape_pool';
-import {
-  ShapeModifier,
-} from './ShapeModifiers';
+import { ShapeModifier } from './ShapeModifiers';
 
 function RoundCornersModifier() {}
 extendPrototype([ShapeModifier], RoundCornersModifier);
@@ -20,28 +14,33 @@ RoundCornersModifier.prototype.initModifierProperties = function (elem, data) {
 };
 
 RoundCornersModifier.prototype.processPath = function (path, round) {
-  var clonedPath = shapePool.newElement();
+  const clonedPath = shapePool.newElement();
   clonedPath.c = path.c;
-  var i;
-  var len = path._length;
-  var currentV;
-  var currentI;
-  var currentO;
-  var closerV;
-  var distance;
-  var newPosPerc;
-  var index = 0;
-  var vX;
-  var vY;
-  var oX;
-  var oY;
-  var iX;
-  var iY;
+  let i;
+  const len = path._length;
+  let currentV;
+  let currentI;
+  let currentO;
+  let closerV;
+  let distance;
+  let newPosPerc;
+  let index = 0;
+  let vX;
+  let vY;
+  let oX;
+  let oY;
+  let iX;
+  let iY;
   for (i = 0; i < len; i += 1) {
     currentV = path.v[i];
     currentO = path.o[i];
     currentI = path.i[i];
-    if (currentV[0] === currentO[0] && currentV[1] === currentO[1] && currentV[0] === currentI[0] && currentV[1] === currentI[1]) {
+    if (
+      currentV[0] === currentO[0] &&
+      currentV[1] === currentO[1] &&
+      currentV[0] === currentI[0] &&
+      currentV[1] === currentI[1]
+    ) {
       if ((i === 0 || i === len - 1) && !path.c) {
         clonedPath.setTripleAt(currentV[0], currentV[1], currentO[0], currentO[1], currentI[0], currentI[1], index);
         /* clonedPath.v[index] = currentV;
@@ -90,16 +89,16 @@ RoundCornersModifier.prototype.processPath = function (path, round) {
 };
 
 RoundCornersModifier.prototype.processShapes = function (_isFirstFrame) {
-  var shapePaths;
-  var i;
-  var len = this.shapes.length;
-  var j;
-  var jLen;
-  var rd = this.rd.v;
+  let shapePaths;
+  let i;
+  const len = this.shapes.length;
+  let j;
+  let jLen;
+  const rd = this.rd.v;
 
   if (rd !== 0) {
-    var shapeData;
-    var localShapeCollection;
+    let shapeData;
+    let localShapeCollection;
     for (i = 0; i < len; i += 1) {
       shapeData = this.shapes[i];
       localShapeCollection = shapeData.localShapeCollection;

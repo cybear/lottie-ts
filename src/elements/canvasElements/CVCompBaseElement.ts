@@ -1,12 +1,8 @@
 // @ts-nocheck
 import BaseRenderer from '../../renderers/BaseRenderer';
-import {
-  extendPrototype,
-} from '../../utils/functionExtensions';
+import { extendPrototype } from '../../utils/functionExtensions';
 
-function CVCompBaseElement() {
-
-}
+function CVCompBaseElement() {}
 extendPrototype([BaseRenderer], CVCompBaseElement);
 
 export default CVCompBaseElement;

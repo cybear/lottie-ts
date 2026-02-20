@@ -1,8 +1,8 @@
 // @ts-nocheck
 const FootageInterface = (function () {
-  var outlineInterfaceFactory = (function (elem) {
-    var currentPropertyName = '';
-    var currentProperty = elem.getFootageData();
+  const outlineInterfaceFactory = function (elem) {
+    let currentPropertyName = '';
+    let currentProperty = elem.getFootageData();
     function init() {
       currentPropertyName = '';
       currentProperty = elem.getFootageData();
@@ -17,9 +17,9 @@ const FootageInterface = (function () {
         }
         return currentProperty;
       }
-      var propertyNameIndex = value.indexOf(currentPropertyName);
+      const propertyNameIndex = value.indexOf(currentPropertyName);
       if (propertyNameIndex !== -1) {
-        var index = parseInt(value.substr(propertyNameIndex + currentPropertyName.length), 10);
+        const index = parseInt(value.substr(propertyNameIndex + currentPropertyName.length), 10);
         currentProperty = currentProperty[index];
         if (typeof currentProperty === 'object') {
           return searchProperty;
@@ -29,9 +29,9 @@ const FootageInterface = (function () {
       return '';
     }
     return init;
-  });
+  };
 
-  var dataInterfaceFactory = function (elem) {
+  const dataInterfaceFactory = function (elem) {
     function interfaceFunction(value) {
       if (value === 'Outline') {
         return interfaceFunction.outlineInterface();
@@ -56,6 +56,6 @@ const FootageInterface = (function () {
     _interfaceFunction.dataInterface = dataInterfaceFactory(elem);
     return _interfaceFunction;
   };
-}());
+})();
 
 export default FootageInterface;

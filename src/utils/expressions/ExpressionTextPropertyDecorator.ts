@@ -13,9 +13,9 @@ function addDecorator() {
   }
 
   TextProperty.prototype.getExpressionValue = function (currentValue, text) {
-    var newValue = this.calculateExpression(text);
+    const newValue = this.calculateExpression(text);
     if (currentValue.t !== newValue) {
-      var newData = {};
+      const newData = {};
       this.copyData(newData, currentValue);
       newData.t = newValue.toString();
       newData.__complete = false;
@@ -25,8 +25,8 @@ function addDecorator() {
   };
 
   TextProperty.prototype.searchProperty = function () {
-    var isKeyframed = this.searchKeyframes();
-    var hasExpressions = this.searchExpressions();
+    const isKeyframed = this.searchKeyframes();
+    const hasExpressions = this.searchExpressions();
     this.kf = isKeyframed || hasExpressions;
     return this.kf;
   };

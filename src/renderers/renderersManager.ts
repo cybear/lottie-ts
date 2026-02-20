@@ -23,8 +23,4 @@ function getRegisteredRenderer() {
   return '';
 }
 
-export {
-  registerRenderer,
-  getRenderer,
-  getRegisteredRenderer,
-};
+export { registerRenderer, getRenderer, getRegisteredRenderer };

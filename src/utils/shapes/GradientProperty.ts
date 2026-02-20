@@ -1,17 +1,13 @@
 // @ts-nocheck
-import {
-  extendPrototype,
-} from '../functionExtensions';
+import { extendPrototype } from '../functionExtensions';
 import DynamicPropertyContainer from '../helpers/dynamicProperties';
-import {
-  createTypedArray,
-} from '../helpers/arrays';
+import { createTypedArray } from '../helpers/arrays';
 import PropertyFactory from '../PropertyFactory';
 
 function GradientProperty(elem, data, container) {
   this.data = data;
   this.c = createTypedArray('uint8c', data.p * 4);
-  var cLength = data.k.k[0].s ? (data.k.k[0].s.length - data.p * 4) : data.k.k.length - data.p * 4;
+  const cLength = data.k.k[0].s ? data.k.k[0].s.length - data.p * 4 : data.k.k.length - data.p * 4;
   this.o = createTypedArray('float32', cLength);
   this._cmdf = false;
   this._omdf = false;
@@ -24,9 +20,9 @@ function GradientProperty(elem, data, container) {
 }
 
 GradientProperty.prototype.comparePoints = function (values, points) {
-  var i = 0;
-  var len = this.o.length / 2;
-  var diff;
+  let i = 0;
+  const len = this.o.length / 2;
+  let diff;
   while (i < len) {
     diff = Math.abs(values[i * 4] - values[points * 4 + i * 2]);
     if (diff > 0.01) {
@@ -42,8 +38,8 @@ GradientProperty.prototype.checkCollapsable = function () {
     return false;
   }
   if (this.data.k.k[0].s) {
-    var i = 0;
-    var len = this.data.k.k.length;
+    let i = 0;
+    const len = this.data.k.k.length;
     while (i < len) {
       if (!this.comparePoints(this.data.k.k[i].s, this.data.p)) {
         return false;
@@ -62,10 +58,10 @@ GradientProperty.prototype.getValue = function (forceRender) {
   this._cmdf = false;
   this._omdf = false;
   if (this.prop._mdf || forceRender) {
-    var i;
-    var len = this.data.p * 4;
-    var mult;
-    var val;
+    let i;
+    let len = this.data.p * 4;
+    let mult;
+    let val;
     for (i = 0; i < len; i += 1) {
       mult = i % 4 === 0 ? 100 : 255;
       val = Math.round(this.prop.v[i] * mult);

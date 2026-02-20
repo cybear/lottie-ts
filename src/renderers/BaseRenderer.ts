@@ -6,14 +6,14 @@ import AudioElement from '../elements/AudioElement';
 
 function BaseRenderer() {}
 BaseRenderer.prototype.checkLayers = function (num) {
-  var i;
-  var len = this.layers.length;
-  var data;
+  let i;
+  const len = this.layers.length;
+  let data;
   this.completeLayers = true;
   for (i = len - 1; i >= 0; i -= 1) {
     if (!this.elements[i]) {
       data = this.layers[i];
-      if (data.ip - data.st <= (num - this.layers[i].st) && data.op - data.st > (num - this.layers[i].st)) {
+      if (data.ip - data.st <= num - this.layers[i].st && data.op - data.st > num - this.layers[i].st) {
         this.buildItem(i);
       }
     }
@@ -48,7 +48,7 @@ BaseRenderer.prototype.createItem = function (layer) {
 };
 
 BaseRenderer.prototype.createCamera = function () {
-  throw new Error('You\'re using a 3d camera. Try the html renderer.');
+  throw new Error("You're using a 3d camera. Try the html renderer.");
 };
 
 BaseRenderer.prototype.createAudio = function (data) {
@@ -60,8 +60,8 @@ BaseRenderer.prototype.createFootage = function (data) {
 };
 
 BaseRenderer.prototype.buildAllItems = function () {
-  var i;
-  var len = this.layers.length;
+  let i;
+  const len = this.layers.length;
   for (i = 0; i < len; i += 1) {
     this.buildItem(i);
   }
@@ -70,10 +70,10 @@ BaseRenderer.prototype.buildAllItems = function () {
 
 BaseRenderer.prototype.includeLayers = function (newLayers) {
   this.completeLayers = false;
-  var i;
-  var len = newLayers.length;
-  var j;
-  var jLen = this.layers.length;
+  let i;
+  const len = newLayers.length;
+  let j;
+  const jLen = this.layers.length;
   for (i = 0; i < len; i += 1) {
     j = 0;
     while (j < jLen) {
@@ -96,12 +96,13 @@ BaseRenderer.prototype.initItems = function () {
   }
 };
 BaseRenderer.prototype.buildElementParenting = function (element, parentName, hierarchy) {
-  var elements = this.elements;
-  var layers = this.layers;
-  var i = 0;
-  var len = layers.length;
+  const elements = this.elements;
+  const layers = this.layers;
+  let i = 0;
+  const len = layers.length;
   while (i < len) {
-    if (layers[i].ind == parentName) { // eslint-disable-line eqeqeq
+    if (layers[i].ind == parentName) {
+      // eslint-disable-line eqeqeq
       if (!elements[i] || elements[i] === true) {
         this.buildItem(i);
         this.addPendingElement(element);
@@ -124,11 +125,11 @@ BaseRenderer.prototype.addPendingElement = function (element) {
 };
 
 BaseRenderer.prototype.searchExtraCompositions = function (assets) {
-  var i;
-  var len = assets.length;
+  let i;
+  const len = assets.length;
   for (i = 0; i < len; i += 1) {
     if (assets[i].xt) {
-      var comp = this.createComp(assets[i]);
+      const comp = this.createComp(assets[i]);
       comp.initExpressions();
       this.globalData.projectInterface.registerComposition(comp);
     }
@@ -136,8 +137,8 @@ BaseRenderer.prototype.searchExtraCompositions = function (assets) {
 };
 
 BaseRenderer.prototype.getElementById = function (ind) {
-  var i;
-  var len = this.elements.length;
+  let i;
+  const len = this.elements.length;
   for (i = 0; i < len; i += 1) {
     if (this.elements[i].data.ind === ind) {
       return this.elements[i];
@@ -147,13 +148,13 @@ BaseRenderer.prototype.getElementById = function (ind) {
 };
 
 BaseRenderer.prototype.getElementByPath = function (path) {
-  var pathValue = path.shift();
-  var element;
+  const pathValue = path.shift();
+  let element;
   if (typeof pathValue === 'number') {
     element = this.elements[pathValue];
   } else {
-    var i;
-    var len = this.elements.length;
+    let i;
+    const len = this.elements.length;
     for (i = 0; i < len; i += 1) {
       if (this.elements[i].data.nm === pathValue) {
         element = this.elements[i];

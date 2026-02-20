@@ -1,18 +1,14 @@
-import {
-  degToRads,
-} from './common';
-import {
-  extendPrototype,
-} from './functionExtensions';
+import { degToRads } from './common';
+import { extendPrototype } from './functionExtensions';
 import DynamicPropertyContainer from './helpers/dynamicProperties';
 import Matrix from '../3rd_party/transformation-matrix';
 import PropertyFactory from './PropertyFactory';
 
 const TransformPropertyFactory = (function () {
-  var defaultVector = [0, 0];
+  const defaultVector = [0, 0];
 
   function applyToMatrix(this: any, mat: any) {
-    var _mdf = this._mdf;
+    const _mdf = this._mdf;
     this.iterateDynamicProperties();
     this._mdf = this._mdf || _mdf;
     if (this.a) {
@@ -27,7 +23,11 @@ const TransformPropertyFactory = (function () {
     if (this.r) {
       mat.rotate(-this.r.v);
     } else {
-      mat.rotateZ(-this.rz.v).rotateY(this.ry.v).rotateX(this.rx.v).rotateZ(-this.or.v[2])
+      mat
+        .rotateZ(-this.rz.v)
+        .rotateY(this.ry.v)
+        .rotateX(this.rx.v)
+        .rotateZ(-this.or.v[2])
         .rotateY(this.or.v[1])
         .rotateX(this.or.v[0]);
     }
@@ -54,7 +54,7 @@ const TransformPropertyFactory = (function () {
     this.iterateDynamicProperties();
 
     if (this._mdf || forceRender) {
-      var frameRate;
+      let frameRate;
       this.v.cloneFromProps(this.pre.props);
       if (this.appliedTransformations < 1) {
         this.v.translate(-this.a.v[0], -this.a.v[1], this.a.v[2]);
@@ -68,38 +68,51 @@ const TransformPropertyFactory = (function () {
       if (this.r && this.appliedTransformations < 4) {
         this.v.rotate(-this.r.v);
       } else if (!this.r && this.appliedTransformations < 4) {
-        this.v.rotateZ(-this.rz.v).rotateY(this.ry.v).rotateX(this.rx.v).rotateZ(-this.or.v[2])
+        this.v
+          .rotateZ(-this.rz.v)
+          .rotateY(this.ry.v)
+          .rotateX(this.rx.v)
+          .rotateZ(-this.or.v[2])
           .rotateY(this.or.v[1])
           .rotateX(this.or.v[0]);
       }
       if (this.autoOriented) {
-        var v1;
-        var v2;
+        let v1;
+        let v2;
         frameRate = this.elem.globalData.frameRate;
         if (this.p && this.p.keyframes && this.p.getValueAtTime) {
           if (this.p._caching.lastFrame + this.p.offsetTime <= this.p.keyframes[0].t) {
             v1 = this.p.getValueAtTime((this.p.keyframes[0].t + 0.01) / frameRate, 0);
             v2 = this.p.getValueAtTime(this.p.keyframes[0].t / frameRate, 0);
           } else if (this.p._caching.lastFrame + this.p.offsetTime >= this.p.keyframes[this.p.keyframes.length - 1].t) {
-            v1 = this.p.getValueAtTime((this.p.keyframes[this.p.keyframes.length - 1].t / frameRate), 0);
+            v1 = this.p.getValueAtTime(this.p.keyframes[this.p.keyframes.length - 1].t / frameRate, 0);
             v2 = this.p.getValueAtTime((this.p.keyframes[this.p.keyframes.length - 1].t - 0.05) / frameRate, 0);
           } else {
             v1 = this.p.pv;
-            v2 = this.p.getValueAtTime((this.p._caching.lastFrame + this.p.offsetTime - 0.01) / frameRate, this.p.offsetTime);
+            v2 = this.p.getValueAtTime(
+              (this.p._caching.lastFrame + this.p.offsetTime - 0.01) / frameRate,
+              this.p.offsetTime,
+            );
           }
-        } else if (this.px && this.px.keyframes && this.py.keyframes && this.px.getValueAtTime && this.py.getValueAtTime) {
+        } else if (
+          this.px &&
+          this.px.keyframes &&
+          this.py.keyframes &&
+          this.px.getValueAtTime &&
+          this.py.getValueAtTime
+        ) {
           v1 = [];
           v2 = [];
-          var px = this.px;
-          var py = this.py;
+          const px = this.px;
+          const py = this.py;
           if (px._caching.lastFrame + px.offsetTime <= px.keyframes[0].t) {
             v1[0] = px.getValueAtTime((px.keyframes[0].t + 0.01) / frameRate, 0);
             v1[1] = py.getValueAtTime((py.keyframes[0].t + 0.01) / frameRate, 0);
-            v2[0] = px.getValueAtTime((px.keyframes[0].t) / frameRate, 0);
-            v2[1] = py.getValueAtTime((py.keyframes[0].t) / frameRate, 0);
+            v2[0] = px.getValueAtTime(px.keyframes[0].t / frameRate, 0);
+            v2[1] = py.getValueAtTime(py.keyframes[0].t / frameRate, 0);
           } else if (px._caching.lastFrame + px.offsetTime >= px.keyframes[px.keyframes.length - 1].t) {
-            v1[0] = px.getValueAtTime((px.keyframes[px.keyframes.length - 1].t / frameRate), 0);
-            v1[1] = py.getValueAtTime((py.keyframes[py.keyframes.length - 1].t / frameRate), 0);
+            v1[0] = px.getValueAtTime(px.keyframes[px.keyframes.length - 1].t / frameRate, 0);
+            v1[1] = py.getValueAtTime(py.keyframes[py.keyframes.length - 1].t / frameRate, 0);
             v2[0] = px.getValueAtTime((px.keyframes[px.keyframes.length - 1].t - 0.01) / frameRate, 0);
             v2[1] = py.getValueAtTime((py.keyframes[py.keyframes.length - 1].t - 0.01) / frameRate, 0);
           } else {
@@ -155,8 +168,17 @@ const TransformPropertyFactory = (function () {
         this.pre.rotate(-this.r.v);
         this.appliedTransformations = 4;
       }
-    } else if (!this.rz.effectsSequence.length && !this.ry.effectsSequence.length && !this.rx.effectsSequence.length && !this.or.effectsSequence.length) {
-      this.pre.rotateZ(-this.rz.v).rotateY(this.ry.v).rotateX(this.rx.v).rotateZ(-this.or.v[2])
+    } else if (
+      !this.rz.effectsSequence.length &&
+      !this.ry.effectsSequence.length &&
+      !this.rx.effectsSequence.length &&
+      !this.or.effectsSequence.length
+    ) {
+      this.pre
+        .rotateZ(-this.rz.v)
+        .rotateY(this.ry.v)
+        .rotateX(this.rx.v)
+        .rotateZ(-this.or.v[2])
         .rotateY(this.or.v[1])
         .rotateX(this.or.v[0]);
       this.appliedTransformations = 4;
@@ -198,8 +220,8 @@ const TransformPropertyFactory = (function () {
       this.ry = PropertyFactory.getProp(elem, data.ry, 0, degToRads, this);
       this.rz = PropertyFactory.getProp(elem, data.rz, 0, degToRads, this);
       if (data.or.k[0].ti) {
-        var i;
-        var len = data.or.k.length;
+        let i;
+        const len = data.or.k.length;
         for (i = 0; i < len; i += 1) {
           data.or.k[i].to = null;
           data.or.k[i].ti = null;
@@ -248,6 +270,6 @@ const TransformPropertyFactory = (function () {
   return {
     getTransformProperty: getTransformProperty,
   };
-}());
+})();
 
 export default TransformPropertyFactory;

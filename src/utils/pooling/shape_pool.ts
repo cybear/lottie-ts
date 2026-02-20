@@ -45,6 +45,6 @@ const shapePool = (function () {
   (factory as any).clone = clone;
 
   return factory;
-}());
+})();
 
 export default shapePool;

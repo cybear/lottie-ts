@@ -1,9 +1,5 @@
-import {
-  getDefaultCurveSegments,
-} from '../common';
-import {
-  createTypedArray,
-} from '../helpers/arrays';
+import { getDefaultCurveSegments } from '../common';
+import { createTypedArray } from '../helpers/arrays';
 import poolFactory from './pool_factory';
 
 interface BezierLengthElement {
@@ -21,6 +17,6 @@ const bezierLengthPool = (function () {
     };
   }
   return poolFactory(8, create);
-}());
+})();
 
 export default bezierLengthPool;

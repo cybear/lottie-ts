@@ -16,6 +16,6 @@ const FontManagerWorker = (function () {
     this.initTime = Date.now();
   }
   return Font;
-}());
+})();
 
 export default FontManagerWorker;

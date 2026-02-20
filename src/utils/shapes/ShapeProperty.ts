@@ -1,12 +1,6 @@
 // @ts-nocheck
-import {
-  degToRads,
-  roundCorner,
-  bmMin,
-} from '../common';
-import {
-  extendPrototype,
-} from '../functionExtensions';
+import { degToRads, roundCorner, bmMin } from '../common';
+import { extendPrototype } from '../functionExtensions';
 import DynamicPropertyContainer from '../helpers/dynamicProperties';
 import PropertyFactory from '../PropertyFactory';
 import BezierFactory from '../../3rd_party/BezierEaser';
@@ -14,20 +8,18 @@ import shapePool from '../pooling/shape_pool';
 import shapeCollectionPool from '../pooling/shapeCollection_pool';
 
 const ShapePropertyFactory = (function () {
-  var initFrame = -999999;
+  const initFrame = -999999;
 
   function interpolateShape(frameNum, previousValue, caching) {
-    var iterationIndex = caching.lastIndex;
-    var keyPropS;
-    var keyPropE;
-    var isHold;
-    var j;
-    var k;
-    var jLen;
-    var kLen;
-    var perc;
-    var vertexValue;
-    var kf = this.keyframes;
+    let iterationIndex = caching.lastIndex;
+    let keyPropS;
+    let keyPropE;
+    let isHold;
+    let j;
+    let k;
+    let perc;
+    let vertexValue;
+    const kf = this.keyframes;
     if (frameNum < kf[0].t - this.offsetTime) {
       keyPropS = kf[0].s[0];
       isHold = true;
@@ -41,16 +33,15 @@ const ShapePropertyFactory = (function () {
             } */
       isHold = true;
     } else {
-      var i = iterationIndex;
-      var len = kf.length - 1;
-      var flag = true;
-      var keyData;
-      var nextKeyData;
-      var keyframeMetadata;
+      let i = iterationIndex;
+      const len = kf.length - 1;
+      let flag = true;
+      let keyData;
+      let nextKeyData;
       while (flag) {
         keyData = kf[i];
         nextKeyData = kf[i + 1];
-        if ((nextKeyData.t - this.offsetTime) > frameNum) {
+        if (nextKeyData.t - this.offsetTime > frameNum) {
           break;
         }
         if (i < len - 1) {
@@ -59,7 +50,7 @@ const ShapePropertyFactory = (function () {
           flag = false;
         }
       }
-      keyframeMetadata = this.keyframesMetadata[i] || {};
+      const keyframeMetadata = this.keyframesMetadata[i] || {};
       isHold = keyData.h === 1;
       iterationIndex = i;
       if (!isHold) {
@@ -68,21 +59,24 @@ const ShapePropertyFactory = (function () {
         } else if (frameNum < keyData.t - this.offsetTime) {
           perc = 0;
         } else {
-          var fnc;
+          let fnc;
           if (keyframeMetadata.__fnct) {
             fnc = keyframeMetadata.__fnct;
           } else {
             fnc = BezierFactory.getBezierEasing(keyData.o.x, keyData.o.y, keyData.i.x, keyData.i.y).get;
             keyframeMetadata.__fnct = fnc;
           }
-          perc = fnc((frameNum - (keyData.t - this.offsetTime)) / ((nextKeyData.t - this.offsetTime) - (keyData.t - this.offsetTime)));
+          perc = fnc(
+            (frameNum - (keyData.t - this.offsetTime)) /
+              (nextKeyData.t - this.offsetTime - (keyData.t - this.offsetTime)),
+          );
         }
         keyPropE = nextKeyData.s ? nextKeyData.s[0] : keyData.e[0];
       }
       keyPropS = keyData.s[0];
     }
-    jLen = previousValue._length;
-    kLen = keyPropS.i[0].length;
+    const jLen = previousValue._length;
+    const kLen = keyPropS.i[0].length;
     caching.lastIndex = iterationIndex;
 
     for (j = 0; j < jLen; j += 1) {
@@ -98,11 +92,16 @@ const ShapePropertyFactory = (function () {
   }
 
   function interpolateShapeCurrentTime() {
-    var frameNum = this.comp.renderedFrame - this.offsetTime;
-    var initTime = this.keyframes[0].t - this.offsetTime;
-    var endTime = this.keyframes[this.keyframes.length - 1].t - this.offsetTime;
-    var lastFrame = this._caching.lastFrame;
-    if (!(lastFrame !== initFrame && ((lastFrame < initTime && frameNum < initTime) || (lastFrame > endTime && frameNum > endTime)))) {
+    const frameNum = this.comp.renderedFrame - this.offsetTime;
+    const initTime = this.keyframes[0].t - this.offsetTime;
+    const endTime = this.keyframes[this.keyframes.length - 1].t - this.offsetTime;
+    const lastFrame = this._caching.lastFrame;
+    if (
+      !(
+        lastFrame !== initFrame &&
+        ((lastFrame < initTime && frameNum < initTime) || (lastFrame > endTime && frameNum > endTime))
+      )
+    ) {
       /// /
       this._caching.lastIndex = lastFrame < frameNum ? this._caching.lastIndex : 0;
       this.interpolateShape(frameNum, this.pv, this._caching);
@@ -120,15 +119,17 @@ const ShapePropertyFactory = (function () {
     if (shape1._length !== shape2._length || shape1.c !== shape2.c) {
       return false;
     }
-    var i;
-    var len = shape1._length;
+    let i;
+    const len = shape1._length;
     for (i = 0; i < len; i += 1) {
-      if (shape1.v[i][0] !== shape2.v[i][0]
-            || shape1.v[i][1] !== shape2.v[i][1]
-            || shape1.o[i][0] !== shape2.o[i][0]
-            || shape1.o[i][1] !== shape2.o[i][1]
-            || shape1.i[i][0] !== shape2.i[i][0]
-            || shape1.i[i][1] !== shape2.i[i][1]) {
+      if (
+        shape1.v[i][0] !== shape2.v[i][0] ||
+        shape1.v[i][1] !== shape2.v[i][1] ||
+        shape1.o[i][0] !== shape2.o[i][0] ||
+        shape1.o[i][1] !== shape2.o[i][1] ||
+        shape1.i[i][0] !== shape2.i[i][0] ||
+        shape1.i[i][1] !== shape2.i[i][1]
+      ) {
         return false;
       }
     }
@@ -148,7 +149,8 @@ const ShapePropertyFactory = (function () {
   function processEffectsSequence() {
     if (this.elem.globalData.frameId === this.frameId) {
       return;
-    } if (!this.effectsSequence.length) {
+    }
+    if (!this.effectsSequence.length) {
       this._mdf = false;
       return;
     }
@@ -158,7 +160,7 @@ const ShapePropertyFactory = (function () {
     }
     this.lock = true;
     this._mdf = false;
-    var finalValue;
+    let finalValue;
     if (this.kf) {
       finalValue = this.pv;
     } else if (this.data.ks) {
@@ -166,8 +168,8 @@ const ShapePropertyFactory = (function () {
     } else {
       finalValue = this.data.pt.k;
     }
-    var i;
-    var len = this.effectsSequence.length;
+    let i;
+    const len = this.effectsSequence.length;
     for (i = 0; i < len; i += 1) {
       finalValue = this.effectsSequence[i](finalValue);
     }
@@ -185,7 +187,7 @@ const ShapePropertyFactory = (function () {
     this.k = false;
     this.kf = false;
     this._mdf = false;
-    var pathData = type === 3 ? data.pt.k : data.ks.k;
+    const pathData = type === 3 ? data.pt.k : data.ks.k;
     this.v = shapePool.clone(pathData);
     this.pv = shapePool.clone(this.v);
     this.localShapeCollection = shapeCollectionPool.newShapeCollection();
@@ -215,7 +217,7 @@ const ShapePropertyFactory = (function () {
     this.keyframesMetadata = [];
     this.k = true;
     this.kf = true;
-    var len = this.keyframes[0].s[0].i.length;
+    const len = this.keyframes[0].s[0].i.length;
     this.v = shapePool.newElement();
     this.v.setPathData(this.keyframes[0].s[0].c, len);
     this.pv = shapePool.clone(this.v);
@@ -232,8 +234,8 @@ const ShapePropertyFactory = (function () {
   KeyframedShapeProperty.prototype.setVValue = setVValue;
   KeyframedShapeProperty.prototype.addEffect = addEffect;
 
-  var EllShapeProperty = (function () {
-    var cPoint = roundCorner;
+  const EllShapeProperty = (function () {
+    const cPoint = roundCorner;
 
     function EllShapePropertyFactory(elem, data) {
       this.v = shapePool.newElement();
@@ -270,12 +272,12 @@ const ShapePropertyFactory = (function () {
         }
       },
       convertEllToPath: function () {
-        var p0 = this.p.v[0];
-        var p1 = this.p.v[1];
-        var s0 = this.s.v[0] / 2;
-        var s1 = this.s.v[1] / 2;
-        var _cw = this.d !== 3;
-        var _v = this.v;
+        const p0 = this.p.v[0];
+        const p1 = this.p.v[1];
+        const s0 = this.s.v[0] / 2;
+        const s1 = this.s.v[1] / 2;
+        const _cw = this.d !== 3;
+        const _v = this.v;
         _v.v[0][0] = p0;
         _v.v[0][1] = p1 - s1;
         _v.v[1][0] = _cw ? p0 + s0 : p0 - s0;
@@ -306,9 +308,9 @@ const ShapePropertyFactory = (function () {
     extendPrototype([DynamicPropertyContainer], EllShapePropertyFactory);
 
     return EllShapePropertyFactory;
-  }());
+  })();
 
-  var StarShapeProperty = (function () {
+  const StarShapeProperty = (function () {
     function StarShapePropertyFactory(elem, data) {
       this.v = shapePool.newElement();
       this.v.setPathData(true, 0);
@@ -354,37 +356,46 @@ const ShapePropertyFactory = (function () {
         }
       },
       convertStarToPath: function () {
-        var numPts = Math.floor(this.pt.v) * 2;
-        var angle = (Math.PI * 2) / numPts;
+        const numPts = Math.floor(this.pt.v) * 2;
+        const angle = (Math.PI * 2) / numPts;
         /* this.v.v.length = numPts;
                 this.v.i.length = numPts;
                 this.v.o.length = numPts; */
-        var longFlag = true;
-        var longRad = this.or.v;
-        var shortRad = this.ir.v;
-        var longRound = this.os.v;
-        var shortRound = this.is.v;
-        var longPerimSegment = (2 * Math.PI * longRad) / (numPts * 2);
-        var shortPerimSegment = (2 * Math.PI * shortRad) / (numPts * 2);
-        var i;
-        var rad;
-        var roundness;
-        var perimSegment;
-        var currentAng = -Math.PI / 2;
+        let longFlag = true;
+        const longRad = this.or.v;
+        const shortRad = this.ir.v;
+        const longRound = this.os.v;
+        const shortRound = this.is.v;
+        const longPerimSegment = (2 * Math.PI * longRad) / (numPts * 2);
+        const shortPerimSegment = (2 * Math.PI * shortRad) / (numPts * 2);
+        let i;
+        let rad;
+        let roundness;
+        let perimSegment;
+        let currentAng = -Math.PI / 2;
         currentAng += this.r.v;
-        var dir = this.data.d === 3 ? -1 : 1;
+        const dir = this.data.d === 3 ? -1 : 1;
         this.v._length = 0;
         for (i = 0; i < numPts; i += 1) {
           rad = longFlag ? longRad : shortRad;
           roundness = longFlag ? longRound : shortRound;
           perimSegment = longFlag ? longPerimSegment : shortPerimSegment;
-          var x = rad * Math.cos(currentAng);
-          var y = rad * Math.sin(currentAng);
-          var ox = x === 0 && y === 0 ? 0 : y / Math.sqrt(x * x + y * y);
-          var oy = x === 0 && y === 0 ? 0 : -x / Math.sqrt(x * x + y * y);
+          let x = rad * Math.cos(currentAng);
+          let y = rad * Math.sin(currentAng);
+          const ox = x === 0 && y === 0 ? 0 : y / Math.sqrt(x * x + y * y);
+          const oy = x === 0 && y === 0 ? 0 : -x / Math.sqrt(x * x + y * y);
           x += +this.p.v[0];
           y += +this.p.v[1];
-          this.v.setTripleAt(x, y, x - ox * perimSegment * roundness * dir, y - oy * perimSegment * roundness * dir, x + ox * perimSegment * roundness * dir, y + oy * perimSegment * roundness * dir, i, true);
+          this.v.setTripleAt(
+            x,
+            y,
+            x - ox * perimSegment * roundness * dir,
+            y - oy * perimSegment * roundness * dir,
+            x + ox * perimSegment * roundness * dir,
+            y + oy * perimSegment * roundness * dir,
+            i,
+            true,
+          );
 
           /* this.v.v[i] = [x,y];
                     this.v.i[i] = [x+ox*perimSegment*roundness*dir,y+oy*perimSegment*roundness*dir];
@@ -395,37 +406,45 @@ const ShapePropertyFactory = (function () {
         }
       },
       convertPolygonToPath: function () {
-        var numPts = Math.floor(this.pt.v);
-        var angle = (Math.PI * 2) / numPts;
-        var rad = this.or.v;
-        var roundness = this.os.v;
-        var perimSegment = (2 * Math.PI * rad) / (numPts * 4);
-        var i;
-        var currentAng = -Math.PI * 0.5;
-        var dir = this.data.d === 3 ? -1 : 1;
+        const numPts = Math.floor(this.pt.v);
+        const angle = (Math.PI * 2) / numPts;
+        const rad = this.or.v;
+        const roundness = this.os.v;
+        const perimSegment = (2 * Math.PI * rad) / (numPts * 4);
+        let i;
+        let currentAng = -Math.PI * 0.5;
+        const dir = this.data.d === 3 ? -1 : 1;
         currentAng += this.r.v;
         this.v._length = 0;
         for (i = 0; i < numPts; i += 1) {
-          var x = rad * Math.cos(currentAng);
-          var y = rad * Math.sin(currentAng);
-          var ox = x === 0 && y === 0 ? 0 : y / Math.sqrt(x * x + y * y);
-          var oy = x === 0 && y === 0 ? 0 : -x / Math.sqrt(x * x + y * y);
+          let x = rad * Math.cos(currentAng);
+          let y = rad * Math.sin(currentAng);
+          const ox = x === 0 && y === 0 ? 0 : y / Math.sqrt(x * x + y * y);
+          const oy = x === 0 && y === 0 ? 0 : -x / Math.sqrt(x * x + y * y);
           x += +this.p.v[0];
           y += +this.p.v[1];
-          this.v.setTripleAt(x, y, x - ox * perimSegment * roundness * dir, y - oy * perimSegment * roundness * dir, x + ox * perimSegment * roundness * dir, y + oy * perimSegment * roundness * dir, i, true);
+          this.v.setTripleAt(
+            x,
+            y,
+            x - ox * perimSegment * roundness * dir,
+            y - oy * perimSegment * roundness * dir,
+            x + ox * perimSegment * roundness * dir,
+            y + oy * perimSegment * roundness * dir,
+            i,
+            true,
+          );
           currentAng += angle * dir;
         }
         this.paths.length = 0;
         this.paths[0] = this.v;
       },
-
     };
     extendPrototype([DynamicPropertyContainer], StarShapePropertyFactory);
 
     return StarShapePropertyFactory;
-  }());
+  })();
 
-  var RectShapeProperty = (function () {
+  const RectShapeProperty = (function () {
     function RectShapePropertyFactory(elem, data) {
       this.v = shapePool.newElement();
       this.v.c = true;
@@ -450,12 +469,12 @@ const ShapePropertyFactory = (function () {
 
     RectShapePropertyFactory.prototype = {
       convertRectToPath: function () {
-        var p0 = this.p.v[0];
-        var p1 = this.p.v[1];
-        var v0 = this.s.v[0] / 2;
-        var v1 = this.s.v[1] / 2;
-        var round = bmMin(v0, v1, this.r.v);
-        var cPoint = round * (1 - roundCorner);
+        const p0 = this.p.v[0];
+        const p1 = this.p.v[1];
+        const v0 = this.s.v[0] / 2;
+        const v1 = this.s.v[1] / 2;
+        const round = bmMin(v0, v1, this.r.v);
+        const cPoint = round * (1 - roundCorner);
         this.v._length = 0;
 
         if (this.d === 2 || this.d === 1) {
@@ -504,13 +523,13 @@ const ShapePropertyFactory = (function () {
     extendPrototype([DynamicPropertyContainer], RectShapePropertyFactory);
 
     return RectShapePropertyFactory;
-  }());
+  })();
 
   function getShapeProp(elem, data, type) {
-    var prop;
+    let prop;
     if (type === 3 || type === 4) {
-      var dataProp = type === 3 ? data.pt : data.ks;
-      var keys = dataProp.k;
+      const dataProp = type === 3 ? data.pt : data.ks;
+      const keys = dataProp.k;
       if (keys.length) {
         prop = new KeyframedShapeProperty(elem, data, type);
       } else {
@@ -537,11 +556,11 @@ const ShapePropertyFactory = (function () {
     return KeyframedShapeProperty;
   }
 
-  var ob = {};
+  const ob = {};
   ob.getShapeProp = getShapeProp;
   ob.getConstructorFunction = getConstructorFunction;
   ob.getKeyframedConstructorFunction = getKeyframedConstructorFunction;
   return ob;
-}());
+})();
 
 export default ShapePropertyFactory;

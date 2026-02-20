@@ -1,15 +1,13 @@
 // @ts-nocheck
 import createNS from '../../../utils/helpers/svg_elements';
 
-function SVGComposableEffect() {
-
-}
+function SVGComposableEffect() {}
 SVGComposableEffect.prototype = {
   createMergeNode: (resultId, ins) => {
-    var feMerge = createNS('feMerge');
+    const feMerge = createNS('feMerge');
     feMerge.setAttribute('result', resultId);
-    var feMergeNode;
-    var i;
+    let feMergeNode;
+    let i;
     for (i = 0; i < ins.length; i += 1) {
       feMergeNode = createNS('feMergeNode');
       feMergeNode.setAttribute('in', ins[i]);

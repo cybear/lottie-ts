@@ -1,9 +1,6 @@
 // @ts-nocheck
 import lottie from './html_light';
-import {
-  setExpressionsPlugin,
-  setExpressionInterfaces,
-} from '../utils/common';
+import { setExpressionsPlugin, setExpressionInterfaces } from '../utils/common';
 import Expressions from '../utils/expressions/Expressions';
 import interfacesProvider from '../utils/expressions/InterfacesProvider';
 import expressionPropertyDecorator from '../utils/expressions/ExpressionPropertyDecorator';

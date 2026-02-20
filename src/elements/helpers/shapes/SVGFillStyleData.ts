@@ -1,9 +1,7 @@
 // @ts-nocheck
 import DynamicPropertyContainer from '../../../utils/helpers/dynamicProperties';
 
-import {
-  extendPrototype,
-} from '../../../utils/functionExtensions';
+import { extendPrototype } from '../../../utils/functionExtensions';
 import PropertyFactory from '../../../utils/PropertyFactory';
 
 function SVGFillStyleData(elem, data, styleOb) {

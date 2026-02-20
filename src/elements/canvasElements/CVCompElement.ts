@@ -1,10 +1,6 @@
 // @ts-nocheck
-import {
-  extendPrototype,
-} from '../../utils/functionExtensions';
-import {
-  createSizedArray,
-} from '../../utils/helpers/arrays';
+import { extendPrototype } from '../../utils/functionExtensions';
+import { createSizedArray } from '../../utils/helpers/arrays';
 import PropertyFactory from '../../utils/PropertyFactory';
 import CanvasRendererBase from '../../renderers/CanvasRendererBase';
 import CVBaseElement from './CVBaseElement';
@@ -22,7 +18,7 @@ function CVCompElement(data, globalData, comp) {
 extendPrototype([CanvasRendererBase, ICompElement, CVBaseElement], CVCompElement);
 
 CVCompElement.prototype.renderInnerContent = function () {
-  var ctx = this.canvasContext;
+  const ctx = this.canvasContext;
   ctx.beginPath();
   ctx.moveTo(0, 0);
   ctx.lineTo(this.data.w, 0);
@@ -30,8 +26,8 @@ CVCompElement.prototype.renderInnerContent = function () {
   ctx.lineTo(0, this.data.h);
   ctx.lineTo(0, 0);
   ctx.clip();
-  var i;
-  var len = this.layers.length;
+  let i;
+  const len = this.layers.length;
   for (i = len - 1; i >= 0; i -= 1) {
     if (this.completeLayers || this.elements[i]) {
       this.elements[i].renderFrame();
@@ -40,8 +36,8 @@ CVCompElement.prototype.renderInnerContent = function () {
 };
 
 CVCompElement.prototype.destroy = function () {
-  var i;
-  var len = this.layers.length;
+  let i;
+  const len = this.layers.length;
   for (i = len - 1; i >= 0; i -= 1) {
     if (this.elements[i]) {
       this.elements[i].destroy();

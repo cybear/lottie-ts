@@ -38,13 +38,10 @@ const createTypedArray: (type: TypedArrayType, len: number) => NumberArray = (fu
     return createTypedArrayFactory;
   }
   return createRegularArray;
-}());
+})();
 
 function createSizedArray(len: number): unknown[] {
   return Array.from({ length: len });
 }
 
-export {
-  createTypedArray,
-  createSizedArray,
-};
+export { createTypedArray, createSizedArray };

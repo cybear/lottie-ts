@@ -4,8 +4,7 @@ import TextProperty from '../utils/text/TextProperty';
 import TextAnimatorProperty from '../utils/text/TextAnimatorProperty';
 import buildShapeString from '../utils/shapes/shapePathBuilder';
 
-function ITextElement() {
-}
+function ITextElement() {}
 
 ITextElement.prototype.initElement = function (data, globalData, comp) {
   this.lettersChangedFlag = true;
@@ -31,10 +30,10 @@ ITextElement.prototype.prepareFrame = function (num) {
 };
 
 ITextElement.prototype.createPathShape = function (matrixHelper, shapes) {
-  var j;
-  var jLen = shapes.length;
-  var pathNodes;
-  var shapeStr = '';
+  let j;
+  const jLen = shapes.length;
+  let pathNodes;
+  let shapeStr = '';
   for (j = 0; j < jLen; j += 1) {
     if (shapes[j].ty === 'sh') {
       pathNodes = shapes[j].ks.k;
@@ -63,10 +62,18 @@ ITextElement.prototype.applyTextPropertiesToMatrix = function (documentData, mat
   matrixHelper.translate(0, -documentData.ls, 0);
   switch (documentData.j) {
     case 1:
-      matrixHelper.translate(documentData.justifyOffset + (documentData.boxWidth - documentData.lineWidths[lineNumber]), 0, 0);
+      matrixHelper.translate(
+        documentData.justifyOffset + (documentData.boxWidth - documentData.lineWidths[lineNumber]),
+        0,
+        0,
+      );
       break;
     case 2:
-      matrixHelper.translate(documentData.justifyOffset + (documentData.boxWidth - documentData.lineWidths[lineNumber]) / 2, 0, 0);
+      matrixHelper.translate(
+        documentData.justifyOffset + (documentData.boxWidth - documentData.lineWidths[lineNumber]) / 2,
+        0,
+        0,
+      );
       break;
     default:
       break;
@@ -75,14 +82,20 @@ ITextElement.prototype.applyTextPropertiesToMatrix = function (documentData, mat
 };
 
 ITextElement.prototype.buildColor = function (colorData) {
-  return 'rgb(' + Math.round(colorData[0] * 255) + ',' + Math.round(colorData[1] * 255) + ',' + Math.round(colorData[2] * 255) + ')';
+  return (
+    'rgb(' +
+    Math.round(colorData[0] * 255) +
+    ',' +
+    Math.round(colorData[1] * 255) +
+    ',' +
+    Math.round(colorData[2] * 255) +
+    ')'
+  );
 };
 
 ITextElement.prototype.emptyProp = new LetterProps();
 
-ITextElement.prototype.destroy = function () {
-
-};
+ITextElement.prototype.destroy = function () {};
 
 ITextElement.prototype.validateText = function () {
   if (this.textProperty._mdf || this.textProperty._isFirstFrame) {

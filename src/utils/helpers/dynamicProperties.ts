@@ -32,7 +32,10 @@ DynamicPropertyContainer.prototype = {
       }
     }
   },
-  initDynamicPropertyContainer(this: DynamicPropertyContainerMixin, container: DynamicPropertyContainerMixin['container']) {
+  initDynamicPropertyContainer(
+    this: DynamicPropertyContainerMixin,
+    container: DynamicPropertyContainerMixin['container'],
+  ) {
     this.container = container;
     this.dynamicProperties = [];
     this._mdf = false;

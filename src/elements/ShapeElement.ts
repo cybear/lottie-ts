@@ -1,20 +1,19 @@
 // @ts-nocheck
 import ProcessedElement from './helpers/shapes/ProcessedElement';
 
-function IShapeElement() {
-}
+function IShapeElement() {}
 
 IShapeElement.prototype = {
   addShapeToModifiers: function (data) {
-    var i;
-    var len = this.shapeModifiers.length;
+    let i;
+    const len = this.shapeModifiers.length;
     for (i = 0; i < len; i += 1) {
       this.shapeModifiers[i].addShape(data);
     }
   },
   isShapeInAnimatedModifiers: function (data) {
-    var i = 0;
-    var len = this.shapeModifiers.length;
+    const i = 0;
+    const len = this.shapeModifiers.length;
     while (i < len) {
       if (this.shapeModifiers[i].isAnimatedWithShape(data)) {
         return true;
@@ -26,14 +25,14 @@ IShapeElement.prototype = {
     if (!this.shapeModifiers.length) {
       return;
     }
-    var i;
-    var len = this.shapes.length;
+    let i;
+    let len = this.shapes.length;
     for (i = 0; i < len; i += 1) {
       this.shapes[i].sh.reset();
     }
 
     len = this.shapeModifiers.length;
-    var shouldBreakProcess;
+    let shouldBreakProcess;
     for (i = len - 1; i >= 0; i -= 1) {
       shouldBreakProcess = this.shapeModifiers[i].processShapes(this._isFirstFrame);
       // workaround to fix cases where a repeater resets the shape so the following processes get called twice
@@ -45,9 +44,9 @@ IShapeElement.prototype = {
   },
 
   searchProcessedElement: function (elem) {
-    var elements = this.processedElements;
-    var i = 0;
-    var len = elements.length;
+    const elements = this.processedElements;
+    let i = 0;
+    const len = elements.length;
     while (i < len) {
       if (elements[i].elem === elem) {
         return elements[i].pos;
@@ -57,8 +56,8 @@ IShapeElement.prototype = {
     return 0;
   },
   addProcessedElement: function (elem, pos) {
-    var elements = this.processedElements;
-    var i = elements.length;
+    const elements = this.processedElements;
+    let i = elements.length;
     while (i) {
       i -= 1;
       if (elements[i].elem === elem) {

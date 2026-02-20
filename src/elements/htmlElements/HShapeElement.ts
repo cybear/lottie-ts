@@ -1,13 +1,6 @@
 // @ts-nocheck
-import {
-  bmPow,
-  bmMax,
-  bmMin,
-  bmSqrt,
-} from '../../utils/common';
-import {
-  extendPrototype,
-} from '../../utils/functionExtensions';
+import { bmPow, bmMax, bmMin, bmSqrt } from '../../utils/common';
+import { extendPrototype } from '../../utils/functionExtensions';
 import createNS from '../../utils/helpers/svg_elements';
 import RenderableElement from '../helpers/RenderableElement';
 import BaseElement from '../BaseElement';
@@ -45,18 +38,30 @@ function HShapeElement(data, globalData, comp) {
     w: 0,
   };
 }
-extendPrototype([BaseElement, TransformElement, HSolidElement, SVGShapeElement, HBaseElement, HierarchyElement, FrameElement, RenderableElement], HShapeElement);
+extendPrototype(
+  [
+    BaseElement,
+    TransformElement,
+    HSolidElement,
+    SVGShapeElement,
+    HBaseElement,
+    HierarchyElement,
+    FrameElement,
+    RenderableElement,
+  ],
+  HShapeElement,
+);
 HShapeElement.prototype._renderShapeFrame = HShapeElement.prototype.renderInnerContent;
 
 HShapeElement.prototype.createContent = function () {
-  var cont;
+  let cont;
   this.baseElement.style.fontSize = 0;
   if (this.data.hasMask) {
     this.layerElement.appendChild(this.shapesContainer);
     cont = this.svgElement;
   } else {
     cont = createNS('svg');
-    var size = this.comp.data ? this.comp.data : this.globalData.compSize;
+    const size = this.comp.data ? this.comp.data : this.globalData.compSize;
     cont.setAttribute('width', size.w);
     cont.setAttribute('height', size.h);
     cont.appendChild(this.shapesContainer);
@@ -69,8 +74,8 @@ HShapeElement.prototype.createContent = function () {
 };
 
 HShapeElement.prototype.getTransformedPoint = function (transformers, point) {
-  var i;
-  var len = transformers.length;
+  let i;
+  const len = transformers.length;
   for (i = 0; i < len; i += 1) {
     point = transformers[i].mProps.v.applyToPointArray(point[0], point[1], 0);
   }
@@ -78,14 +83,14 @@ HShapeElement.prototype.getTransformedPoint = function (transformers, point) {
 };
 
 HShapeElement.prototype.calculateShapeBoundingBox = function (item, boundingBox) {
-  var shape = item.sh.v;
-  var transformers = item.transformers;
-  var i;
-  var len = shape._length;
-  var vPoint;
-  var oPoint;
-  var nextIPoint;
-  var nextVPoint;
+  const shape = item.sh.v;
+  const transformers = item.transformers;
+  let i;
+  const len = shape._length;
+  let vPoint;
+  let oPoint;
+  let nextIPoint;
+  let nextVPoint;
   if (len <= 1) {
     return;
   }
@@ -107,7 +112,7 @@ HShapeElement.prototype.calculateShapeBoundingBox = function (item, boundingBox)
 
 HShapeElement.prototype.checkBounds = function (vPoint, oPoint, nextIPoint, nextVPoint, boundingBox) {
   this.getBoundsOfCurve(vPoint, oPoint, nextIPoint, nextVPoint);
-  var bounds = this.shapeBoundingBox;
+  const bounds = this.shapeBoundingBox;
   boundingBox.x = bmMin(bounds.left, boundingBox.x);
   boundingBox.xMax = bmMax(bounds.right, boundingBox.xMax);
   boundingBox.y = bmMin(bounds.top, boundingBox.y);
@@ -131,9 +136,13 @@ HShapeElement.prototype.tempBoundingBox = {
 };
 
 HShapeElement.prototype.getBoundsOfCurve = function (p0, p1, p2, p3) {
-  var bounds = [[p0[0], p3[0]], [p0[1], p3[1]]];
+  const bounds = [
+    [p0[0], p3[0]],
+    [p0[1], p3[1]],
+  ];
 
-  for (var a, b, c, t, b2ac, t1, t2, i = 0; i < 2; ++i) { // eslint-disable-line no-plusplus
+  for (let a, b, c, t, b2ac, t1, t2, i = 0; i < 2; ++i) {
+    // eslint-disable-line no-plusplus
     b = 6 * p0[i] - 12 * p1[i] + 6 * p2[i];
     a = -3 * p0[i] + 9 * p1[i] - 9 * p2[i] + 3 * p3[i];
     c = 3 * p1[i] - 3 * p0[i];
@@ -162,22 +171,21 @@ HShapeElement.prototype.getBoundsOfCurve = function (p0, p1, p2, p3) {
     }
   }
 
-  this.shapeBoundingBox.left = bmMin.apply(null, bounds[0]);
-  this.shapeBoundingBox.top = bmMin.apply(null, bounds[1]);
-  this.shapeBoundingBox.right = bmMax.apply(null, bounds[0]);
-  this.shapeBoundingBox.bottom = bmMax.apply(null, bounds[1]);
+  this.shapeBoundingBox.left = bmMin(...bounds[0]);
+  this.shapeBoundingBox.top = bmMin(...bounds[1]);
+  this.shapeBoundingBox.right = bmMax(...bounds[0]);
+  this.shapeBoundingBox.bottom = bmMax(...bounds[1]);
 };
 
 HShapeElement.prototype.calculateF = function (t, p0, p1, p2, p3, i) {
-  return bmPow(1 - t, 3) * p0[i]
-        + 3 * bmPow(1 - t, 2) * t * p1[i]
-        + 3 * (1 - t) * bmPow(t, 2) * p2[i]
-        + bmPow(t, 3) * p3[i];
+  return (
+    bmPow(1 - t, 3) * p0[i] + 3 * bmPow(1 - t, 2) * t * p1[i] + 3 * (1 - t) * bmPow(t, 2) * p2[i] + bmPow(t, 3) * p3[i]
+  );
 };
 
 HShapeElement.prototype.calculateBoundingBox = function (itemsData, boundingBox) {
-  var i;
-  var len = itemsData.length;
+  let i;
+  const len = itemsData.length;
   for (i = 0; i < len; i += 1) {
     if (itemsData[i] && itemsData[i].sh) {
       this.calculateShapeBoundingBox(itemsData[i], boundingBox);
@@ -190,10 +198,10 @@ HShapeElement.prototype.calculateBoundingBox = function (itemsData, boundingBox)
 };
 
 HShapeElement.prototype.expandStrokeBoundingBox = function (widthProperty, boundingBox) {
-  var width = 0;
+  let width = 0;
   if (widthProperty.keyframes) {
-    for (var i = 0; i < widthProperty.keyframes.length; i += 1) {
-      var kfw = widthProperty.keyframes[i].s;
+    for (let i = 0; i < widthProperty.keyframes.length; i += 1) {
+      const kfw = widthProperty.keyframes[i].s;
       if (kfw > width) {
         width = kfw;
       }
@@ -210,18 +218,20 @@ HShapeElement.prototype.expandStrokeBoundingBox = function (widthProperty, bound
 };
 
 HShapeElement.prototype.currentBoxContains = function (box) {
-  return this.currentBBox.x <= box.x
-    && this.currentBBox.y <= box.y
-    && this.currentBBox.width + this.currentBBox.x >= box.x + box.width
-    && this.currentBBox.height + this.currentBBox.y >= box.y + box.height;
+  return (
+    this.currentBBox.x <= box.x &&
+    this.currentBBox.y <= box.y &&
+    this.currentBBox.width + this.currentBBox.x >= box.x + box.width &&
+    this.currentBBox.height + this.currentBBox.y >= box.y + box.height
+  );
 };
 
 HShapeElement.prototype.renderInnerContent = function () {
   this._renderShapeFrame();
 
   if (!this.hidden && (this._isFirstFrame || this._mdf)) {
-    var tempBoundingBox = this.tempBoundingBox;
-    var max = 999999;
+    const tempBoundingBox = this.tempBoundingBox;
+    const max = 999999;
     tempBoundingBox.x = max;
     tempBoundingBox.xMax = -max;
     tempBoundingBox.y = max;
@@ -233,7 +243,7 @@ HShapeElement.prototype.renderInnerContent = function () {
     if (this.currentBoxContains(tempBoundingBox)) {
       return;
     }
-    var changed = false;
+    let changed = false;
     if (this.currentBBox.w !== tempBoundingBox.width) {
       this.currentBBox.w = tempBoundingBox.width;
       this.shapeCont.setAttribute('width', tempBoundingBox.width);
@@ -250,9 +260,12 @@ HShapeElement.prototype.renderInnerContent = function () {
       this.currentBBox.x = tempBoundingBox.x;
       this.currentBBox.y = tempBoundingBox.y;
 
-      this.shapeCont.setAttribute('viewBox', this.currentBBox.x + ' ' + this.currentBBox.y + ' ' + this.currentBBox.w + ' ' + this.currentBBox.h);
-      var shapeStyle = this.shapeCont.style;
-      var shapeTransform = 'translate(' + this.currentBBox.x + 'px,' + this.currentBBox.y + 'px)';
+      this.shapeCont.setAttribute(
+        'viewBox',
+        this.currentBBox.x + ' ' + this.currentBBox.y + ' ' + this.currentBBox.w + ' ' + this.currentBBox.h,
+      );
+      const shapeStyle = this.shapeCont.style;
+      const shapeTransform = 'translate(' + this.currentBBox.x + 'px,' + this.currentBBox.y + 'px)';
       shapeStyle.transform = shapeTransform;
       shapeStyle.webkitTransform = shapeTransform;
     }

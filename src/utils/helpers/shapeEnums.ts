@@ -10,7 +10,4 @@ const lineJoinEnum: Record<number, string> = {
   3: 'bevel',
 };
 
-export {
-  lineCapEnum,
-  lineJoinEnum,
-};
+export { lineCapEnum, lineJoinEnum };

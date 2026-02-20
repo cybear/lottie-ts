@@ -3,13 +3,13 @@ import CompExpressionInterface from './CompInterface';
 import ExpressionManager from './ExpressionManager';
 
 const Expressions = (function () {
-  var ob = {};
+  const ob = {};
   ob.initExpressions = initExpressions;
   ob.resetFrame = ExpressionManager.resetFrame;
 
   function initExpressions(animation) {
-    var stackCount = 0;
-    var registers = [];
+    let stackCount = 0;
+    const registers = [];
 
     function pushExpression() {
       stackCount += 1;
@@ -29,8 +29,8 @@ const Expressions = (function () {
     }
 
     function releaseInstances() {
-      var i;
-      var len = registers.length;
+      let i;
+      const len = registers.length;
       for (i = 0; i < len; i += 1) {
         registers[i].release();
       }
@@ -44,6 +44,6 @@ const Expressions = (function () {
     animation.renderer.globalData.registerExpressionProperty = registerExpressionProperty;
   }
   return ob;
-}());
+})();
 
 export default Expressions;

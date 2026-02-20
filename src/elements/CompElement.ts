@@ -1,7 +1,5 @@
 // @ts-nocheck
-import {
-  extendPrototype,
-} from '../utils/functionExtensions';
+import { extendPrototype } from '../utils/functionExtensions';
 import BaseElement from './BaseElement';
 import TransformElement from './helpers/TransformElement';
 import HierarchyElement from './helpers/HierarchyElement';
@@ -48,7 +46,7 @@ ICompElement.prototype.prepareFrame = function (num) {
   }
 
   if (!this.tm._placeholder) {
-    var timeRemapped = this.tm.v;
+    let timeRemapped = this.tm.v;
     if (timeRemapped === this.data.op) {
       timeRemapped = this.data.op - 1;
     }
@@ -56,8 +54,8 @@ ICompElement.prototype.prepareFrame = function (num) {
   } else {
     this.renderedFrame = num / this.data.sr;
   }
-  var i;
-  var len = this.elements.length;
+  let i;
+  const len = this.elements.length;
   if (!this.completeLayers) {
     this.checkLayers(this.renderedFrame);
   }
@@ -73,8 +71,8 @@ ICompElement.prototype.prepareFrame = function (num) {
 };
 
 ICompElement.prototype.renderInnerContent = function () {
-  var i;
-  var len = this.layers.length;
+  let i;
+  const len = this.layers.length;
   for (i = 0; i < len; i += 1) {
     if (this.completeLayers || this.elements[i]) {
       this.elements[i].renderFrame();
@@ -91,8 +89,8 @@ ICompElement.prototype.getElements = function () {
 };
 
 ICompElement.prototype.destroyElements = function () {
-  var i;
-  var len = this.layers.length;
+  let i;
+  const len = this.layers.length;
   for (i = 0; i < len; i += 1) {
     if (this.elements[i]) {
       this.elements[i].destroy();

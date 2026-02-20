@@ -1,7 +1,5 @@
 // @ts-nocheck
-import {
-  extendPrototype,
-} from '../utils/functionExtensions';
+import { extendPrototype } from '../utils/functionExtensions';
 
 import audioControllerFactory from '../utils/audio/AudioController';
 import {
@@ -68,7 +66,7 @@ AnimationItem.prototype.setParams = function (params) {
   if (params.wrapper || params.container) {
     this.wrapper = params.wrapper || params.container;
   }
-  var animType = 'svg';
+  let animType = 'svg';
   if (params.animType) {
     animType = params.animType;
   } else if (params.renderer) {
@@ -79,10 +77,7 @@ AnimationItem.prototype.setParams = function (params) {
   this.imagePreloader.setCacheType(animType, this.renderer.globalData.defs);
   this.renderer.setProjectInterface(this.projectInterface);
   this.animType = animType;
-  if (params.loop === ''
-        || params.loop === null
-        || params.loop === undefined
-        || params.loop === true) {
+  if (params.loop === '' || params.loop === null || params.loop === undefined || params.loop === true) {
     this.loop = true;
   } else if (params.loop === false) {
     this.loop = false;
@@ -91,7 +86,9 @@ AnimationItem.prototype.setParams = function (params) {
   }
   this.autoplay = 'autoplay' in params ? params.autoplay : true;
   this.name = params.name ? params.name : '';
-  this.autoloadSegments = Object.prototype.hasOwnProperty.call(params, 'autoloadSegments') ? params.autoloadSegments : true;
+  this.autoloadSegments = Object.prototype.hasOwnProperty.call(params, 'autoloadSegments')
+    ? params.autoloadSegments
+    : true;
   this.assetsPath = params.assetsPath;
   this.initialSegment = params.initialSegment;
   if (params.audioFactory) {
@@ -107,11 +104,7 @@ AnimationItem.prototype.setParams = function (params) {
     }
     this.fileName = params.path.substr(params.path.lastIndexOf('/') + 1);
     this.fileName = this.fileName.substr(0, this.fileName.lastIndexOf('.json'));
-    dataManager.loadAnimation(
-      params.path,
-      this.configAnimation,
-      this.onSetupError
-    );
+    dataManager.loadAnimation(params.path, this.configAnimation, this.onSetupError);
   }
 };
 
@@ -120,10 +113,7 @@ AnimationItem.prototype.onSetupError = function () {
 };
 
 AnimationItem.prototype.setupAnimation = function (data) {
-  dataManager.completeAnimation(
-    data,
-    this.configAnimation
-  );
+  dataManager.completeAnimation(data, this.configAnimation);
 };
 
 AnimationItem.prototype.setData = function (wrapper, animationData) {
@@ -132,11 +122,11 @@ AnimationItem.prototype.setData = function (wrapper, animationData) {
       animationData = JSON.parse(animationData);
     }
   }
-  var params = {
+  const params = {
     wrapper: wrapper,
     animationData: animationData,
   };
-  var wrapperAttributes = wrapper.attributes;
+  const wrapperAttributes = wrapper.attributes;
 
   params.path = wrapperAttributes.getNamedItem('data-animation-path') // eslint-disable-line no-nested-ternary
     ? wrapperAttributes.getNamedItem('data-animation-path').value
@@ -157,7 +147,7 @@ AnimationItem.prototype.setData = function (wrapper, animationData) {
             ? wrapperAttributes.getNamedItem('bm-renderer').value
             : getRegisteredRenderer() || 'canvas';
 
-  var loop = wrapperAttributes.getNamedItem('data-anim-loop') // eslint-disable-line no-nested-ternary
+  const loop = wrapperAttributes.getNamedItem('data-anim-loop') // eslint-disable-line no-nested-ternary
     ? wrapperAttributes.getNamedItem('data-anim-loop').value
     : wrapperAttributes.getNamedItem('data-bm-loop') // eslint-disable-line no-nested-ternary
       ? wrapperAttributes.getNamedItem('data-bm-loop').value
@@ -171,7 +161,7 @@ AnimationItem.prototype.setData = function (wrapper, animationData) {
   } else if (loop !== '') {
     params.loop = parseInt(loop, 10);
   }
-  var autoplay = wrapperAttributes.getNamedItem('data-anim-autoplay') // eslint-disable-line no-nested-ternary
+  const autoplay = wrapperAttributes.getNamedItem('data-anim-autoplay') // eslint-disable-line no-nested-ternary
     ? wrapperAttributes.getNamedItem('data-anim-autoplay').value
     : wrapperAttributes.getNamedItem('data-bm-autoplay') // eslint-disable-line no-nested-ternary
       ? wrapperAttributes.getNamedItem('data-bm-autoplay').value
@@ -187,7 +177,7 @@ AnimationItem.prototype.setData = function (wrapper, animationData) {
       : wrapperAttributes.getNamedItem('bm-name')
         ? wrapperAttributes.getNamedItem('bm-name').value
         : '';
-  var prerender = wrapperAttributes.getNamedItem('data-anim-prerender') // eslint-disable-line no-nested-ternary
+  const prerender = wrapperAttributes.getNamedItem('data-anim-prerender') // eslint-disable-line no-nested-ternary
     ? wrapperAttributes.getNamedItem('data-anim-prerender').value
     : wrapperAttributes.getNamedItem('data-bm-prerender') // eslint-disable-line no-nested-ternary
       ? wrapperAttributes.getNamedItem('data-bm-prerender').value
@@ -210,12 +200,12 @@ AnimationItem.prototype.includeLayers = function (data) {
     this.animationData.op = data.op;
     this.totalFrames = Math.floor(data.op - this.animationData.ip);
   }
-  var layers = this.animationData.layers;
-  var i;
-  var len = layers.length;
-  var newLayers = data.layers;
-  var j;
-  var jLen = newLayers.length;
+  const layers = this.animationData.layers;
+  let i;
+  let len = layers.length;
+  const newLayers = data.layers;
+  let j;
+  const jLen = newLayers.length;
   for (j = 0; j < jLen; j += 1) {
     i = 0;
     while (i < len) {
@@ -237,15 +227,12 @@ AnimationItem.prototype.includeLayers = function (data) {
     }
   }
   this.animationData.__complete = false;
-  dataManager.completeAnimation(
-    this.animationData,
-    this.onSegmentComplete
-  );
+  dataManager.completeAnimation(this.animationData, this.onSegmentComplete);
 };
 
 AnimationItem.prototype.onSegmentComplete = function (data) {
   this.animationData = data;
-  var expressionsPlugin = getExpressionsPlugin();
+  const expressionsPlugin = getExpressionsPlugin();
   if (expressionsPlugin) {
     expressionsPlugin.initExpressions(this);
   }
@@ -253,23 +240,27 @@ AnimationItem.prototype.onSegmentComplete = function (data) {
 };
 
 AnimationItem.prototype.loadNextSegment = function () {
-  var segments = this.animationData.segments;
+  const segments = this.animationData.segments;
   if (!segments || segments.length === 0 || !this.autoloadSegments) {
     this.trigger('data_ready');
     this.timeCompleted = this.totalFrames;
     return;
   }
-  var segment = segments.shift();
+  const segment = segments.shift();
   this.timeCompleted = segment.time * this.frameRate;
-  var segmentPath = this.path + this.fileName + '_' + this.segmentPos + '.json';
+  const segmentPath = this.path + this.fileName + '_' + this.segmentPos + '.json';
   this.segmentPos += 1;
-  dataManager.loadData(segmentPath, this.includeLayers.bind(this), function () {
-    this.trigger('data_failed');
-  }.bind(this));
+  dataManager.loadData(
+    segmentPath,
+    this.includeLayers.bind(this),
+    function () {
+      this.trigger('data_failed');
+    }.bind(this),
+  );
 };
 
 AnimationItem.prototype.loadSegments = function () {
-  var segments = this.animationData.segments;
+  const segments = this.animationData.segments;
   if (!segments) {
     this.timeCompleted = this.totalFrames;
   }
@@ -335,20 +326,24 @@ AnimationItem.prototype.waitForFontsLoaded = function () {
 };
 
 AnimationItem.prototype.checkLoaded = function () {
-  if (!this.isLoaded
-        && this.renderer.globalData.fontManager.isLoaded
-        && (this.imagePreloader.loadedImages() || this.renderer.rendererType !== 'canvas')
-        && (this.imagePreloader.loadedFootages())
+  if (
+    !this.isLoaded &&
+    this.renderer.globalData.fontManager.isLoaded &&
+    (this.imagePreloader.loadedImages() || this.renderer.rendererType !== 'canvas') &&
+    this.imagePreloader.loadedFootages()
   ) {
     this.isLoaded = true;
-    var expressionsPlugin = getExpressionsPlugin();
+    const expressionsPlugin = getExpressionsPlugin();
     if (expressionsPlugin) {
       expressionsPlugin.initExpressions(this);
     }
     this.renderer.initItems();
-    setTimeout(function () {
-      this.trigger('DOMLoaded');
-    }.bind(this), 0);
+    setTimeout(
+      function () {
+        this.trigger('DOMLoaded');
+      }.bind(this),
+      0,
+    );
     this.gotoFrame();
     if (this.autoplay) {
       this.play();
@@ -358,8 +353,8 @@ AnimationItem.prototype.checkLoaded = function () {
 
 AnimationItem.prototype.resize = function (width, height) {
   // Adding this validation for backwards compatibility in case an event object was being passed down
-  var _width = typeof width === 'number' ? width : undefined;
-  var _height = typeof height === 'number' ? height : undefined;
+  const _width = typeof width === 'number' ? width : undefined;
+  const _height = typeof height === 'number' ? height : undefined;
   this.renderer.updateContainerSize(_width, _height);
 };
 
@@ -442,8 +437,8 @@ AnimationItem.prototype.stop = function (name) {
 };
 
 AnimationItem.prototype.getMarkerData = function (markerName) {
-  var marker;
-  for (var i = 0; i < this.markers.length; i += 1) {
+  let marker;
+  for (let i = 0; i < this.markers.length; i += 1) {
     marker = this.markers[i];
     if (marker.payload && marker.payload.name === markerName) {
       return marker;
@@ -456,9 +451,9 @@ AnimationItem.prototype.goToAndStop = function (value, isFrame, name) {
   if (name && this.name !== name) {
     return;
   }
-  var numValue = Number(value);
+  const numValue = Number(value);
   if (isNaN(numValue)) {
-    var marker = this.getMarkerData(value);
+    const marker = this.getMarkerData(value);
     if (marker) {
       this.goToAndStop(marker.time, true);
     }
@@ -474,9 +469,9 @@ AnimationItem.prototype.goToAndPlay = function (value, isFrame, name) {
   if (name && this.name !== name) {
     return;
   }
-  var numValue = Number(value);
+  const numValue = Number(value);
   if (isNaN(numValue)) {
-    var marker = this.getMarkerData(value);
+    const marker = this.getMarkerData(value);
     if (marker) {
       if (!marker.duration) {
         this.goToAndStop(marker.time, true);
@@ -494,8 +489,8 @@ AnimationItem.prototype.advanceTime = function (value) {
   if (this.isPaused === true || this.isLoaded === false) {
     return;
   }
-  var nextValue = this.currentRawFrame + value * this.frameModifier;
-  var _isComplete = false;
+  let nextValue = this.currentRawFrame + value * this.frameModifier;
+  let _isComplete = false;
   // Checking if nextValue > totalFrames - 1 for addressing non looping and looping animations.
   // If animation won't loop, it should stop at totalFrames - 1. If it will loop it should complete the last frame and then loop.
   if (nextValue >= this.totalFrames - 1 && this.frameModifier > 0) {
@@ -516,7 +511,8 @@ AnimationItem.prototype.advanceTime = function (value) {
     }
   } else if (nextValue < 0) {
     if (!this.checkSegments(nextValue % this.totalFrames)) {
-      if (this.loop && !(this.playCount-- <= 0 && this.loop !== true)) { // eslint-disable-line no-plusplus
+      if (this.loop && !(this.playCount-- <= 0 && this.loop !== true)) {
+        // eslint-disable-line no-plusplus
         this.setCurrentRawFrameValue(this.totalFrames + (nextValue % this.totalFrames));
         if (!this._completedLoop) {
           this._completedLoop = true;
@@ -568,7 +564,7 @@ AnimationItem.prototype.adjustSegment = function (arr, offset) {
   this.trigger('segmentStart');
 };
 AnimationItem.prototype.setSegment = function (init, end) {
-  var pendingFrame = -1;
+  let pendingFrame = -1;
   if (this.isPaused) {
     if (this.currentRawFrame + this.firstFrame < init) {
       pendingFrame = init;
@@ -590,8 +586,8 @@ AnimationItem.prototype.playSegments = function (arr, forceFlag) {
     this.segments.length = 0;
   }
   if (typeof arr[0] === 'object') {
-    var i;
-    var len = arr.length;
+    let i;
+    const len = arr.length;
     for (i = 0; i < len; i += 1) {
       this.segments.push(arr[i]);
     }
@@ -694,11 +690,11 @@ AnimationItem.prototype.getPath = function () {
 };
 
 AnimationItem.prototype.getAssetsPath = function (assetData) {
-  var path = '';
+  let path = '';
   if (assetData.e) {
     path = assetData.p;
   } else if (this.assetsPath) {
-    var imagePath = assetData.p;
+    let imagePath = assetData.p;
     if (imagePath.indexOf('images/') !== -1) {
       imagePath = imagePath.split('/')[1];
     }
@@ -712,8 +708,8 @@ AnimationItem.prototype.getAssetsPath = function (assetData) {
 };
 
 AnimationItem.prototype.getAssetData = function (id) {
-  var i = 0;
-  var len = this.assets.length;
+  let i = 0;
+  const len = this.assets.length;
   while (i < len) {
     if (id === this.assets[i].id) {
       return this.assets[i];
@@ -737,7 +733,7 @@ AnimationItem.prototype.getDuration = function (isFrame) {
 
 AnimationItem.prototype.updateDocumentData = function (path, documentData, index) {
   try {
-    var element = this.renderer.getElementByPath(path);
+    const element = this.renderer.getElementByPath(path);
     element.updateDocumentData(documentData, index);
   } catch (error) {
     // TODO: decide how to handle catch case
@@ -790,7 +786,7 @@ AnimationItem.prototype.trigger = function (name) {
 };
 
 AnimationItem.prototype.triggerRenderFrameError = function (nativeError) {
-  var error = new BMRenderFrameErrorEvent(nativeError, this.currentFrame);
+  const error = new BMRenderFrameErrorEvent(nativeError, this.currentFrame);
   this.triggerEvent('error', error);
 
   if (this.onError) {
@@ -799,7 +795,7 @@ AnimationItem.prototype.triggerRenderFrameError = function (nativeError) {
 };
 
 AnimationItem.prototype.triggerConfigError = function (nativeError) {
-  var error = new BMConfigErrorEvent(nativeError, this.currentFrame);
+  const error = new BMConfigErrorEvent(nativeError, this.currentFrame);
   this.triggerEvent('error', error);
 
   if (this.onError) {

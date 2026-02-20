@@ -1,10 +1,6 @@
 // @ts-nocheck
-import {
-  degToRads,
-} from '../../utils/common';
-import {
-  extendPrototype,
-} from '../../utils/functionExtensions';
+import { degToRads } from '../../utils/common';
+import { extendPrototype } from '../../utils/functionExtensions';
 import PropertyFactory from '../../utils/PropertyFactory';
 import BaseElement from '../BaseElement';
 import HierarchyElement from '../helpers/HierarchyElement';
@@ -15,7 +11,7 @@ function HCameraElement(data, globalData, comp) {
   this.initFrame();
   this.initBaseData(data, globalData, comp);
   this.initHierarchy();
-  var getProp = PropertyFactory.getProp;
+  const getProp = PropertyFactory.getProp;
   this.pe = getProp(this, data.pe, 0, 0, this);
   if (data.ks.p.s) {
     this.px = getProp(this, data.ks.p.x, 1, 0, this);
@@ -28,8 +24,8 @@ function HCameraElement(data, globalData, comp) {
     this.a = getProp(this, data.ks.a, 1, 0, this);
   }
   if (data.ks.or.k.length && data.ks.or.k[0].to) {
-    var i;
-    var len = data.ks.or.k.length;
+    let i;
+    const len = data.ks.or.k.length;
     for (i = 0; i < len; i += 1) {
       data.ks.or.k[i].to = null;
       data.ks.or.k[i].ti = null;
@@ -52,20 +48,20 @@ function HCameraElement(data, globalData, comp) {
 extendPrototype([BaseElement, FrameElement, HierarchyElement], HCameraElement);
 
 HCameraElement.prototype.setup = function () {
-  var i;
-  var len = this.comp.threeDElements.length;
-  var comp;
-  var perspectiveStyle;
-  var containerStyle;
+  let i;
+  const len = this.comp.threeDElements.length;
+  let comp;
+  let perspectiveStyle;
+  let containerStyle;
   for (i = 0; i < len; i += 1) {
     // [perspectiveElem,container]
     comp = this.comp.threeDElements[i];
     if (comp.type === '3d') {
       perspectiveStyle = comp.perspectiveElem.style;
       containerStyle = comp.container.style;
-      var perspective = this.pe.v + 'px';
-      var origin = '0px 0px 0px';
-      var matrix = 'matrix3d(1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1)';
+      const perspective = this.pe.v + 'px';
+      const origin = '0px 0px 0px';
+      const matrix = 'matrix3d(1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1)';
       perspectiveStyle.perspective = perspective;
       perspectiveStyle.webkitPerspective = perspective;
       containerStyle.transformOrigin = origin;
@@ -77,29 +73,37 @@ HCameraElement.prototype.setup = function () {
   }
 };
 
-HCameraElement.prototype.createElements = function () {
-};
+HCameraElement.prototype.createElements = function () {};
 
-HCameraElement.prototype.hide = function () {
-};
+HCameraElement.prototype.hide = function () {};
 
 HCameraElement.prototype.renderFrame = function () {
-  var _mdf = this._isFirstFrame;
-  var i;
-  var len;
+  let _mdf = this._isFirstFrame;
+  let i;
+  let len;
   if (this.hierarchy) {
     len = this.hierarchy.length;
     for (i = 0; i < len; i += 1) {
       _mdf = this.hierarchy[i].finalTransform.mProp._mdf || _mdf;
     }
   }
-  if (_mdf || this.pe._mdf || (this.p && this.p._mdf) || (this.px && (this.px._mdf || this.py._mdf || this.pz._mdf)) || this.rx._mdf || this.ry._mdf || this.rz._mdf || this.or._mdf || (this.a && this.a._mdf)) {
+  if (
+    _mdf ||
+    this.pe._mdf ||
+    (this.p && this.p._mdf) ||
+    (this.px && (this.px._mdf || this.py._mdf || this.pz._mdf)) ||
+    this.rx._mdf ||
+    this.ry._mdf ||
+    this.rz._mdf ||
+    this.or._mdf ||
+    (this.a && this.a._mdf)
+  ) {
     this.mat.reset();
 
     if (this.hierarchy) {
       len = this.hierarchy.length - 1;
       for (i = len; i >= 0; i -= 1) {
-        var mTransf = this.hierarchy[i].finalTransform.mProp;
+        const mTransf = this.hierarchy[i].finalTransform.mProp;
         this.mat.translate(-mTransf.p.v[0], -mTransf.p.v[1], mTransf.p.v[2]);
         this.mat.rotateX(-mTransf.or.v[0]).rotateY(-mTransf.or.v[1]).rotateZ(mTransf.or.v[2]);
         this.mat.rotateX(-mTransf.rx.v).rotateY(-mTransf.ry.v).rotateZ(mTransf.rz.v);
@@ -113,18 +117,18 @@ HCameraElement.prototype.renderFrame = function () {
       this.mat.translate(-this.px.v, -this.py.v, this.pz.v);
     }
     if (this.a) {
-      var diffVector;
+      let diffVector;
       if (this.p) {
         diffVector = [this.p.v[0] - this.a.v[0], this.p.v[1] - this.a.v[1], this.p.v[2] - this.a.v[2]];
       } else {
         diffVector = [this.px.v - this.a.v[0], this.py.v - this.a.v[1], this.pz.v - this.a.v[2]];
       }
-      var mag = Math.sqrt(Math.pow(diffVector[0], 2) + Math.pow(diffVector[1], 2) + Math.pow(diffVector[2], 2));
+      const mag = Math.sqrt(Math.pow(diffVector[0], 2) + Math.pow(diffVector[1], 2) + Math.pow(diffVector[2], 2));
       // var lookDir = getNormalizedPoint(getDiffVector(this.a.v,this.p.v));
-      var lookDir = [diffVector[0] / mag, diffVector[1] / mag, diffVector[2] / mag];
-      var lookLengthOnXZ = Math.sqrt(lookDir[2] * lookDir[2] + lookDir[0] * lookDir[0]);
-      var mRotationX = (Math.atan2(lookDir[1], lookLengthOnXZ));
-      var mRotationY = (Math.atan2(lookDir[0], -lookDir[2]));
+      const lookDir = [diffVector[0] / mag, diffVector[1] / mag, diffVector[2] / mag];
+      const lookLengthOnXZ = Math.sqrt(lookDir[2] * lookDir[2] + lookDir[0] * lookDir[0]);
+      const mRotationX = Math.atan2(lookDir[1], lookLengthOnXZ);
+      const mRotationY = Math.atan2(lookDir[0], -lookDir[2]);
       this.mat.rotateY(mRotationY).rotateX(-mRotationX);
     }
     this.mat.rotateX(-this.rx.v).rotateY(-this.ry.v).rotateZ(this.rz.v);
@@ -132,17 +136,17 @@ HCameraElement.prototype.renderFrame = function () {
     this.mat.translate(this.globalData.compSize.w / 2, this.globalData.compSize.h / 2, 0);
     this.mat.translate(0, 0, this.pe.v);
 
-    var hasMatrixChanged = !this._prevMat.equals(this.mat);
+    const hasMatrixChanged = !this._prevMat.equals(this.mat);
     if ((hasMatrixChanged || this.pe._mdf) && this.comp.threeDElements) {
       len = this.comp.threeDElements.length;
-      var comp;
-      var perspectiveStyle;
-      var containerStyle;
+      let comp;
+      let perspectiveStyle;
+      let containerStyle;
       for (i = 0; i < len; i += 1) {
         comp = this.comp.threeDElements[i];
         if (comp.type === '3d') {
           if (hasMatrixChanged) {
-            var matValue = this.mat.toCSS();
+            const matValue = this.mat.toCSS();
             containerStyle = comp.container.style;
             containerStyle.transform = matValue;
             containerStyle.webkitTransform = matValue;
@@ -164,8 +168,9 @@ HCameraElement.prototype.prepareFrame = function (num) {
   this.prepareProperties(num, true);
 };
 
-HCameraElement.prototype.destroy = function () {
+HCameraElement.prototype.destroy = function () {};
+HCameraElement.prototype.getBaseElement = function () {
+  return null;
 };
-HCameraElement.prototype.getBaseElement = function () { return null; };
 
 export default HCameraElement;

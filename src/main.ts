@@ -6,17 +6,14 @@ let _useWebWorker = false;
 
 const initialDefaultFrame = -999999;
 
-const setWebWorker = (flag) => { _useWebWorker = !!flag; };
+const setWebWorker = (flag) => {
+  _useWebWorker = !!flag;
+};
 const getWebWorker = () => _useWebWorker;
 
-const setLocationHref = (value) => { locationHref = value; };
+const setLocationHref = (value) => {
+  locationHref = value;
+};
 const getLocationHref = () => locationHref;
 
-export {
-  svgNS,
-  initialDefaultFrame,
-  setWebWorker,
-  getWebWorker,
-  setLocationHref,
-  getLocationHref,
-};
+export { svgNS, initialDefaultFrame, setWebWorker, getWebWorker, setLocationHref, getLocationHref };

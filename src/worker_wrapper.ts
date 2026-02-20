@@ -1,13 +1,14 @@
 // @ts-nocheck
 function workerContent() {
   function extendPrototype(sources, destination) {
-    var i;
-    var len = sources.length;
-    var sourcePrototype;
+    let i;
+    const len = sources.length;
+    let sourcePrototype;
     for (i = 0; i < len; i += 1) {
       sourcePrototype = sources[i].prototype;
-      for (var attr in sourcePrototype) {
-        if (Object.prototype.hasOwnProperty.call(sourcePrototype, attr)) destination.prototype[attr] = sourcePrototype[attr];
+      for (const attr in sourcePrototype) {
+        if (Object.prototype.hasOwnProperty.call(sourcePrototype, attr))
+          destination.prototype[attr] = sourcePrototype[attr];
       }
     }
   }
@@ -37,8 +38,8 @@ function workerContent() {
     },
 
     insertBefore: function (_newElement, _nextElement) {
-      var children = this.children;
-      for (var i = 0; i < children.length; i += 1) {
+      const children = this.children;
+      for (let i = 0; i < children.length; i += 1) {
         if (children[i] === _nextElement) {
           children.splice(i, 0, _newElement);
           this._isDirty = true;
@@ -63,7 +64,9 @@ function workerContent() {
         namespace: this.namespace,
         style: this.style.serialize(),
         attributes: this.attributes,
-        children: this.children.map(function (child) { return child.serialize(); }),
+        children: this.children.map(function (child) {
+          return child.serialize();
+        }),
         textContent: this._textContent,
       };
     },
@@ -80,7 +83,6 @@ function workerContent() {
       }
       this._changedAttributes.push(_attribute);
     },
-
   };
 
   Object.defineProperty(ProxyElement.prototype, 'textContent', {
@@ -90,15 +92,15 @@ function workerContent() {
     },
   });
 
-  var localIdCounter = 0;
-  var animations = {};
+  let localIdCounter = 0;
+  const animations = {};
 
-  var styleProperties = ['width', 'height', 'display', 'transform', 'opacity', 'contentVisibility', 'mix-blend-mode'];
+  const styleProperties = ['width', 'height', 'display', 'transform', 'opacity', 'contentVisibility', 'mix-blend-mode'];
 
   function convertArguments(args) {
-    var arr = [];
-    var i;
-    var len = args.length;
+    const arr = [];
+    let i;
+    const len = args.length;
     for (i = 0; i < len; i += 1) {
       arr.push(args[i]);
     }
@@ -110,10 +112,10 @@ function workerContent() {
   }
   Style.prototype = {
     serialize: function () {
-      var obj = {};
-      for (var i = 0; i < styleProperties.length; i += 1) {
-        var propertyKey = styleProperties[i];
-        var keyName = '_' + propertyKey;
+      const obj = {};
+      for (let i = 0; i < styleProperties.length; i += 1) {
+        const propertyKey = styleProperties[i];
+        const keyName = '_' + propertyKey;
         if (keyName in this) {
           obj[propertyKey] = this[keyName];
         }
@@ -128,11 +130,11 @@ function workerContent() {
           this.element._isDirty = true;
         }
         this.element._changedStyles.push(propertyKey);
-        var keyName = '_' + propertyKey;
+        const keyName = '_' + propertyKey;
         this[keyName] = value;
       },
       get: function () {
-        var keyName = '_' + propertyKey;
+        const keyName = '_' + propertyKey;
         return this[keyName];
       },
     });
@@ -143,13 +145,13 @@ function workerContent() {
   }
 
   CanvasContext.prototype = {
-    createRadialGradient: function () {
-      function addColorStop() {
-        instruction.stops.push(convertArguments(arguments));
+    createRadialGradient: function (...gradArgs) {
+      function addColorStop(...stopArgs) {
+        instruction.stops.push(stopArgs);
       }
-      var instruction = {
+      const instruction = {
         t: 'rGradient',
-        a: convertArguments(arguments),
+        a: gradArgs,
         stops: [],
       };
       this.element.instructions.push(instruction);
@@ -158,13 +160,13 @@ function workerContent() {
       };
     },
 
-    createLinearGradient: function () {
-      function addColorStop() {
-        instruction.stops.push(convertArguments(arguments));
+    createLinearGradient: function (...gradArgs) {
+      function addColorStop(...stopArgs) {
+        instruction.stops.push(stopArgs);
       }
-      var instruction = {
+      const instruction = {
         t: 'lGradient',
-        a: convertArguments(arguments),
+        a: gradArgs,
         stops: [],
       };
       this.element.instructions.push(instruction);
@@ -172,7 +174,6 @@ function workerContent() {
         addColorStop: addColorStop,
       };
     },
-
   };
 
   Object.defineProperties(CanvasContext.prototype, {
@@ -184,7 +185,7 @@ function workerContent() {
     },
   });
 
-  var canvasContextMethods = [
+  const canvasContextMethods = [
     'fillRect',
     'setTransform',
     'drawImage',
@@ -205,15 +206,15 @@ function workerContent() {
   ];
 
   canvasContextMethods.forEach(function (method) {
-    CanvasContext.prototype[method] = function () {
+    CanvasContext.prototype[method] = function (...args) {
       this.element.instructions.push({
         t: method,
-        a: convertArguments(arguments),
+        a: args,
       });
     };
   });
 
-  var canvasContextProperties = [
+  const canvasContextProperties = [
     'globalAlpha',
     'strokeStyle',
     'fillStyle',
@@ -226,15 +227,14 @@ function workerContent() {
   ];
 
   canvasContextProperties.forEach(function (property) {
-    Object.defineProperty(CanvasContext.prototype, property,
-      {
-        set: function (_value) {
-          this.element.instructions.push({
-            t: property,
-            a: _value,
-          });
-        },
-      });
+    Object.defineProperty(CanvasContext.prototype, property, {
+      set: function (_value) {
+        this.element.instructions.push({
+          t: property,
+          a: _value,
+        });
+      },
+    });
   });
 
   function CanvasElement(type, namespace) {
@@ -246,7 +246,6 @@ function workerContent() {
   }
 
   CanvasElement.prototype = {
-
     getContext: function () {
       return this.context;
     },
@@ -264,9 +263,10 @@ function workerContent() {
     return new ProxyElement(type, namespace);
   }
 
-  var window = self; // eslint-disable-line no-redeclare, no-unused-vars
+  const window = self; // eslint-disable-line no-redeclare, no-unused-vars
 
-  var document = { // eslint-disable-line no-redeclare
+  const document = {
+    // eslint-disable-line no-redeclare
     createElementNS: function (namespace, type) {
       return createElement(namespace, type);
     },
@@ -280,7 +280,7 @@ function workerContent() {
     _isProxy: true,
   };
   /* eslint-enable */
-  var lottieInternal = (function () {
+  const lottieInternal = (function () {
     'use strict';
 
     /* <%= contents %> */
@@ -298,10 +298,10 @@ function workerContent() {
     }
 
     function addChangedAttributes(element) {
-      var changedAttributes = element._changedAttributes;
-      var attributes = [];
-      var attribute;
-      for (var i = 0; i < changedAttributes.length; i += 1) {
+      const changedAttributes = element._changedAttributes;
+      const attributes = [];
+      let attribute;
+      for (let i = 0; i < changedAttributes.length; i += 1) {
         attribute = changedAttributes[i];
         attributes.push([attribute, element.attributes[attribute]]);
       }
@@ -309,10 +309,10 @@ function workerContent() {
     }
 
     function addChangedStyles(element) {
-      var changedStyles = element._changedStyles;
-      var styles = [];
-      var style;
-      for (var i = 0; i < changedStyles.length; i += 1) {
+      const changedStyles = element._changedStyles;
+      const styles = [];
+      let style;
+      for (let i = 0; i < changedStyles.length; i += 1) {
         style = changedStyles[i];
         styles.push([style, element.style[style]]);
       }
@@ -320,10 +320,10 @@ function workerContent() {
     }
 
     function addChangedElements(element, elements) {
-      var changedElements = element._changedElements;
-      var elementsList = [];
-      var elementData;
-      for (var i = 0; i < changedElements.length; i += 1) {
+      const changedElements = element._changedElements;
+      const elementsList = [];
+      let elementData;
+      for (let i = 0; i < changedElements.length; i += 1) {
         elementData = changedElements[i];
         elementsList.push([elementData[0].serialize(), elementData[1], elementData[2]]);
         addElementToList(elementData[0], elements);
@@ -332,11 +332,10 @@ function workerContent() {
     }
 
     function loadAnimation(payload) {
-      var params = payload.params;
-      var wrapper;
-      var animation;
-      var elements = [];
-      var canvas;
+      const params = payload.params;
+      let wrapper;
+      const elements = [];
+      let canvas;
       if (params.renderer === 'svg') {
         wrapper = document.createElement('div');
         params.container = wrapper;
@@ -347,10 +346,10 @@ function workerContent() {
           canvas.width = params.animationData.w;
           canvas.height = params.animationData.h;
         }
-        var ctx = canvas.getContext('2d');
+        const ctx = canvas.getContext('2d');
         params.rendererSettings.context = ctx;
       }
-      animation = lottie.loadAnimation(params);
+      const animation = lottie.loadAnimation(params);
       animation.addEventListener('error', function (error) {
         console.log(error); // eslint-disable-line
       });
@@ -375,7 +374,7 @@ function workerContent() {
       });
       if (params.renderer === 'svg') {
         animation.addEventListener('DOMLoaded', function () {
-          var serialized = wrapper.serialize();
+          const serialized = wrapper.serialize();
           addElementToList(wrapper, elements);
           self.postMessage({
             type: 'SVGloaded',
@@ -386,12 +385,12 @@ function workerContent() {
           });
         });
         animation.addEventListener('drawnFrame', function (event) {
-          var changedElements = [];
-          var element;
-          for (var i = 0; i < elements.length; i += 1) {
+          const changedElements = [];
+          let element;
+          for (let i = 0; i < elements.length; i += 1) {
             element = elements[i];
             if (element._isDirty) {
-              var changedElement = {
+              const changedElement = {
                 id: element.attributes.id,
                 styles: addChangedStyles(element),
                 attributes: addChangedAttributes(element),
@@ -453,11 +452,11 @@ function workerContent() {
     return {
       loadAnimation: loadAnimation,
     };
-  }({}));
+  })({});
   onmessage = function (evt) {
-    var data = evt.data;
-    var type = data.type;
-    var payload = data.payload;
+    const data = evt.data;
+    const type = data.type;
+    const payload = data.payload;
     if (type === 'load') {
       lottieInternal.loadAnimation(payload);
     } else if (type === 'pause') {
@@ -498,13 +497,13 @@ function workerContent() {
       }
     } else if (type === 'addEventListener') {
       if (animations[payload.id]) {
-        var eventCallback = function () {
+        const eventCallback = function (...cbArgs) {
           self.postMessage({
             type: 'event',
             payload: {
               id: payload.id,
               callbackId: payload.callbackId,
-              argument: arguments[0],
+              argument: cbArgs[0],
             },
           });
         };
@@ -515,7 +514,7 @@ function workerContent() {
       }
     } else if (type === 'removeEventListener') {
       if (animations[payload.id]) {
-        var callback = animations[payload.id].events[payload.callbackId];
+        const callback = animations[payload.id].events[payload.callbackId];
         animations[payload.id].animation.removeEventListener(payload.eventName, callback);
       }
     } else if (type === 'destroy') {
@@ -542,24 +541,24 @@ function workerContent() {
 }
 
 function createWorker(fn) {
-  var blob = new Blob(['(' + fn.toString() + '())'], { type: 'text/javascript' });
-  var url = URL.createObjectURL(blob);
+  const blob = new Blob(['(' + fn.toString() + '())'], { type: 'text/javascript' });
+  const url = URL.createObjectURL(blob);
   return new Worker(url);
 }
 // eslint-disable-next-line no-unused-vars
-var lottie = (function () {
+const lottie = (function () {
   'use strict';
 
-  var workerInstance = createWorker(workerContent);
-  var animationIdCounter = 0;
-  var eventsIdCounter = 0;
-  var animations = {};
-  var defaultSettings = {
+  const workerInstance = createWorker(workerContent);
+  let animationIdCounter = 0;
+  let eventsIdCounter = 0;
+  const animations = {};
+  const defaultSettings = {
     rendererSettings: {},
   };
 
   function createTree(data, container, map, afterElement) {
-    var elem;
+    let elem;
     if (data.type === 'div') {
       elem = document.createElement('div');
     } else {
@@ -568,7 +567,7 @@ var lottie = (function () {
     if (data.textContent) {
       elem.textContent = data.textContent;
     }
-    for (var attr in data.attributes) {
+    for (const attr in data.attributes) {
       if (Object.prototype.hasOwnProperty.call(data.attributes, attr)) {
         if (attr === 'href') {
           elem.setAttributeNS('http://www.w3.org/1999/xlink', attr, data.attributes[attr]);
@@ -580,7 +579,7 @@ var lottie = (function () {
         }
       }
     }
-    for (var style in data.style) {
+    for (const style in data.style) {
       if (Object.prototype.hasOwnProperty.call(data.style, style)) {
         elem.style[style] = data.style[style];
       }
@@ -595,9 +594,9 @@ var lottie = (function () {
     }
   }
 
-  var handleAnimationLoaded = (function () {
+  const handleAnimationLoaded = (function () {
     return function (payload) {
-      var animation = animations[payload.id];
+      const animation = animations[payload.id];
       animation._loaded = true;
       // if callbacks have been added before the animation has loaded
       animation.pendingCallbacks.forEach(function (callbackData) {
@@ -610,30 +609,32 @@ var lottie = (function () {
       animation.animInstance.frameRate = payload.frameRate;
       animation.animInstance.firstFrame = payload.firstFrame;
       animation.animInstance.playDirection = payload.playDirection;
-      animation.animInstance.currentFrame = payload.isSubframeEnabled ? payload.currentRawFrame : ~~payload.currentRawFrame; // eslint-disable-line no-bitwise
+      animation.animInstance.currentFrame = payload.isSubframeEnabled
+        ? payload.currentRawFrame
+        : ~~payload.currentRawFrame; // eslint-disable-line no-bitwise
 
       if (payload.timeCompleted !== payload.totalFrames && payload.currentFrame > payload.timeCompleted) {
         animation.animInstance.currentFrame = payload.timeCompleted;
       }
     };
-  }());
+  })();
 
-  var handleSVGLoaded = (function () {
+  const handleSVGLoaded = (function () {
     return function (payload) {
-      var animation = animations[payload.id];
-      var container = animation.container;
-      var elements = animation.elements;
+      const animation = animations[payload.id];
+      const container = animation.container;
+      const elements = animation.elements;
       createTree(payload.tree, container, elements);
     };
-  }());
+  })();
 
   function addNewElements(newElements, elements) {
-    var element;
-    for (var i = 0; i < newElements.length; i += 1) {
+    let element;
+    for (let i = 0; i < newElements.length; i += 1) {
       element = newElements[i];
-      var parent = elements[element[1]];
+      const parent = elements[element[1]];
       if (parent) {
-        var sibling;
+        let sibling;
         if (element[2]) {
           sibling = elements[element[2]];
         }
@@ -645,16 +646,16 @@ var lottie = (function () {
   }
 
   function updateElementStyles(element, styles) {
-    var style;
-    for (var i = 0; i < styles.length; i += 1) {
+    let style;
+    for (let i = 0; i < styles.length; i += 1) {
       style = styles[i];
       element.style[style[0]] = style[1];
     }
   }
 
   function updateElementAttributes(element, attributes) {
-    var attribute;
-    for (var i = 0; i < attributes.length; i += 1) {
+    let attribute;
+    for (let i = 0; i < attributes.length; i += 1) {
       attribute = attributes[i];
       element.setAttribute(attribute[0], attribute[1]);
     }
@@ -667,14 +668,14 @@ var lottie = (function () {
   }
 
   function handleAnimationUpdate(payload) {
-    var changedElements = payload.elements;
-    var animation = animations[payload.id];
+    const changedElements = payload.elements;
+    const animation = animations[payload.id];
     if (animation) {
-      var elements = animation.elements;
-      var elementData;
-      for (var i = 0; i < changedElements.length; i += 1) {
+      const elements = animation.elements;
+      let elementData;
+      for (let i = 0; i < changedElements.length; i += 1) {
         elementData = changedElements[i];
-        var element = elements[elementData.id];
+        const element = elements[elementData.id];
         addNewElements(elementData.elements, elements);
         updateElementStyles(element, elementData.styles);
         updateElementAttributes(element, elementData.attributes);
@@ -685,8 +686,8 @@ var lottie = (function () {
   }
 
   function createInstructionsHandler(canvas) {
-    var ctx = canvas.getContext('2d');
-    var map = {
+    const ctx = canvas.getContext('2d');
+    const map = {
       beginPath: ctx.beginPath,
       closePath: ctx.closePath,
       rect: ctx.rect,
@@ -701,9 +702,9 @@ var lottie = (function () {
       restore: ctx.restore,
     };
     return function (instructions) {
-      for (var i = 0; i < instructions.length; i += 1) {
-        var instruction = instructions[i];
-        var fn = map[instruction.t];
+      for (let i = 0; i < instructions.length; i += 1) {
+        const instruction = instructions[i];
+        const fn = map[instruction.t];
         if (fn) {
           fn.apply(ctx, instruction.a);
         } else {
@@ -714,14 +715,14 @@ var lottie = (function () {
   }
 
   function handleCanvasAnimationUpdate(payload) {
-    var animation = animations[payload.id];
+    const animation = animations[payload.id];
     animation.instructionsHandler(payload.instructions);
   }
 
   function handleEvent(payload) {
-    var animation = animations[payload.id];
+    const animation = animations[payload.id];
     if (animation) {
-      var callbacks = animation.callbacks;
+      const callbacks = animation.callbacks;
       if (callbacks[payload.callbackId]) {
         callbacks[payload.callbackId].callback(payload.argument);
       }
@@ -729,20 +730,20 @@ var lottie = (function () {
   }
 
   function handlePlaying(payload) {
-    var animation = animations[payload.id];
+    const animation = animations[payload.id];
     if (animation) {
       animation.animInstance.isPaused = false;
     }
   }
 
   function handlePaused(payload) {
-    var animation = animations[payload.id];
+    const animation = animations[payload.id];
     if (animation) {
       animation.animInstance.isPaused = true;
     }
   }
 
-  var messageHandlers = {
+  const messageHandlers = {
     DOMLoaded: handleAnimationLoaded,
     SVGloaded: handleSVGLoaded,
     SVGupdated: handleAnimationUpdate,
@@ -760,7 +761,7 @@ var lottie = (function () {
 
   function resolveAnimationData(params) {
     return new Promise(function (resolve, reject) {
-      var paramsCopy = Object.assign({}, defaultSettings, params);
+      const paramsCopy = Object.assign({}, defaultSettings, params);
       if (paramsCopy.animType && !paramsCopy.renderer) {
         paramsCopy.renderer = paramsCopy.animType;
       }
@@ -790,14 +791,14 @@ var lottie = (function () {
 
   function loadAnimation(params) {
     animationIdCounter += 1;
-    var animationId = 'lottie_animationId_' + animationIdCounter;
-    var animation = {
+    const animationId = 'lottie_animationId_' + animationIdCounter;
+    const animation = {
       elements: {},
       callbacks: {},
       pendingCallbacks: [],
       status: 'init',
     };
-    var animInstance = {
+    const animInstance = {
       id: animationId,
       isPaused: true,
       pause: function () {
@@ -898,7 +899,7 @@ var lottie = (function () {
           });
         } else {
           eventsIdCounter += 1;
-          var callbackId = 'callback_' + eventsIdCounter;
+          const callbackId = 'callback_' + eventsIdCounter;
           animation.callbacks[callbackId] = {
             eventName: eventName,
             callback: callback,
@@ -914,21 +915,22 @@ var lottie = (function () {
         }
       },
       removeEventListener: function (eventName, callback) {
-        Object.keys(animation.callbacks)
-          .forEach(function (key) {
-            if (animation.callbacks[key].eventName === eventName
-              && (animation.callbacks[key].callback === callback || !callback)) {
-              delete animation.callbacks[key];
-              workerInstance.postMessage({
-                type: 'removeEventListener',
-                payload: {
-                  id: animationId,
-                  callbackId: key,
-                  eventName: eventName,
-                },
-              });
-            }
-          });
+        Object.keys(animation.callbacks).forEach(function (key) {
+          if (
+            animation.callbacks[key].eventName === eventName &&
+            (animation.callbacks[key].callback === callback || !callback)
+          ) {
+            delete animation.callbacks[key];
+            workerInstance.postMessage({
+              type: 'removeEventListener',
+              payload: {
+                id: animationId,
+                callbackId: key,
+                eventName: eventName,
+              },
+            });
+          }
+        });
       },
       destroy: function () {
         if (animation.status === 'init') {
@@ -948,7 +950,7 @@ var lottie = (function () {
         }
       },
       resize: function (width, height) {
-        var devicePixelRatio = window.devicePixelRatio || 1;
+        const devicePixelRatio = window.devicePixelRatio || 1;
         workerInstance.postMessage({
           type: 'resize',
           payload: {
@@ -972,59 +974,65 @@ var lottie = (function () {
       },
     };
     animation.animInstance = animInstance;
-    resolveAnimationData(params)
-      .then(function (animationParams) {
-        if (animation.status === 'destroyable') {
-          animation.animInstance.destroy();
-          return;
-        }
-        animation.status = 'loaded';
-        var transferedObjects = [];
-        if (animationParams.container) {
-          animation.container = animationParams.container;
-          delete animationParams.container;
-        }
-        if (animationParams.renderer === 'canvas') {
-          var canvas = animationParams.rendererSettings.canvas;
+    resolveAnimationData(params).then(function (animationParams) {
+      if (animation.status === 'destroyable') {
+        animation.animInstance.destroy();
+        return;
+      }
+      animation.status = 'loaded';
+      const transferedObjects = [];
+      if (animationParams.container) {
+        animation.container = animationParams.container;
+        delete animationParams.container;
+      }
+      if (animationParams.renderer === 'canvas') {
+        let canvas = animationParams.rendererSettings.canvas;
 
-          // If no custom canvas was passed
-          if (!canvas) {
-            var devicePixelRatio = window.devicePixelRatio || 1;
-            canvas = document.createElement('canvas');
-            animation.container.appendChild(canvas);
-            canvas.width = (animation.container ? animation.container.offsetWidth : animationParams.animationData.w) * devicePixelRatio;
-            canvas.height = (animation.container ? animation.container.offsetHeight : animationParams.animationData.h) * devicePixelRatio;
-            canvas.style.width = '100%';
-            canvas.style.height = '100%';
-          }
-
-          // Transfer control to offscreen if it's not already
-          var transferCanvas = canvas;
-          if (typeof OffscreenCanvas === 'undefined') {
-            animation.canvas = canvas;
-            animation.instructionsHandler = createInstructionsHandler(canvas);
-          } else {
-            if (!(canvas instanceof OffscreenCanvas)) {
-              transferCanvas = canvas.transferControlToOffscreen();
-              animationParams.rendererSettings.canvas = transferCanvas;
-            }
-            transferedObjects.push(transferCanvas);
-          }
+        // If no custom canvas was passed
+        if (!canvas) {
+          const devicePixelRatio = window.devicePixelRatio || 1;
+          canvas = document.createElement('canvas');
+          animation.container.appendChild(canvas);
+          canvas.width =
+            (animation.container ? animation.container.offsetWidth : animationParams.animationData.w) *
+            devicePixelRatio;
+          canvas.height =
+            (animation.container ? animation.container.offsetHeight : animationParams.animationData.h) *
+            devicePixelRatio;
+          canvas.style.width = '100%';
+          canvas.style.height = '100%';
         }
-        animations[animationId] = animation;
-        workerInstance.postMessage({
+
+        // Transfer control to offscreen if it's not already
+        let transferCanvas = canvas;
+        if (typeof OffscreenCanvas === 'undefined') {
+          animation.canvas = canvas;
+          animation.instructionsHandler = createInstructionsHandler(canvas);
+        } else {
+          if (!(canvas instanceof OffscreenCanvas)) {
+            transferCanvas = canvas.transferControlToOffscreen();
+            animationParams.rendererSettings.canvas = transferCanvas;
+          }
+          transferedObjects.push(transferCanvas);
+        }
+      }
+      animations[animationId] = animation;
+      workerInstance.postMessage(
+        {
           type: 'load',
           payload: {
             params: animationParams,
             id: animationId,
           },
-        }, transferedObjects);
-      });
+        },
+        transferedObjects,
+      );
+    });
     return animInstance;
   }
 
-  var lottiejs = {
+  const lottiejs = {
     loadAnimation: loadAnimation,
   };
   return lottiejs;
-}());
+})();

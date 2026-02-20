@@ -9,6 +9,6 @@ const propertyGroupFactory = (function () {
       return parentPropertyGroup(val - 1);
     };
   };
-}());
+})();
 
 export default propertyGroupFactory;

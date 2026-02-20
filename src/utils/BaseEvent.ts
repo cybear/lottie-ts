@@ -19,11 +19,7 @@ BaseEvent.prototype = {
       }
     }
   },
-  addEventListener(
-    this: BaseEventThis,
-    eventName: string,
-    callback: EventCallback,
-  ): () => void {
+  addEventListener(this: BaseEventThis, eventName: string, callback: EventCallback): () => void {
     if (!this._cbs[eventName]) {
       this._cbs[eventName] = [];
     }
@@ -33,11 +29,7 @@ BaseEvent.prototype = {
       this.removeEventListener(eventName, callback);
     }.bind(this);
   },
-  removeEventListener(
-    this: BaseEventThis,
-    eventName: string,
-    callback?: EventCallback,
-  ): void {
+  removeEventListener(this: BaseEventThis, eventName: string, callback?: EventCallback): void {
     if (!callback) {
       this._cbs[eventName] = null;
     } else if (this._cbs[eventName]) {

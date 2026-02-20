@@ -24,8 +24,4 @@ function createProxyFunction(prototype: Record<string, any>): new () => Record<s
   return ProxyFunction as unknown as new () => Record<string, any>;
 }
 
-export {
-  extendPrototype,
-  getDescriptor,
-  createProxyFunction,
-};
+export { extendPrototype, getDescriptor, createProxyFunction };

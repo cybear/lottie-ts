@@ -1,23 +1,19 @@
 // @ts-nocheck
-import {
-  createElementID,
-  getExpressionInterfaces,
-} from '../utils/common';
+import { createElementID, getExpressionInterfaces } from '../utils/common';
 import getBlendMode from '../utils/helpers/blendModes';
 import EffectsManager from '../EffectsManager';
 
-function BaseElement() {
-}
+function BaseElement() {}
 
 BaseElement.prototype = {
   checkMasks: function () {
     if (!this.data.hasMask) {
       return false;
     }
-    var i = 0;
-    var len = this.data.masksProperties.length;
+    let i = 0;
+    const len = this.data.masksProperties.length;
     while (i < len) {
-      if ((this.data.masksProperties[i].mode !== 'n' && this.data.masksProperties[i].cl !== false)) {
+      if (this.data.masksProperties[i].mode !== 'n' && this.data.masksProperties[i].cl !== false) {
         return true;
       }
       i += 1;
@@ -38,13 +34,17 @@ BaseElement.prototype = {
     if (this.data.hasMask && this.maskManager) {
       this.layerInterface.registerMaskInterface(this.maskManager);
     }
-    var effectsInterface = EffectsExpressionInterface.createEffectsInterface(this, this.layerInterface);
+    const effectsInterface = EffectsExpressionInterface.createEffectsInterface(this, this.layerInterface);
     this.layerInterface.registerEffectsInterface(effectsInterface);
 
     if (this.data.ty === 0 || this.data.xt) {
       this.compInterface = CompExpressionInterface(this);
     } else if (this.data.ty === 4) {
-      this.layerInterface.shapeInterface = ShapeExpressionInterface(this.shapesData, this.itemsData, this.layerInterface);
+      this.layerInterface.shapeInterface = ShapeExpressionInterface(
+        this.shapesData,
+        this.itemsData,
+        this.layerInterface,
+      );
       this.layerInterface.content = this.layerInterface.shapeInterface;
     } else if (this.data.ty === 5) {
       this.layerInterface.textInterface = TextExpressionInterface(this);
@@ -52,8 +52,8 @@ BaseElement.prototype = {
     }
   },
   setBlendMode: function () {
-    var blendModeValue = getBlendMode(this.data.bm);
-    var elem = this.baseElement || this.layerElement;
+    const blendModeValue = getBlendMode(this.data.bm);
+    const elem = this.baseElement || this.layerElement;
 
     elem.style['mix-blend-mode'] = blendModeValue;
   },

@@ -7,7 +7,7 @@ function TransformElement() {}
 
 TransformElement.prototype = {
   initTransform: function () {
-    var mat = new Matrix();
+    const mat = new Matrix();
     this.finalTransform = {
       mProp: this.data.ks ? TransformPropertyFactory.getTransformProperty(this, this.data.ks, this) : { o: 0 },
       _matMdf: false,
@@ -31,10 +31,10 @@ TransformElement.prototype = {
     this.finalTransform._matMdf = this.finalTransform.mProp._mdf || this._isFirstFrame;
 
     if (this.hierarchy) {
-      var mat;
-      var finalMat = this.finalTransform.mat;
-      var i = 0;
-      var len = this.hierarchy.length;
+      let mat;
+      const finalMat = this.finalTransform.mat;
+      let i = 0;
+      const len = this.hierarchy.length;
       // Checking if any of the transformation matrices in the hierarchy chain has changed.
       if (!this.finalTransform._matMdf) {
         while (i < len) {
@@ -63,8 +63,8 @@ TransformElement.prototype = {
   },
   renderLocalTransform: function () {
     if (this.localTransforms) {
-      var i = 0;
-      var len = this.localTransforms.length;
+      let i = 0;
+      const len = this.localTransforms.length;
       this.finalTransform._localMatMdf = this.finalTransform._matMdf;
       if (!this.finalTransform._localMatMdf || !this.finalTransform._opMdf) {
         while (i < len) {
@@ -79,16 +79,16 @@ TransformElement.prototype = {
         }
       }
       if (this.finalTransform._localMatMdf) {
-        var localMat = this.finalTransform.localMat;
+        const localMat = this.finalTransform.localMat;
         this.localTransforms[0].matrix.clone(localMat);
         for (i = 1; i < len; i += 1) {
-          var lmat = this.localTransforms[i].matrix;
+          const lmat = this.localTransforms[i].matrix;
           localMat.multiply(lmat);
         }
         localMat.multiply(this.finalTransform.mat);
       }
       if (this.finalTransform._opMdf) {
-        var localOp = this.finalTransform.localOpacity;
+        let localOp = this.finalTransform.localOpacity;
         for (i = 0; i < len; i += 1) {
           localOp *= this.localTransforms[i].opacity * 0.01;
         }
@@ -98,12 +98,12 @@ TransformElement.prototype = {
   },
   searchEffectTransforms: function () {
     if (this.renderableEffectsManager) {
-      var transformEffects = this.renderableEffectsManager.getEffects(effectTypes.TRANSFORM_EFFECT);
+      const transformEffects = this.renderableEffectsManager.getEffects(effectTypes.TRANSFORM_EFFECT);
       if (transformEffects.length) {
         this.localTransforms = [];
         this.finalTransform.localMat = new Matrix();
-        var i = 0;
-        var len = transformEffects.length;
+        let i = 0;
+        const len = transformEffects.length;
         for (i = 0; i < len; i += 1) {
           this.localTransforms.push(transformEffects[i]);
         }
@@ -111,10 +111,10 @@ TransformElement.prototype = {
     }
   },
   globalToLocal: function (pt) {
-    var transforms = [];
+    const transforms = [];
     transforms.push(this.finalTransform);
-    var flag = true;
-    var comp = this.comp;
+    let flag = true;
+    let comp = this.comp;
     while (flag) {
       if (comp.finalTransform) {
         if (comp.data.hasMask) {
@@ -125,9 +125,9 @@ TransformElement.prototype = {
         flag = false;
       }
     }
-    var i;
-    var len = transforms.length;
-    var ptNew;
+    let i;
+    const len = transforms.length;
+    let ptNew;
     for (i = 0; i < len; i += 1) {
       ptNew = transforms[i].mat.applyToPointArray(0, 0, 0);
       // ptNew = transforms[i].mat.applyToPointArray(pt[0],pt[1],pt[2]);

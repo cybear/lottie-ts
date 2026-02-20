@@ -1,6 +1,4 @@
-import {
-  createSizedArray,
-} from '../helpers/arrays';
+import { createSizedArray } from '../helpers/arrays';
 import pooling from './pooling';
 
 const poolFactory = (function () {
@@ -43,6 +41,6 @@ const poolFactory = (function () {
 
     return ob;
   };
-}());
+})();
 
 export default poolFactory;

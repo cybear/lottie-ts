@@ -1,6 +1,4 @@
-import {
-  createSizedArray,
-} from '../helpers/arrays';
+import { createSizedArray } from '../helpers/arrays';
 import shapePool from './shape_pool';
 import pooling from './pooling';
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -48,6 +46,6 @@ const shapeCollectionPool = (function () {
   }
 
   return ob;
-}());
+})();
 
 export default shapeCollectionPool;

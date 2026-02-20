@@ -1,7 +1,5 @@
 // @ts-nocheck
-import {
-  extendPrototype,
-} from '../../../utils/functionExtensions';
+import { extendPrototype } from '../../../utils/functionExtensions';
 import DynamicPropertyContainer from '../../../utils/helpers/dynamicProperties';
 import PropertyFactory from '../../../utils/PropertyFactory';
 import DashProperty from '../../../utils/shapes/DashProperty';

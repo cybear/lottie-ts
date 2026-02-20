@@ -1,7 +1,5 @@
 // @ts-nocheck
-import {
-  extendPrototype,
-} from '../utils/functionExtensions';
+import { extendPrototype } from '../utils/functionExtensions';
 import PropertyFactory from '../utils/PropertyFactory';
 import RenderableElement from './helpers/RenderableElement';
 import BaseElement from './BaseElement';
@@ -14,7 +12,7 @@ function AudioElement(data, globalData, comp) {
   this.initBaseData(data, globalData, comp);
   this._isPlaying = false;
   this._canPlay = false;
-  var assetPath = this.globalData.getAssetsPath(this.assetData);
+  const assetPath = this.globalData.getAssetsPath(this.assetData);
   this.audio = this.globalData.audioController.createAudio(assetPath);
   this._currentTime = 0;
   this.globalData.audioController.addAudio(this);
@@ -29,13 +27,13 @@ AudioElement.prototype.prepareFrame = function (num) {
   this.prepareRenderableFrame(num, true);
   this.prepareProperties(num, true);
   if (!this.tm._placeholder) {
-    var timeRemapped = this.tm.v;
+    const timeRemapped = this.tm.v;
     this._currentTime = timeRemapped;
   } else {
     this._currentTime = num / this.data.sr;
   }
   this._volume = this.lv.v[0];
-  var totalVolume = this._volume * this._volumeMultiplier;
+  const totalVolume = this._volume * this._volumeMultiplier;
   if (this._previousVolume !== totalVolume) {
     this._previousVolume = totalVolume;
     this.audio.volume(totalVolume);
@@ -50,8 +48,9 @@ AudioElement.prototype.renderFrame = function () {
       this.audio.play();
       this.audio.seek(this._currentTime / this.globalData.frameRate);
       this._isPlaying = true;
-    } else if (!this.audio.playing()
-      || Math.abs(this._currentTime / this.globalData.frameRate - this.audio.seek()) > 0.1
+    } else if (
+      !this.audio.playing() ||
+      Math.abs(this._currentTime / this.globalData.frameRate - this.audio.seek()) > 0.1
     ) {
       this.audio.seek(this._currentTime / this.globalData.frameRate);
     }
@@ -91,13 +90,10 @@ AudioElement.prototype.getBaseElement = function () {
   return null;
 };
 
-AudioElement.prototype.destroy = function () {
-};
+AudioElement.prototype.destroy = function () {};
 
-AudioElement.prototype.sourceRectAtTime = function () {
-};
+AudioElement.prototype.sourceRectAtTime = function () {};
 
-AudioElement.prototype.initExpressions = function () {
-};
+AudioElement.prototype.initExpressions = function () {};
 
 export default AudioElement;

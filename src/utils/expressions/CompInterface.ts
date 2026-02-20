@@ -2,8 +2,8 @@
 const CompExpressionInterface = (function () {
   return function (comp) {
     function _thisLayerFunction(name) {
-      var i = 0;
-      var len = comp.layers.length;
+      let i = 0;
+      const len = comp.layers.length;
       while (i < len) {
         if (comp.layers[i].nm === name || comp.layers[i].ind === name) {
           return comp.elements[i].layerInterface;
@@ -24,6 +24,6 @@ const CompExpressionInterface = (function () {
     _thisLayerFunction.numLayers = comp.layers.length;
     return _thisLayerFunction;
   };
-}());
+})();
 
 export default CompExpressionInterface;

@@ -1,11 +1,7 @@
 // @ts-nocheck
 import { getLocationHref } from './main';
-import {
-  createElementID,
-} from './utils/common';
-import {
-  createSizedArray,
-} from './utils/helpers/arrays';
+import { createElementID } from './utils/common';
+import { createSizedArray } from './utils/helpers/arrays';
 import PropertyFactory from './utils/PropertyFactory';
 import ShapePropertyFactory from './utils/shapes/ShapeProperty';
 import createNS from './utils/helpers/svg_elements';
@@ -17,27 +13,32 @@ function MaskElement(data, element, globalData) {
   this.storedData = [];
   this.masksProperties = this.data.masksProperties || [];
   this.maskElement = null;
-  var defs = this.globalData.defs;
-  var i;
-  var len = this.masksProperties ? this.masksProperties.length : 0;
+  const defs = this.globalData.defs;
+  let i;
+  let len = this.masksProperties ? this.masksProperties.length : 0;
   this.viewData = createSizedArray(len);
   this.solidPath = '';
 
-  var path;
-  var properties = this.masksProperties;
-  var count = 0;
-  var currentMasks = [];
-  var j;
-  var jLen;
-  var layerId = createElementID();
-  var rect;
-  var expansor;
-  var feMorph;
-  var x;
-  var maskType = 'clipPath';
-  var maskRef = 'clip-path';
+  let path;
+  const properties = this.masksProperties;
+  let count = 0;
+  const currentMasks = [];
+  let j;
+  let jLen;
+  const layerId = createElementID();
+  let rect;
+  let expansor;
+  let feMorph;
+  let x;
+  let maskType = 'clipPath';
+  let maskRef = 'clip-path';
   for (i = 0; i < len; i += 1) {
-    if ((properties[i].mode !== 'a' && properties[i].mode !== 'n') || properties[i].inv || properties[i].o.k !== 100 || properties[i].o.x) {
+    if (
+      (properties[i].mode !== 'a' && properties[i].mode !== 'n') ||
+      properties[i].inv ||
+      properties[i].o.k !== 100 ||
+      properties[i].o.x
+    ) {
       maskType = 'mask';
       maskRef = 'mask';
     }
@@ -67,7 +68,7 @@ function MaskElement(data, element, globalData) {
 
       path.setAttribute('fill', properties[i].mode === 's' ? '#000000' : '#ffffff');
       path.setAttribute('clip-rule', 'nonzero');
-      var filterID;
+      let filterID;
 
       if (properties[i].x.k !== 0) {
         maskType = 'mask';
@@ -100,11 +101,11 @@ function MaskElement(data, element, globalData) {
       };
       if (properties[i].mode === 'i') {
         jLen = currentMasks.length;
-        var g = createNS('g');
+        const g = createNS('g');
         for (j = 0; j < jLen; j += 1) {
           g.appendChild(currentMasks[j]);
         }
-        var mask = createNS('mask');
+        const mask = createNS('mask');
         mask.setAttribute('mask-type', 'alpha');
         mask.setAttribute('id', layerId + '_' + count);
         mask.appendChild(path);
@@ -155,9 +156,9 @@ MaskElement.prototype.getMaskProperty = function (pos) {
 };
 
 MaskElement.prototype.renderFrame = function (isFirstFrame) {
-  var finalMat = this.element.finalTransform.mat;
-  var i;
-  var len = this.masksProperties.length;
+  const finalMat = this.element.finalTransform.mat;
+  let i;
+  const len = this.masksProperties.length;
   for (i = 0; i < len; i += 1) {
     if (this.viewData[i].prop._mdf || isFirstFrame) {
       this.drawPath(this.masksProperties[i], this.viewData[i].prop.v, this.viewData[i]);
@@ -170,11 +171,14 @@ MaskElement.prototype.renderFrame = function (isFirstFrame) {
         this.viewData[i].invRect.setAttribute('transform', finalMat.getInverseMatrix().to2dCSS());
       }
       if (this.storedData[i].x && (this.storedData[i].x._mdf || isFirstFrame)) {
-        var feMorph = this.storedData[i].expan;
+        const feMorph = this.storedData[i].expan;
         if (this.storedData[i].x.v < 0) {
           if (this.storedData[i].lastOperator !== 'erode') {
             this.storedData[i].lastOperator = 'erode';
-            this.storedData[i].elem.setAttribute('filter', 'url(' + getLocationHref() + '#' + this.storedData[i].filterId + ')');
+            this.storedData[i].elem.setAttribute(
+              'filter',
+              'url(' + getLocationHref() + '#' + this.storedData[i].filterId + ')',
+            );
           }
           feMorph.setAttribute('radius', -this.storedData[i].x.v);
         } else {
@@ -194,7 +198,7 @@ MaskElement.prototype.getMaskelement = function () {
 };
 
 MaskElement.prototype.createLayerSolidPath = function () {
-  var path = 'M0,0 ';
+  let path = 'M0,0 ';
   path += ' h' + this.globalData.compSize.w;
   path += ' v' + this.globalData.compSize.h;
   path += ' h-' + this.globalData.compSize.w;
@@ -203,22 +207,45 @@ MaskElement.prototype.createLayerSolidPath = function () {
 };
 
 MaskElement.prototype.drawPath = function (pathData, pathNodes, viewData) {
-  var pathString = ' M' + pathNodes.v[0][0] + ',' + pathNodes.v[0][1];
-  var i;
-  var len;
-  len = pathNodes._length;
+  let pathString = ' M' + pathNodes.v[0][0] + ',' + pathNodes.v[0][1];
+  let i;
+  const len = pathNodes._length;
   for (i = 1; i < len; i += 1) {
     // pathString += " C"+pathNodes.o[i-1][0]+','+pathNodes.o[i-1][1] + " "+pathNodes.i[i][0]+','+pathNodes.i[i][1] + " "+pathNodes.v[i][0]+','+pathNodes.v[i][1];
-    pathString += ' C' + pathNodes.o[i - 1][0] + ',' + pathNodes.o[i - 1][1] + ' ' + pathNodes.i[i][0] + ',' + pathNodes.i[i][1] + ' ' + pathNodes.v[i][0] + ',' + pathNodes.v[i][1];
+    pathString +=
+      ' C' +
+      pathNodes.o[i - 1][0] +
+      ',' +
+      pathNodes.o[i - 1][1] +
+      ' ' +
+      pathNodes.i[i][0] +
+      ',' +
+      pathNodes.i[i][1] +
+      ' ' +
+      pathNodes.v[i][0] +
+      ',' +
+      pathNodes.v[i][1];
   }
   // pathString += " C"+pathNodes.o[i-1][0]+','+pathNodes.o[i-1][1] + " "+pathNodes.i[0][0]+','+pathNodes.i[0][1] + " "+pathNodes.v[0][0]+','+pathNodes.v[0][1];
   if (pathNodes.c && len > 1) {
-    pathString += ' C' + pathNodes.o[i - 1][0] + ',' + pathNodes.o[i - 1][1] + ' ' + pathNodes.i[0][0] + ',' + pathNodes.i[0][1] + ' ' + pathNodes.v[0][0] + ',' + pathNodes.v[0][1];
+    pathString +=
+      ' C' +
+      pathNodes.o[i - 1][0] +
+      ',' +
+      pathNodes.o[i - 1][1] +
+      ' ' +
+      pathNodes.i[0][0] +
+      ',' +
+      pathNodes.i[0][1] +
+      ' ' +
+      pathNodes.v[0][0] +
+      ',' +
+      pathNodes.v[0][1];
   }
   // pathNodes.__renderedString = pathString;
 
   if (viewData.lastPath !== pathString) {
-    var pathShapeValue = '';
+    let pathShapeValue = '';
     if (viewData.elem) {
       if (pathNodes.c) {
         pathShapeValue = pathData.inv ? this.solidPath + pathString : pathString;

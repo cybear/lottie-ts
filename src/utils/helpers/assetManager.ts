@@ -3,7 +3,7 @@ import createNS from './svg_elements';
 import featureSupport from '../featureSupport';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-const lumaLoader = (function () {
+const lumaLoader = function () {
   const id = '__lottie_element_luma_buffer';
   let lumaBuffer: HTMLCanvasElement | null = null;
   let lumaBufferCtx: CanvasRenderingContext2D | null = null;
@@ -52,7 +52,7 @@ const lumaLoader = (function () {
     load: loadLuma,
     get: getLuma,
   };
-});
+};
 
 function createCanvas(width: number, height: number): HTMLCanvasElement | OffscreenCanvas {
   if (featureSupport.offscreenCanvas) {
@@ -75,6 +75,6 @@ const assetLoader = (function () {
     getLumaCanvas: lumaLoaderInstance.get as ((canvas: HTMLCanvasElement) => HTMLCanvasElement) | undefined,
     createCanvas,
   };
-}());
+})();
 
 export default assetLoader;

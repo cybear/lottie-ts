@@ -1,7 +1,5 @@
 // @ts-nocheck
-import {
-  extendPrototype,
-} from './utils/functionExtensions';
+import { extendPrototype } from './utils/functionExtensions';
 import {
   SliderEffect,
   AngleEffect,
@@ -15,11 +13,11 @@ import {
 import DynamicPropertyContainer from './utils/helpers/dynamicProperties';
 
 function EffectsManager(data, element) {
-  var effects = data.ef || [];
+  const effects = data.ef || [];
   this.effectElements = [];
-  var i;
-  var len = effects.length;
-  var effectItem;
+  let i;
+  const len = effects.length;
+  let effectItem;
   for (i = 0; i < len; i += 1) {
     effectItem = new GroupEffect(effects[i], element);
     this.effectElements.push(effectItem);
@@ -38,10 +36,10 @@ GroupEffect.prototype.init = function (data, element) {
   this.data = data;
   this.effectElements = [];
   this.initDynamicPropertyContainer(element);
-  var i;
-  var len = this.data.ef.length;
-  var eff;
-  var effects = this.data.ef;
+  let i;
+  const len = this.data.ef.length;
+  let eff;
+  const effects = this.data.ef;
   for (i = 0; i < len; i += 1) {
     eff = null;
     switch (effects[i].ty) {
@@ -70,7 +68,7 @@ GroupEffect.prototype.init = function (data, element) {
       case 5:
         eff = new EffectsManager(effects[i], element, this);
         break;
-        // case 6:
+      // case 6:
       default:
         eff = new NoValueEffect(effects[i], element, this);
         break;

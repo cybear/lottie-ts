@@ -3,8 +3,8 @@ import createTag from './helpers/html_elements';
 import getFontProperties from './getFontProperties';
 
 const FontManager = (function () {
-  var maxWaitingTime = 5000;
-  var emptyChar = {
+  const maxWaitingTime = 5000;
+  const emptyChar = {
     w: 0,
     size: 0,
     shapes: [] as any[],
@@ -12,35 +12,29 @@ const FontManager = (function () {
       shapes: [] as any[],
     },
   };
-  var combinedCharacters: number[] = [];
+  let combinedCharacters: number[] = [];
   // Hindi characters
-  combinedCharacters = combinedCharacters.concat([2304, 2305, 2306, 2307, 2362,
-    2363, 2364, 2364, 2366,
-    2367, 2368, 2369, 2370, 2371, 2372, 2373, 2374, 2375, 2376, 2377, 2378, 2379,
-    2380, 2381, 2382, 2383, 2387, 2388, 2389, 2390, 2391, 2402, 2403]);
+  combinedCharacters = combinedCharacters.concat([
+    2304, 2305, 2306, 2307, 2362, 2363, 2364, 2364, 2366, 2367, 2368, 2369, 2370, 2371, 2372, 2373, 2374, 2375, 2376,
+    2377, 2378, 2379, 2380, 2381, 2382, 2383, 2387, 2388, 2389, 2390, 2391, 2402, 2403,
+  ]);
 
-  var BLACK_FLAG_CODE_POINT = 127988;
-  var CANCEL_TAG_CODE_POINT = 917631;
-  var A_TAG_CODE_POINT = 917601;
-  var Z_TAG_CODE_POINT = 917626;
-  var VARIATION_SELECTOR_16_CODE_POINT = 65039;
-  var ZERO_WIDTH_JOINER_CODE_POINT = 8205;
-  var REGIONAL_CHARACTER_A_CODE_POINT = 127462;
-  var REGIONAL_CHARACTER_Z_CODE_POINT = 127487;
+  const BLACK_FLAG_CODE_POINT = 127988;
+  const CANCEL_TAG_CODE_POINT = 917631;
+  const A_TAG_CODE_POINT = 917601;
+  const Z_TAG_CODE_POINT = 917626;
+  const VARIATION_SELECTOR_16_CODE_POINT = 65039;
+  const ZERO_WIDTH_JOINER_CODE_POINT = 8205;
+  const REGIONAL_CHARACTER_A_CODE_POINT = 127462;
+  const REGIONAL_CHARACTER_Z_CODE_POINT = 127487;
 
-  var surrogateModifiers = [
-    'd83cdffb',
-    'd83cdffc',
-    'd83cdffd',
-    'd83cdffe',
-    'd83cdfff',
-  ];
+  const surrogateModifiers = ['d83cdffb', 'd83cdffc', 'd83cdffd', 'd83cdffe', 'd83cdfff'];
 
   function trimFontOptions(font: string): string {
-    var familyArray = font.split(',');
-    var i;
-    var len = familyArray.length;
-    var enabledFamilies: string[] = [];
+    const familyArray = font.split(',');
+    let i;
+    const len = familyArray.length;
+    const enabledFamilies: string[] = [];
     for (i = 0; i < len; i += 1) {
       if (familyArray[i] !== 'sans-serif' && familyArray[i] !== 'monospace') {
         enabledFamilies.push(familyArray[i]);
@@ -56,11 +50,11 @@ const FontManager = (function () {
   }
 
   function setUpNode(font: string, family: string): FontNode {
-    var parentNode = createTag('span') as HTMLSpanElement;
+    const parentNode = createTag('span') as HTMLSpanElement;
     // Node is invisible to screen readers.
     parentNode.setAttribute('aria-hidden', 'true');
     parentNode.style.fontFamily = family;
-    var node = createTag('span') as HTMLSpanElement;
+    const node = createTag('span') as HTMLSpanElement;
     // Characters that vary significantly among different fonts
     (node as any).innerText = 'giItT1WQy@!-/#';
     // Visible - so we can measure it - but not on the screen
@@ -78,17 +72,17 @@ const FontManager = (function () {
     document.body.appendChild(parentNode);
 
     // Remember width with no applied web font
-    var width = node.offsetWidth;
+    const width = node.offsetWidth;
     node.style.fontFamily = trimFontOptions(font) + ', ' + family;
     return { node: node, w: width, parent: parentNode };
   }
 
   function checkLoadedFonts(this: any) {
-    var i;
-    var len = this.fonts.length;
-    var node;
-    var w;
-    var loadedCount = len;
+    let i;
+    const len = this.fonts.length;
+    let node;
+    let w;
+    let loadedCount = len;
     for (i = 0; i < len; i += 1) {
       if (this.fonts[i].loaded) {
         loadedCount -= 1;
@@ -123,11 +117,11 @@ const FontManager = (function () {
   }
 
   function createHelper(fontData: any, def?: any): any {
-    var engine = (document.body && def) ? 'svg' : 'canvas';
-    var helper: any;
-    var fontProps = getFontProperties(fontData);
+    const engine = document.body && def ? 'svg' : 'canvas';
+    let helper: any;
+    const fontProps = getFontProperties(fontData);
     if (engine === 'svg') {
-      var tHelper = createNS('text') as SVGTextElement;
+      const tHelper = createNS('text') as SVGTextElement;
       tHelper.style.fontSize = '100px';
       // tHelper.style.fontFamily = fontData.fFamily;
       tHelper.setAttribute('font-family', fontData.fFamily);
@@ -143,7 +137,7 @@ const FontManager = (function () {
       def.appendChild(tHelper);
       helper = tHelper;
     } else {
-      var tCanvasHelper = new OffscreenCanvas(500, 500).getContext('2d');
+      const tCanvasHelper = new OffscreenCanvas(500, 500).getContext('2d');
       (tCanvasHelper as any).font = fontProps.style + ' ' + fontProps.weight + ' 100px ' + fontData.fFamily;
       helper = tCanvasHelper;
     }
@@ -179,14 +173,14 @@ const FontManager = (function () {
       return;
     }
 
-    var fontArr = fontData.list;
-    var i;
-    var len = fontArr.length;
-    var _pendingFonts = len;
+    const fontArr = fontData.list;
+    let i;
+    const len = fontArr.length;
+    let _pendingFonts = len;
     for (i = 0; i < len; i += 1) {
-      var shouldLoadFont = true;
-      var loadedSelector;
-      var j;
+      let shouldLoadFont = true;
+      let loadedSelector;
+      let j;
       fontArr[i].loaded = false;
       fontArr[i].monoCase = setUpNode(fontArr[i].fFamily, 'monospace');
       fontArr[i].sansCase = setUpNode(fontArr[i].fFamily, 'sans-serif');
@@ -194,19 +188,30 @@ const FontManager = (function () {
         fontArr[i].loaded = true;
         _pendingFonts -= 1;
       } else if (fontArr[i].fOrigin === 'p' || fontArr[i].origin === 3) {
-        loadedSelector = document.querySelectorAll('style[f-forigin="p"][f-family="' + fontArr[i].fFamily + '"], style[f-origin="3"][f-family="' + fontArr[i].fFamily + '"]');
+        loadedSelector = document.querySelectorAll(
+          'style[f-forigin="p"][f-family="' +
+            fontArr[i].fFamily +
+            '"], style[f-origin="3"][f-family="' +
+            fontArr[i].fFamily +
+            '"]',
+        );
 
         if (loadedSelector.length > 0) {
           shouldLoadFont = false;
         }
 
         if (shouldLoadFont) {
-          var s = createTag('style') as HTMLStyleElement;
+          const s = createTag('style') as HTMLStyleElement;
           s.setAttribute('f-forigin', fontArr[i].fOrigin);
           s.setAttribute('f-origin', fontArr[i].origin);
           s.setAttribute('f-family', fontArr[i].fFamily);
           s.type = 'text/css';
-          (s as any).innerText = '@font-face {font-family: ' + fontArr[i].fFamily + "; font-style: normal; src: url('" + fontArr[i].fPath + "');}";
+          (s as any).innerText =
+            '@font-face {font-family: ' +
+            fontArr[i].fFamily +
+            "; font-style: normal; src: url('" +
+            fontArr[i].fPath +
+            "');}";
           defs.appendChild(s);
         }
       } else if (fontArr[i].fOrigin === 'g' || fontArr[i].origin === 1) {
@@ -220,7 +225,7 @@ const FontManager = (function () {
         }
 
         if (shouldLoadFont) {
-          var l = createTag('link') as HTMLLinkElement;
+          const l = createTag('link') as HTMLLinkElement;
           l.setAttribute('f-forigin', fontArr[i].fOrigin);
           l.setAttribute('f-origin', fontArr[i].origin);
           l.type = 'text/css';
@@ -239,7 +244,7 @@ const FontManager = (function () {
         }
 
         if (shouldLoadFont) {
-          var sc = createTag('link') as HTMLLinkElement;
+          const sc = createTag('link') as HTMLLinkElement;
           sc.setAttribute('f-forigin', fontArr[i].fOrigin);
           sc.setAttribute('f-origin', fontArr[i].origin);
           sc.setAttribute('rel', 'stylesheet');
@@ -267,16 +272,20 @@ const FontManager = (function () {
     if (!this.chars) {
       this.chars = [];
     }
-    var i;
-    var len = chars.length;
-    var j;
-    var jLen = this.chars.length;
-    var found;
+    let i;
+    const len = chars.length;
+    let j;
+    let jLen = this.chars.length;
+    let found;
     for (i = 0; i < len; i += 1) {
       j = 0;
       found = false;
       while (j < jLen) {
-        if (this.chars[j].style === chars[i].style && this.chars[j].fFamily === chars[i].fFamily && this.chars[j].ch === chars[i].ch) {
+        if (
+          this.chars[j].style === chars[i].style &&
+          this.chars[j].fFamily === chars[i].fFamily &&
+          this.chars[j].ch === chars[i].ch
+        ) {
           found = true;
         }
         j += 1;
@@ -289,18 +298,19 @@ const FontManager = (function () {
   }
 
   function getCharData(this: any, char: string, style: string, font: string) {
-    var i = 0;
-    var len = this.chars.length;
+    let i = 0;
+    const len = this.chars.length;
     while (i < len) {
       if (this.chars[i].ch === char && this.chars[i].style === style && this.chars[i].fFamily === font) {
         return this.chars[i];
       }
       i += 1;
     }
-    if (((typeof char === 'string' && char.charCodeAt(0) !== 13) || !char)
-            && console
-            && console.warn // eslint-disable-line no-console
-            && !this._warned
+    if (
+      ((typeof char === 'string' && char.charCodeAt(0) !== 13) || !char) &&
+      console &&
+      console.warn && // eslint-disable-line no-console
+      !this._warned
     ) {
       this._warned = true;
       console.warn('Missing character from exported characters list: ', char, style, font); // eslint-disable-line no-console
@@ -309,15 +319,15 @@ const FontManager = (function () {
   }
 
   function measureText(this: any, char: string, fontName: string, size: number): number {
-    var fontData = this.getFontByName(fontName);
+    const fontData = this.getFontByName(fontName);
     // Using the char instead of char.charCodeAt(0)
     // to avoid collisions between equal chars
-    var index = char;
+    const index = char;
     if (!fontData.cache[index]) {
-      var tHelper = fontData.helper;
+      const tHelper = fontData.helper;
       if (char === ' ') {
-        var doubleSize = tHelper.measureText('|' + char + '|');
-        var singleSize = tHelper.measureText('||');
+        const doubleSize = tHelper.measureText('|' + char + '|');
+        const singleSize = tHelper.measureText('||');
         fontData.cache[index] = (doubleSize - singleSize) / 100;
       } else {
         fontData.cache[index] = tHelper.measureText(char) / 100;
@@ -327,8 +337,8 @@ const FontManager = (function () {
   }
 
   function getFontByName(this: any, name: string) {
-    var i = 0;
-    var len = this.fonts.length;
+    let i = 0;
+    const len = this.fonts.length;
     while (i < len) {
       if (this.fonts[i].fName === name) {
         return this.fonts[i];
@@ -339,12 +349,12 @@ const FontManager = (function () {
   }
 
   function getCodePoint(string: string): number {
-    var codePoint = 0;
-    var first = string.charCodeAt(0);
-    if (first >= 0xD800 && first <= 0xDBFF) {
-      var second = string.charCodeAt(1);
-      if (second >= 0xDC00 && second <= 0xDFFF) {
-        codePoint = (first - 0xD800) * 0x400 + second - 0xDC00 + 0x10000;
+    let codePoint = 0;
+    const first = string.charCodeAt(0);
+    if (first >= 0xd800 && first <= 0xdbff) {
+      const second = string.charCodeAt(1);
+      if (second >= 0xdc00 && second <= 0xdfff) {
+        codePoint = (first - 0xd800) * 0x400 + second - 0xdc00 + 0x10000;
       }
     }
     return codePoint;
@@ -352,7 +362,7 @@ const FontManager = (function () {
 
   // Skin tone modifiers
   function isModifier(firstCharCode: number, secondCharCode: number): boolean {
-    var sum = firstCharCode.toString(16) + secondCharCode.toString(16);
+    const sum = firstCharCode.toString(16) + secondCharCode.toString(16);
     return surrogateModifiers.indexOf(sum) !== -1;
   }
 
@@ -371,7 +381,7 @@ const FontManager = (function () {
   /// characters (A–Z) intended to be used to encode ISO 3166-1 alpha-2
   // two-letter country codes in a way that allows optional special treatment.
   function isRegionalCode(string: string): boolean {
-    var codePoint = getCodePoint(string);
+    const codePoint = getCodePoint(string);
     if (codePoint >= REGIONAL_CHARACTER_A_CODE_POINT && codePoint <= REGIONAL_CHARACTER_Z_CODE_POINT) {
       return true;
     }
@@ -392,11 +402,11 @@ const FontManager = (function () {
   // folowed by 5 chars in the TAG range
   // and end with a CANCEL_TAG_CODE_POINT
   function isRegionalFlag(text: string, index: number): boolean {
-    var codePoint = getCodePoint(text.substr(index, 2));
+    let codePoint = getCodePoint(text.substr(index, 2));
     if (codePoint !== BLACK_FLAG_CODE_POINT) {
       return false;
     }
-    var count = 0;
+    let count = 0;
     index += 2;
     while (count < 5) {
       codePoint = getCodePoint(text.substr(index, 2));
@@ -413,7 +423,7 @@ const FontManager = (function () {
     this.isLoaded = true;
   }
 
-  var Font = function (this: any) {
+  const Font = function (this: any) {
     this.fonts = [];
     this.chars = null;
     this.typekitLoaded = 0;
@@ -432,7 +442,7 @@ const FontManager = (function () {
   (Font as any).isVariationSelector = isVariationSelector;
   (Font as any).BLACK_FLAG_CODE_POINT = BLACK_FLAG_CODE_POINT;
 
-  var fontPrototype = {
+  const fontPrototype = {
     addChars: addChars,
     addFonts: addFonts,
     getCharData: getCharData,
@@ -445,6 +455,6 @@ const FontManager = (function () {
   Font.prototype = fontPrototype;
 
   return Font;
-}());
+})();
 
 export default FontManager;

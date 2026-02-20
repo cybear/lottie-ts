@@ -21,6 +21,6 @@ const getBlendMode = (function () {
   return function (mode: number): string {
     return blendModeEnums[mode] || '';
   };
-}());
+})();
 
 export default getBlendMode;

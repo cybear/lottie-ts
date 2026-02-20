@@ -53,6 +53,6 @@ const markerParser = (function () {
     }
     return markers;
   };
-}());
+})();
 
 export default markerParser;

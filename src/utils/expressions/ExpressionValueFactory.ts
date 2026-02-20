@@ -1,11 +1,9 @@
 // @ts-nocheck
-import {
-  createTypedArray,
-} from '../helpers/arrays';
+import { createTypedArray } from '../helpers/arrays';
 
 const ExpressionPropertyInterface = (function () {
-  var defaultUnidimensionalValue = { pv: 0, v: 0, mult: 1 };
-  var defaultMultidimensionalValue = { pv: [0, 0, 0], v: [0, 0, 0], mult: 1 };
+  const defaultUnidimensionalValue = { pv: 0, v: 0, mult: 1 };
+  const defaultMultidimensionalValue = { pv: [0, 0, 0], v: [0, 0, 0], mult: 1 };
 
   function completeProperty(expressionValue, property, type) {
     Object.defineProperty(expressionValue, 'velocity', {
@@ -18,7 +16,7 @@ const ExpressionPropertyInterface = (function () {
       if (!expressionValue.numKeys) {
         return 0;
       }
-      var value = '';
+      let value = '';
       if ('s' in property.keyframes[pos - 1]) {
         value = property.keyframes[pos - 1].s;
       } else if ('e' in property.keyframes[pos - 2]) {
@@ -26,7 +24,7 @@ const ExpressionPropertyInterface = (function () {
       } else {
         value = property.keyframes[pos - 2].s;
       }
-      var valueProp = type === 'unidimensional' ? new Number(value) : Object.assign({}, value); // eslint-disable-line no-new-wrappers
+      const valueProp = type === 'unidimensional' ? new Number(value) : Object.assign({}, value); // eslint-disable-line no-new-wrappers
       valueProp.time = property.keyframes[pos - 1].t / property.elem.comp.globalData.frameRate;
       valueProp.value = type === 'unidimensional' ? value[0] : value;
       return valueProp;
@@ -41,9 +39,9 @@ const ExpressionPropertyInterface = (function () {
     if (!property || !('pv' in property)) {
       property = defaultUnidimensionalValue;
     }
-    var mult = 1 / property.mult;
-    var val = property.pv * mult;
-    var expressionValue = new Number(val); // eslint-disable-line no-new-wrappers
+    const mult = 1 / property.mult;
+    let val = property.pv * mult;
+    let expressionValue = new Number(val); // eslint-disable-line no-new-wrappers
     expressionValue.value = val;
     completeProperty(expressionValue, property, 'unidimensional');
 
@@ -66,10 +64,10 @@ const ExpressionPropertyInterface = (function () {
     if (!property || !('pv' in property)) {
       property = defaultMultidimensionalValue;
     }
-    var mult = 1 / property.mult;
-    var len = (property.data && property.data.l) || property.pv.length;
-    var expressionValue = createTypedArray('float32', len);
-    var arrValue = createTypedArray('float32', len);
+    const mult = 1 / property.mult;
+    const len = (property.data && property.data.l) || property.pv.length;
+    const expressionValue = createTypedArray('float32', len);
+    const arrValue = createTypedArray('float32', len);
     expressionValue.value = arrValue;
     completeProperty(expressionValue, property, 'multidimensional');
 
@@ -77,7 +75,7 @@ const ExpressionPropertyInterface = (function () {
       if (property.k) {
         property.getValue();
       }
-      for (var i = 0; i < len; i += 1) {
+      for (let i = 0; i < len; i += 1) {
         arrValue[i] = property.v[i] * mult;
         expressionValue[i] = arrValue[i];
       }
@@ -93,11 +91,12 @@ const ExpressionPropertyInterface = (function () {
   return function (property) {
     if (!property) {
       return defaultGetter;
-    } if (property.propType === 'unidimensional') {
+    }
+    if (property.propType === 'unidimensional') {
       return UnidimensionalPropertyInterface(property);
     }
     return MultidimensionalPropertyInterface(property);
   };
-}());
+})();
 
 export default ExpressionPropertyInterface;

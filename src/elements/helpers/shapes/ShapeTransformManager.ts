@@ -9,13 +9,13 @@ function ShapeTransformManager() {
 
 ShapeTransformManager.prototype = {
   addTransformSequence: function (transforms) {
-    var i;
-    var len = transforms.length;
-    var key = '_';
+    let i;
+    const len = transforms.length;
+    let key = '_';
     for (i = 0; i < len; i += 1) {
       key += transforms[i].transform.key + '_';
     }
-    var sequence = this.sequences[key];
+    let sequence = this.sequences[key];
     if (!sequence) {
       sequence = {
         transforms: [].concat(transforms),
@@ -28,9 +28,9 @@ ShapeTransformManager.prototype = {
     return sequence;
   },
   processSequence: function (sequence, isFirstFrame) {
-    var i = 0;
-    var len = sequence.transforms.length;
-    var _mdf = isFirstFrame;
+    let i = 0;
+    const len = sequence.transforms.length;
+    let _mdf = isFirstFrame;
     while (i < len && !isFirstFrame) {
       if (sequence.transforms[i].transform.mProps._mdf) {
         _mdf = true;
@@ -47,8 +47,8 @@ ShapeTransformManager.prototype = {
     sequence._mdf = _mdf;
   },
   processSequences: function (isFirstFrame) {
-    var i;
-    var len = this.sequenceList.length;
+    let i;
+    const len = this.sequenceList.length;
     for (i = 0; i < len; i += 1) {
       this.processSequence(this.sequenceList[i], isFirstFrame);
     }

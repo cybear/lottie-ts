@@ -1,7 +1,5 @@
 // @ts-nocheck
-import {
-  extendPrototype,
-} from '../../utils/functionExtensions';
+import { extendPrototype } from '../../utils/functionExtensions';
 import RenderableElement from '../helpers/RenderableElement';
 import BaseElement from '../BaseElement';
 import TransformElement from '../helpers/TransformElement';
@@ -14,7 +12,10 @@ import SVGShapeElement from '../svgElements/SVGShapeElement';
 function CVSolidElement(data, globalData, comp) {
   this.initElement(data, globalData, comp);
 }
-extendPrototype([BaseElement, TransformElement, CVBaseElement, HierarchyElement, FrameElement, RenderableElement], CVSolidElement);
+extendPrototype(
+  [BaseElement, TransformElement, CVBaseElement, HierarchyElement, FrameElement, RenderableElement],
+  CVSolidElement,
+);
 
 CVSolidElement.prototype.initElement = SVGShapeElement.prototype.initElement;
 CVSolidElement.prototype.prepareFrame = IImageElement.prototype.prepareFrame;

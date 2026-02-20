@@ -1,6 +1,4 @@
-import {
-  createSizedArray,
-} from './helpers/arrays';
+import { createSizedArray } from './helpers/arrays';
 
 let subframeEnabled = true;
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -20,12 +18,49 @@ const bmMin = Math.min;
 const BMMath: Record<string, any> = {};
 (function () {
   const propertyNames: string[] = [
-    'abs', 'acos', 'acosh', 'asin', 'asinh', 'atan', 'atanh', 'atan2',
-    'ceil', 'cbrt', 'expm1', 'clz32', 'cos', 'cosh', 'exp', 'floor',
-    'fround', 'hypot', 'imul', 'log', 'log1p', 'log2', 'log10', 'max',
-    'min', 'pow', 'random', 'round', 'sign', 'sin', 'sinh', 'sqrt',
-    'tan', 'tanh', 'trunc', 'E', 'LN10', 'LN2', 'LOG10E', 'LOG2E',
-    'PI', 'SQRT1_2', 'SQRT2',
+    'abs',
+    'acos',
+    'acosh',
+    'asin',
+    'asinh',
+    'atan',
+    'atanh',
+    'atan2',
+    'ceil',
+    'cbrt',
+    'expm1',
+    'clz32',
+    'cos',
+    'cosh',
+    'exp',
+    'floor',
+    'fround',
+    'hypot',
+    'imul',
+    'log',
+    'log1p',
+    'log2',
+    'log10',
+    'max',
+    'min',
+    'pow',
+    'random',
+    'round',
+    'sign',
+    'sin',
+    'sinh',
+    'sqrt',
+    'tan',
+    'tanh',
+    'trunc',
+    'E',
+    'LN10',
+    'LN2',
+    'LOG10E',
+    'LOG2E',
+    'PI',
+    'SQRT1_2',
+    'SQRT2',
   ];
   let i: number;
   const len = propertyNames.length;
@@ -33,10 +68,12 @@ const BMMath: Record<string, any> = {};
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     BMMath[propertyNames[i]] = (Math as any)[propertyNames[i]];
   }
-}());
+})();
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-function ProjectInterface(): Record<string, any> { return {}; }
+function ProjectInterface(): Record<string, any> {
+  return {};
+}
 
 BMMath.random = Math.random;
 BMMath.abs = function (val: number | number[]): number | number[] {
@@ -79,8 +116,12 @@ function styleDiv(element: HTMLElement): void {
   element.style.backfaceVisibility = 'visible';
   (element.style as CSSStyleDeclaration & { webkitBackfaceVisibility: string }).webkitBackfaceVisibility = 'visible';
   element.style.transformStyle = 'preserve-3d';
-  (element.style as CSSStyleDeclaration & { webkitTransformStyle: string; mozTransformStyle: string }).webkitTransformStyle = 'preserve-3d';
-  (element.style as CSSStyleDeclaration & { webkitTransformStyle: string; mozTransformStyle: string }).mozTransformStyle = 'preserve-3d';
+  (
+    element.style as CSSStyleDeclaration & { webkitTransformStyle: string; mozTransformStyle: string }
+  ).webkitTransformStyle = 'preserve-3d';
+  (
+    element.style as CSSStyleDeclaration & { webkitTransformStyle: string; mozTransformStyle: string }
+  ).mozTransformStyle = 'preserve-3d';
 }
 
 interface BMEnterFrameEventThis {
@@ -89,7 +130,13 @@ interface BMEnterFrameEventThis {
   totalTime: number;
   direction: number;
 }
-function BMEnterFrameEvent(this: BMEnterFrameEventThis, type: string, currentTime: number, totalTime: number, frameMultiplier: number) {
+function BMEnterFrameEvent(
+  this: BMEnterFrameEventThis,
+  type: string,
+  currentTime: number,
+  totalTime: number,
+  frameMultiplier: number,
+) {
   this.type = type;
   this.currentTime = currentTime;
   this.totalTime = totalTime;
@@ -111,7 +158,13 @@ interface BMCompleteLoopEventThis {
   totalLoops: number;
   direction: number;
 }
-function BMCompleteLoopEvent(this: BMCompleteLoopEventThis, type: string, totalLoops: number, currentLoop: number, frameMultiplier: number) {
+function BMCompleteLoopEvent(
+  this: BMCompleteLoopEventThis,
+  type: string,
+  totalLoops: number,
+  currentLoop: number,
+  frameMultiplier: number,
+) {
   this.type = type;
   this.currentLoop = currentLoop;
   this.totalLoops = totalLoops;
@@ -181,31 +234,53 @@ const createElementID = (function () {
     _count += 1;
     return idPrefix + '__lottie_element_' + _count;
   };
-}());
+})();
 
 function HSVtoRGB(h: number, s: number, v: number): [number, number, number] {
   let r: number;
   let g: number;
   let b: number;
-  let i: number;
-  let f: number;
-  let p: number;
-  let q: number;
-  let t: number;
-  i = Math.floor(h * 6);
-  f = h * 6 - i;
-  p = v * (1 - s);
-  q = v * (1 - f * s);
-  t = v * (1 - (1 - f) * s);
-  r = 0; g = 0; b = 0;
+  const i = Math.floor(h * 6);
+  const f = h * 6 - i;
+  const p = v * (1 - s);
+  const q = v * (1 - f * s);
+  const t = v * (1 - (1 - f) * s);
+  r = 0;
+  g = 0;
+  b = 0;
   switch (i % 6) {
-    case 0: r = v; g = t; b = p; break;
-    case 1: r = q; g = v; b = p; break;
-    case 2: r = p; g = v; b = t; break;
-    case 3: r = p; g = q; b = v; break;
-    case 4: r = t; g = p; b = v; break;
-    case 5: r = v; g = p; b = q; break;
-    default: break;
+    case 0:
+      r = v;
+      g = t;
+      b = p;
+      break;
+    case 1:
+      r = q;
+      g = v;
+      b = p;
+      break;
+    case 2:
+      r = p;
+      g = v;
+      b = t;
+      break;
+    case 3:
+      r = p;
+      g = q;
+      b = v;
+      break;
+    case 4:
+      r = t;
+      g = p;
+      b = v;
+      break;
+    case 5:
+      r = v;
+      g = p;
+      b = q;
+      break;
+    default:
+      break;
   }
   return [r, g, b];
 }
@@ -215,15 +290,27 @@ function RGBtoHSV(r: number, g: number, b: number): [number, number, number] {
   const min = Math.min(r, g, b);
   const d = max - min;
   let h = 0;
-  const s = (max === 0 ? 0 : d / max);
+  const s = max === 0 ? 0 : d / max;
   const v = max / 255;
 
   switch (max) {
-    case min: h = 0; break;
-    case r: h = (g - b) + d * (g < b ? 6 : 0); h /= 6 * d; break;
-    case g: h = (b - r) + d * 2; h /= 6 * d; break;
-    case b: h = (r - g) + d * 4; h /= 6 * d; break;
-    default: break;
+    case min:
+      h = 0;
+      break;
+    case r:
+      h = g - b + d * (g < b ? 6 : 0);
+      h /= 6 * d;
+      break;
+    case g:
+      h = b - r + d * 2;
+      h /= 6 * d;
+      break;
+    case b:
+      h = r - g + d * 4;
+      h /= 6 * d;
+      break;
+    default:
+      break;
   }
 
   return [h, s, v];
@@ -283,21 +370,31 @@ const rgbToHex = (function () {
     }
     return '#' + colorMap[r] + colorMap[g] + colorMap[b];
   };
-}());
+})();
 
-const setSubframeEnabled = (flag: boolean): void => { subframeEnabled = !!flag; };
+const setSubframeEnabled = (flag: boolean): void => {
+  subframeEnabled = !!flag;
+};
 const getSubframeEnabled = (): boolean => subframeEnabled;
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-const setExpressionsPlugin = (value: any): void => { expressionsPlugin = value; };
+const setExpressionsPlugin = (value: any): void => {
+  expressionsPlugin = value;
+};
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const getExpressionsPlugin = (): any => expressionsPlugin;
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-const setExpressionInterfaces = (value: any): void => { expressionsInterfaces = value; };
+const setExpressionInterfaces = (value: any): void => {
+  expressionsInterfaces = value;
+};
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const getExpressionInterfaces = (): any => expressionsInterfaces;
-const setDefaultCurveSegments = (value: number): void => { defaultCurveSegments = value; };
+const setDefaultCurveSegments = (value: number): void => {
+  defaultCurveSegments = value;
+};
 const getDefaultCurveSegments = (): number => defaultCurveSegments;
-const setIdPrefix = (value: string): void => { idPrefix = value; };
+const setIdPrefix = (value: string): void => {
+  idPrefix = value;
+};
 const getIdPrefix = (): string => idPrefix;
 
 export {

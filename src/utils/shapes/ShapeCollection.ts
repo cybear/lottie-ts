@@ -1,7 +1,5 @@
 // @ts-nocheck
-import {
-  createSizedArray,
-} from '../helpers/arrays';
+import { createSizedArray } from '../helpers/arrays';
 import shapePool from '../pooling/shape_pool';
 
 function ShapeCollection() {
@@ -20,7 +18,7 @@ ShapeCollection.prototype.addShape = function (shapeData) {
 };
 
 ShapeCollection.prototype.releaseShapes = function () {
-  var i;
+  let i;
   for (i = 0; i < this._length; i += 1) {
     shapePool.release(this.shapes[i]);
   }

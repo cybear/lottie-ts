@@ -52,6 +52,6 @@ const assetLoader = (function () {
   return {
     load: loadAsset,
   };
-}());
+})();
 
 export default assetLoader;

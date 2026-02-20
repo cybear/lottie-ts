@@ -1,7 +1,5 @@
 // @ts-nocheck
-import {
-  createTypedArray,
-} from '../helpers/arrays';
+import { createTypedArray } from '../helpers/arrays';
 import ExpressionManager from './ExpressionManager';
 
 const expressionHelpers = (function () {
@@ -26,12 +24,12 @@ const expressionHelpers = (function () {
   }
 
   function getSpeedAtTime(frameNum) {
-    var delta = -0.01;
-    var v1 = this.getValueAtTime(frameNum);
-    var v2 = this.getValueAtTime(frameNum + delta);
-    var speed = 0;
+    const delta = -0.01;
+    const v1 = this.getValueAtTime(frameNum);
+    const v2 = this.getValueAtTime(frameNum + delta);
+    let speed = 0;
     if (v1.length) {
-      var i;
+      let i;
       for (i = 0; i < v1.length; i += 1) {
         speed += Math.pow(v2[i] - v1[i], 2);
       }
@@ -46,14 +44,14 @@ const expressionHelpers = (function () {
     if (this.vel !== undefined) {
       return this.vel;
     }
-    var delta = -0.001;
+    const delta = -0.001;
     // frameNum += this.elem.data.st;
-    var v1 = this.getValueAtTime(frameNum);
-    var v2 = this.getValueAtTime(frameNum + delta);
-    var velocity;
+    const v1 = this.getValueAtTime(frameNum);
+    const v2 = this.getValueAtTime(frameNum + delta);
+    let velocity;
     if (v1.length) {
       velocity = createTypedArray('float32', v1.length);
-      var i;
+      let i;
       for (i = 0; i < v1.length; i += 1) {
         // removing frameRate
         // if needed, don't add it here
@@ -82,6 +80,6 @@ const expressionHelpers = (function () {
     getStaticValueAtTime: getStaticValueAtTime,
     setGroupProperty: setGroupProperty,
   };
-}());
+})();
 
 export default expressionHelpers;

@@ -1,14 +1,11 @@
 // @ts-nocheck
-import {
-  extendPrototype,
-  createProxyFunction,
-} from '../../utils/functionExtensions';
+import { extendPrototype, createProxyFunction } from '../../utils/functionExtensions';
 import RenderableElement from './RenderableElement';
 
 function RenderableDOMElement() {}
 
 (function () {
-  var _prototype = {
+  const _prototype = {
     initElement: function (data, globalData, comp) {
       this.initFrame();
       this.initBaseData(data, globalData, comp);
@@ -24,7 +21,7 @@ function RenderableDOMElement() {}
     hide: function () {
       // console.log('HIDE', this);
       if (!this.hidden && (!this.isInRange || this.isTransparent)) {
-        var elem = this.baseElement || this.layerElement;
+        const elem = this.baseElement || this.layerElement;
         elem.style.display = 'none';
         this.hidden = true;
       }
@@ -33,7 +30,7 @@ function RenderableDOMElement() {}
       // console.log('SHOW', this);
       if (this.isInRange && !this.isTransparent) {
         if (!this.data.hd) {
-          var elem = this.baseElement || this.layerElement;
+          const elem = this.baseElement || this.layerElement;
           elem.style.display = 'block';
         }
         this.hidden = false;
@@ -68,6 +65,6 @@ function RenderableDOMElement() {}
     },
   };
   extendPrototype([RenderableElement, createProxyFunction(_prototype)], RenderableDOMElement);
-}());
+})();
 
 export default RenderableDOMElement;

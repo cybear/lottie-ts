@@ -1,7 +1,5 @@
 // @ts-nocheck
-import {
-  extendPrototype,
-} from '../../utils/functionExtensions';
+import { extendPrototype } from '../../utils/functionExtensions';
 import createNS from '../../utils/helpers/svg_elements';
 import createTag from '../../utils/helpers/html_elements';
 import BaseElement from '../BaseElement';
@@ -14,10 +12,13 @@ import HBaseElement from './HBaseElement';
 function HSolidElement(data, globalData, comp) {
   this.initElement(data, globalData, comp);
 }
-extendPrototype([BaseElement, TransformElement, HBaseElement, HierarchyElement, FrameElement, RenderableDOMElement], HSolidElement);
+extendPrototype(
+  [BaseElement, TransformElement, HBaseElement, HierarchyElement, FrameElement, RenderableDOMElement],
+  HSolidElement,
+);
 
 HSolidElement.prototype.createContent = function () {
-  var rect;
+  let rect;
   if (this.data.hasMask) {
     rect = createNS('rect');
     rect.setAttribute('width', this.data.sw);

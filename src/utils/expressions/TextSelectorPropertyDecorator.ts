@@ -3,7 +3,8 @@ import ExpressionManager from './ExpressionManager';
 import expressionHelpers from './expressionHelpers';
 import TextSelectorProp from '../text/TextSelectorProperty';
 
-const TextExpressionSelectorPropFactory = (function () { // eslint-disable-line no-unused-vars
+const TextExpressionSelectorPropFactory = (function () {
+  // eslint-disable-line no-unused-vars
   function getValueProxy(index, total) {
     this.textIndex = index + 1;
     this.textTotal = total;
@@ -32,9 +33,9 @@ const TextExpressionSelectorPropFactory = (function () { // eslint-disable-line 
     }
     this.setGroupProperty = expressionHelpers.setGroupProperty;
   };
-}());
+})();
 
-var propertyGetTextProp = TextSelectorProp.getTextSelectorProp;
+const propertyGetTextProp = TextSelectorProp.getTextSelectorProp;
 TextSelectorProp.getTextSelectorProp = function (elem, data, arr) {
   if (data.t === 1) {
     return new TextExpressionSelectorPropFactory(elem, data, arr); // eslint-disable-line no-undef

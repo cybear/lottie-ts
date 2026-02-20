@@ -9,10 +9,10 @@ function HierarchyElement() {}
 
 HierarchyElement.prototype = {
   /**
-     * @function
-     * Initializes hierarchy properties
-     *
-     */
+   * @function
+   * Initializes hierarchy properties
+   *
+   */
   initHierarchy: function () {
     // element's parent list
     this.hierarchy = [];
@@ -21,28 +21,28 @@ HierarchyElement.prototype = {
     this.checkParenting();
   },
   /**
-     * @function
-     * Sets layer's hierarchy.
-     * @param {array} hierarch
-     * layer's parent list
-     *
-     */
+   * @function
+   * Sets layer's hierarchy.
+   * @param {array} hierarch
+   * layer's parent list
+   *
+   */
   setHierarchy: function (hierarchy) {
     this.hierarchy = hierarchy;
   },
   /**
-     * @function
-     * Sets layer as parent.
-     *
-     */
+   * @function
+   * Sets layer as parent.
+   *
+   */
   setAsParent: function () {
     this._isParent = true;
   },
   /**
-     * @function
-     * Searches layer's parenting chain
-     *
-     */
+   * @function
+   * Searches layer's parenting chain
+   *
+   */
   checkParenting: function () {
     if (this.data.parent !== undefined) {
       this.comp.buildElementParenting(this, this.data.parent, []);

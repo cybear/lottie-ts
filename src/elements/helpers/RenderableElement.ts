@@ -1,7 +1,5 @@
 // @ts-nocheck
-function RenderableElement() {
-
-}
+function RenderableElement() {}
 
 RenderableElement.prototype = {
   initRenderable: function () {
@@ -39,13 +37,13 @@ RenderableElement.prototype = {
     }
   },
   /**
-     * @function
-     * Initializes frame related properties.
-     *
-     * @param {number} num
-     * current frame number in Layer's time
-     *
-     */
+   * @function
+   * Initializes frame related properties.
+   *
+   * @param {number} num
+   * current frame number in Layer's time
+   *
+   */
   checkLayerLimits: function (num) {
     if (this.data.ip - this.data.st <= num && this.data.op - this.data.st > num) {
       if (this.isInRange !== true) {
@@ -61,8 +59,8 @@ RenderableElement.prototype = {
     }
   },
   renderRenderable: function () {
-    var i;
-    var len = this.renderableComponents.length;
+    let i;
+    const len = this.renderableComponents.length;
     for (i = 0; i < len; i += 1) {
       this.renderableComponents[i].renderFrame(this._isFirstFrame);
     }

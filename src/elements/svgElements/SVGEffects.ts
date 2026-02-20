@@ -1,27 +1,25 @@
 // @ts-nocheck
 import { getLocationHref } from '../../main';
-import {
-  createElementID,
-} from '../../utils/common';
+import { createElementID } from '../../utils/common';
 import filtersFactory from '../../utils/filters';
 
-var registeredEffects = {};
-var idPrefix = 'filter_result_';
+const registeredEffects = {};
+const idPrefix = 'filter_result_';
 
 function SVGEffects(elem) {
-  var i;
-  var source = 'SourceGraphic';
-  var len = elem.data.ef ? elem.data.ef.length : 0;
-  var filId = createElementID();
-  var fil = filtersFactory.createFilter(filId, true);
-  var count = 0;
+  let i;
+  let source = 'SourceGraphic';
+  const len = elem.data.ef ? elem.data.ef.length : 0;
+  const filId = createElementID();
+  const fil = filtersFactory.createFilter(filId, true);
+  let count = 0;
   this.filters = [];
-  var filterManager;
+  let filterManager;
   for (i = 0; i < len; i += 1) {
     filterManager = null;
-    var type = elem.data.ef[i].ty;
+    const type = elem.data.ef[i].ty;
     if (registeredEffects[type]) {
-      var Effect = registeredEffects[type].effect;
+      const Effect = registeredEffects[type].effect;
       filterManager = new Effect(fil, elem.effectsManager.effectElements[i], elem, idPrefix + count, source);
       source = idPrefix + count;
       if (registeredEffects[type].countsAsEffect) {
@@ -42,17 +40,17 @@ function SVGEffects(elem) {
 }
 
 SVGEffects.prototype.renderFrame = function (_isFirstFrame) {
-  var i;
-  var len = this.filters.length;
+  let i;
+  const len = this.filters.length;
   for (i = 0; i < len; i += 1) {
     this.filters[i].renderFrame(_isFirstFrame);
   }
 };
 
 SVGEffects.prototype.getEffects = function (type) {
-  var i;
-  var len = this.filters.length;
-  var effects = [];
+  let i;
+  const len = this.filters.length;
+  const effects = [];
   for (i = 0; i < len; i += 1) {
     if (this.filters[i].type === type) {
       effects.push(this.filters[i]);

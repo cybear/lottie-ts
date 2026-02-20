@@ -9,7 +9,7 @@ function SVGGaussianBlurEffect(filter, filterManager, elem, id) {
   filter.setAttribute('height', '300%');
 
   this.filterManager = filterManager;
-  var feGaussianBlur = createNS('feGaussianBlur');
+  const feGaussianBlur = createNS('feGaussianBlur');
   feGaussianBlur.setAttribute('result', id);
   filter.appendChild(feGaussianBlur);
   this.feGaussianBlur = feGaussianBlur;
@@ -18,8 +18,8 @@ function SVGGaussianBlurEffect(filter, filterManager, elem, id) {
 SVGGaussianBlurEffect.prototype.renderFrame = function (forceRender) {
   if (forceRender || this.filterManager._mdf) {
     // Empirical value, matching AE's blur appearance.
-    var kBlurrinessToSigma = 0.3;
-    var sigma = this.filterManager.effectElements[0].p.v * kBlurrinessToSigma;
+    const kBlurrinessToSigma = 0.3;
+    const sigma = this.filterManager.effectElements[0].p.v * kBlurrinessToSigma;
 
     // Dimensions mapping:
     //
@@ -27,9 +27,9 @@ SVGGaussianBlurEffect.prototype.renderFrame = function (forceRender) {
     //   2 -> horizontal only
     //   3 -> vertical only
     //
-    var dimensions = this.filterManager.effectElements[1].p.v;
-    var sigmaX = (dimensions == 3) ? 0 : sigma; // eslint-disable-line eqeqeq
-    var sigmaY = (dimensions == 2) ? 0 : sigma; // eslint-disable-line eqeqeq
+    const dimensions = this.filterManager.effectElements[1].p.v;
+    const sigmaX = dimensions == 3 ? 0 : sigma; // eslint-disable-line eqeqeq
+    const sigmaY = dimensions == 2 ? 0 : sigma; // eslint-disable-line eqeqeq
 
     this.feGaussianBlur.setAttribute('stdDeviation', sigmaX + ' ' + sigmaY);
 
@@ -37,7 +37,7 @@ SVGGaussianBlurEffect.prototype.renderFrame = function (forceRender) {
     //
     //   0 -> off -> duplicate
     //   1 -> on  -> wrap
-    var edgeMode = (this.filterManager.effectElements[2].p.v == 1) ? 'wrap' : 'duplicate'; // eslint-disable-line eqeqeq
+    const edgeMode = this.filterManager.effectElements[2].p.v == 1 ? 'wrap' : 'duplicate'; // eslint-disable-line eqeqeq
     this.feGaussianBlur.setAttribute('edgeMode', edgeMode);
   }
 };

@@ -1,11 +1,11 @@
 import { getWebWorker } from '../main';
 
 const dataManager = (function () {
-  var _counterId = 1;
-  var processes: Record<string, any> = {};
-  var workerFn: ((e: any) => void) | undefined;
-  var workerInstance: Worker | typeof workerProxy | undefined;
-  var workerProxy = {
+  let _counterId = 1;
+  const processes: Record<string, any> = {};
+  let workerFn: ((e: any) => void) | undefined;
+  let workerInstance: Worker | typeof workerProxy | undefined;
+  const workerProxy = {
     onmessage: function (_e: any) {
       // placeholder
     },
@@ -15,7 +15,7 @@ const dataManager = (function () {
       });
     },
   };
-  var _workerSelf = {
+  const _workerSelf = {
     postMessage: function (data: any) {
       workerProxy.onmessage({
         data: data,
@@ -25,8 +25,8 @@ const dataManager = (function () {
 
   function createWorker(fn: (e: any) => void): Worker | typeof workerProxy {
     if ((window as any).Worker && (window as any).Blob && getWebWorker()) {
-      var blob = new Blob(['var _workerSelf = self; self.onmessage = ', fn.toString()], { type: 'text/javascript' });
-      var url = URL.createObjectURL(blob);
+      const blob = new Blob(['var _workerSelf = self; self.onmessage = ', fn.toString()], { type: 'text/javascript' });
+      const url = URL.createObjectURL(blob);
       return new Worker(url);
     }
     workerFn = fn;
@@ -38,19 +38,19 @@ const dataManager = (function () {
       workerInstance = createWorker(function workerStart(e: any) {
         function dataFunctionManager() {
           function completeLayers(layers: any, comps: any) {
-            var layerData;
-            var i;
-            var len = layers.length;
-            var j;
-            var jLen;
-            var k;
-            var kLen;
+            let layerData;
+            let i;
+            const len = layers.length;
+            let j;
+            let jLen;
+            let k;
+            let kLen;
             for (i = 0; i < len; i += 1) {
               layerData = layers[i];
-              if (('ks' in layerData) && !layerData.completed) {
+              if ('ks' in layerData && !layerData.completed) {
                 layerData.completed = true;
                 if (layerData.hasMask) {
-                  var maskProps = layerData.masksProperties;
+                  const maskProps = layerData.masksProperties;
                   jLen = maskProps.length;
                   for (j = 0; j < jLen; j += 1) {
                     if (maskProps[j].pt.k.i) {
@@ -82,8 +82,8 @@ const dataManager = (function () {
 
           function completeChars(chars: any, assets: any) {
             if (chars) {
-              var i = 0;
-              var len = chars.length;
+              let i = 0;
+              const len = chars.length;
               for (i = 0; i < len; i += 1) {
                 if (chars[i].t === 1) {
                   chars[i].data.layers = findCompLayers(chars[i].data.refId, assets);
@@ -94,8 +94,8 @@ const dataManager = (function () {
           }
 
           function findComp(id: any, comps: any) {
-            var i = 0;
-            var len = comps.length;
+            let i = 0;
+            const len = comps.length;
             while (i < len) {
               if (comps[i].id === id) {
                 return comps[i];
@@ -106,7 +106,7 @@ const dataManager = (function () {
           }
 
           function findCompLayers(id: any, comps: any) {
-            var comp = findComp(id, comps);
+            const comp = findComp(id, comps);
             if (comp) {
               if (!comp.layers.__used) {
                 comp.layers.__used = true;
@@ -118,10 +118,10 @@ const dataManager = (function () {
           }
 
           function completeShapes(arr: any) {
-            var i;
-            var len = arr.length;
-            var j;
-            var jLen;
+            let i;
+            const len = arr.length;
+            let j;
+            let jLen;
             for (i = len - 1; i >= 0; i -= 1) {
               if (arr[i].ty === 'sh') {
                 if (arr[i].ks.k.i) {
@@ -144,8 +144,8 @@ const dataManager = (function () {
           }
 
           function convertPathsToAbsoluteValues(path: any) {
-            var i;
-            var len = path.i.length;
+            let i;
+            const len = path.i.length;
             for (i = 0; i < len; i += 1) {
               path.i[i][0] += path.v[i][0];
               path.i[i][1] += path.v[i][1];
@@ -155,30 +155,33 @@ const dataManager = (function () {
           }
 
           function checkVersion(minimum: number[], animVersionString: string | null): boolean | null {
-            var animVersion = animVersionString ? animVersionString.split('.') : ['100', '100', '100'];
+            const animVersion = animVersionString ? animVersionString.split('.') : ['100', '100', '100'];
             if (minimum[0] > Number(animVersion[0])) {
               return true;
-            } if (Number(animVersion[0]) > minimum[0]) {
+            }
+            if (Number(animVersion[0]) > minimum[0]) {
               return false;
             }
             if (minimum[1] > Number(animVersion[1])) {
               return true;
-            } if (Number(animVersion[1]) > minimum[1]) {
+            }
+            if (Number(animVersion[1]) > minimum[1]) {
               return false;
             }
             if (minimum[2] > Number(animVersion[2])) {
               return true;
-            } if (Number(animVersion[2]) > minimum[2]) {
+            }
+            if (Number(animVersion[2]) > minimum[2]) {
               return false;
             }
             return null;
           }
 
-          var checkText = (function () {
-            var minimumVersion = [4, 4, 14];
+          const checkText = (function () {
+            const minimumVersion = [4, 4, 14];
 
             function updateTextLayer(textLayer: any) {
-              var documentData = textLayer.t.d;
+              const documentData = textLayer.t.d;
               textLayer.t.d = {
                 k: [
                   {
@@ -190,8 +193,8 @@ const dataManager = (function () {
             }
 
             function iterateLayers(layers: any) {
-              var i;
-              var len = layers.length;
+              let i;
+              const len = layers.length;
               for (i = 0; i < len; i += 1) {
                 if (layers[i].ty === 5) {
                   updateTextLayer(layers[i]);
@@ -203,8 +206,8 @@ const dataManager = (function () {
               if (checkVersion(minimumVersion, animationData.v)) {
                 iterateLayers(animationData.layers);
                 if (animationData.assets) {
-                  var i;
-                  var len = animationData.assets.length;
+                  let i;
+                  const len = animationData.assets.length;
                   for (i = 0; i < len; i += 1) {
                     if (animationData.assets[i].layers) {
                       iterateLayers(animationData.assets[i].layers);
@@ -213,16 +216,16 @@ const dataManager = (function () {
                 }
               }
             };
-          }());
+          })();
 
-          var checkChars = (function () {
-            var minimumVersion = [4, 7, 99];
+          const checkChars = (function () {
+            const minimumVersion = [4, 7, 99];
             return function (animationData: any) {
               if (animationData.chars && !checkVersion(minimumVersion, animationData.v)) {
-                var i;
-                var len = animationData.chars.length;
+                let i;
+                const len = animationData.chars.length;
                 for (i = 0; i < len; i += 1) {
-                  var charData = animationData.chars[i];
+                  const charData = animationData.chars[i];
                   if (charData.data && charData.data.shapes) {
                     completeShapes(charData.data.shapes);
                     charData.data.ip = 0;
@@ -237,35 +240,31 @@ const dataManager = (function () {
                       o: { k: 100, a: 0 },
                     };
                     if (!animationData.chars[i].t) {
-                      charData.data.shapes.push(
-                        {
-                          ty: 'no',
-                        }
-                      );
-                      charData.data.shapes[0].it.push(
-                        {
-                          p: { k: [0, 0], a: 0 },
-                          s: { k: [100, 100], a: 0 },
-                          a: { k: [0, 0], a: 0 },
-                          r: { k: 0, a: 0 },
-                          o: { k: 100, a: 0 },
-                          sk: { k: 0, a: 0 },
-                          sa: { k: 0, a: 0 },
-                          ty: 'tr',
-                        }
-                      );
+                      charData.data.shapes.push({
+                        ty: 'no',
+                      });
+                      charData.data.shapes[0].it.push({
+                        p: { k: [0, 0], a: 0 },
+                        s: { k: [100, 100], a: 0 },
+                        a: { k: [0, 0], a: 0 },
+                        r: { k: 0, a: 0 },
+                        o: { k: 100, a: 0 },
+                        sk: { k: 0, a: 0 },
+                        sa: { k: 0, a: 0 },
+                        ty: 'tr',
+                      });
                     }
                   }
                 }
               }
             };
-          }());
+          })();
 
-          var checkPathProperties = (function () {
-            var minimumVersion = [5, 7, 15];
+          const checkPathProperties = (function () {
+            const minimumVersion = [5, 7, 15];
 
             function updateTextLayer(textLayer: any) {
-              var pathData = textLayer.t.p;
+              const pathData = textLayer.t.p;
               if (typeof pathData.a === 'number') {
                 pathData.a = {
                   a: 0,
@@ -287,8 +286,8 @@ const dataManager = (function () {
             }
 
             function iterateLayers(layers: any) {
-              var i;
-              var len = layers.length;
+              let i;
+              const len = layers.length;
               for (i = 0; i < len; i += 1) {
                 if (layers[i].ty === 5) {
                   updateTextLayer(layers[i]);
@@ -300,8 +299,8 @@ const dataManager = (function () {
               if (checkVersion(minimumVersion, animationData.v)) {
                 iterateLayers(animationData.layers);
                 if (animationData.assets) {
-                  var i;
-                  var len = animationData.assets.length;
+                  let i;
+                  const len = animationData.assets.length;
                   for (i = 0; i < len; i += 1) {
                     if (animationData.assets[i].layers) {
                       iterateLayers(animationData.assets[i].layers);
@@ -310,16 +309,16 @@ const dataManager = (function () {
                 }
               }
             };
-          }());
+          })();
 
-          var checkColors = (function () {
-            var minimumVersion = [4, 1, 9];
+          const checkColors = (function () {
+            const minimumVersion = [4, 1, 9];
 
             function iterateShapes(shapes: any) {
-              var i;
-              var len = shapes.length;
-              var j;
-              var jLen;
+              let i;
+              const len = shapes.length;
+              let j;
+              let jLen;
               for (i = 0; i < len; i += 1) {
                 if (shapes[i].ty === 'gr') {
                   iterateShapes(shapes[i].it);
@@ -351,8 +350,8 @@ const dataManager = (function () {
             }
 
             function iterateLayers(layers: any) {
-              var i;
-              var len = layers.length;
+              let i;
+              const len = layers.length;
               for (i = 0; i < len; i += 1) {
                 if (layers[i].ty === 4) {
                   iterateShapes(layers[i].shapes);
@@ -364,8 +363,8 @@ const dataManager = (function () {
               if (checkVersion(minimumVersion, animationData.v)) {
                 iterateLayers(animationData.layers);
                 if (animationData.assets) {
-                  var i;
-                  var len = animationData.assets.length;
+                  let i;
+                  const len = animationData.assets.length;
                   for (i = 0; i < len; i += 1) {
                     if (animationData.assets[i].layers) {
                       iterateLayers(animationData.assets[i].layers);
@@ -374,16 +373,16 @@ const dataManager = (function () {
                 }
               }
             };
-          }());
+          })();
 
-          var checkShapes = (function () {
-            var minimumVersion = [4, 4, 18];
+          const checkShapes = (function () {
+            const minimumVersion = [4, 4, 18];
 
             function completeClosingShapes(arr: any) {
-              var i;
-              var len = arr.length;
-              var j;
-              var jLen;
+              let i;
+              const len = arr.length;
+              let j;
+              let jLen;
               for (i = len - 1; i >= 0; i -= 1) {
                 if (arr[i].ty === 'sh') {
                   if (arr[i].ks.k.i) {
@@ -406,17 +405,17 @@ const dataManager = (function () {
             }
 
             function iterateLayers(layers: any) {
-              var layerData;
-              var i;
-              var len = layers.length;
-              var j;
-              var jLen;
-              var k;
-              var kLen;
+              let layerData;
+              let i;
+              const len = layers.length;
+              let j;
+              let jLen;
+              let k;
+              let kLen;
               for (i = 0; i < len; i += 1) {
                 layerData = layers[i];
                 if (layerData.hasMask) {
-                  var maskProps = layerData.masksProperties;
+                  const maskProps = layerData.masksProperties;
                   jLen = maskProps.length;
                   for (j = 0; j < jLen; j += 1) {
                     if (maskProps[j].pt.k.i) {
@@ -444,8 +443,8 @@ const dataManager = (function () {
               if (checkVersion(minimumVersion, animationData.v)) {
                 iterateLayers(animationData.layers);
                 if (animationData.assets) {
-                  var i;
-                  var len = animationData.assets.length;
+                  let i;
+                  const len = animationData.assets.length;
                   for (i = 0; i < len; i += 1) {
                     if (animationData.assets[i].layers) {
                       iterateLayers(animationData.assets[i].layers);
@@ -454,7 +453,7 @@ const dataManager = (function () {
                 }
               }
             };
-          }());
+          })();
 
           function completeData(animationData: any) {
             if (animationData.__complete) {
@@ -476,7 +475,7 @@ const dataManager = (function () {
             }
           }
 
-          var moduleOb: any = {};
+          const moduleOb: any = {};
           moduleOb.completeData = completeData;
           moduleOb.checkColors = checkColors;
           moduleOb.checkChars = checkChars;
@@ -486,7 +485,7 @@ const dataManager = (function () {
 
           return moduleOb;
         }
-        var self: any = _workerSelf;
+        const self: any = _workerSelf;
         if (!self.dataManager) {
           self.dataManager = dataFunctionManager();
         }
@@ -496,23 +495,30 @@ const dataManager = (function () {
             function formatResponse(xhr: XMLHttpRequest) {
               // using typeof doubles the time of execution of this method,
               // so if available, it's better to use the header to validate the type
-              var contentTypeHeader = xhr.getResponseHeader('content-type');
+              const contentTypeHeader = xhr.getResponseHeader('content-type');
               if (contentTypeHeader && xhr.responseType === 'json' && contentTypeHeader.indexOf('json') !== -1) {
                 return xhr.response;
               }
               if (xhr.response && typeof xhr.response === 'object') {
                 return xhr.response;
-              } if (xhr.response && typeof xhr.response === 'string') {
+              }
+              if (xhr.response && typeof xhr.response === 'string') {
                 return JSON.parse(xhr.response);
-              } if (xhr.responseText) {
+              }
+              if (xhr.responseText) {
                 return JSON.parse(xhr.responseText);
               }
               return null;
             }
 
-            function loadAsset(path: string, fullPath: string, callback: (data: any) => void, errorCallback: ((err: any) => void) | undefined) {
-              var response;
-              var xhr = new XMLHttpRequest();
+            function loadAsset(
+              path: string,
+              fullPath: string,
+              callback: (data: any) => void,
+              errorCallback: ((err: any) => void) | undefined,
+            ) {
+              let response;
+              const xhr = new XMLHttpRequest();
               // set responseType after calling open or IE will break.
               try {
                 // This crashes on Android WebView prior to KitKat
@@ -547,7 +553,7 @@ const dataManager = (function () {
             return {
               load: loadAsset,
             };
-          }());
+          })();
         }
 
         if (e.data.type === 'loadAnimation') {
@@ -567,10 +573,10 @@ const dataManager = (function () {
                 id: e.data.id,
                 status: 'error',
               });
-            }
+            },
           );
         } else if (e.data.type === 'complete') {
-          var animation = e.data.animation;
+          const animation = e.data.animation;
           self.dataManager.completeData(animation);
           self.postMessage({
             id: e.data.id,
@@ -593,15 +599,15 @@ const dataManager = (function () {
                 id: e.data.id,
                 status: 'error',
               });
-            }
+            },
           );
         }
       });
 
       (workerInstance as any).onmessage = function (event: any) {
-        var data = event.data;
-        var id = data.id;
-        var process = processes[id];
+        const data = event.data;
+        const id = data.id;
+        const process = processes[id];
         processes[id] = null;
         if (data.status === 'success') {
           process.onComplete(data.payload);
@@ -614,7 +620,7 @@ const dataManager = (function () {
 
   function createProcess(onComplete: (data: any) => void, onError: (() => void) | undefined): string {
     _counterId += 1;
-    var id = 'processId_' + _counterId;
+    const id = 'processId_' + _counterId;
     processes[id] = {
       onComplete: onComplete,
       onError: onError,
@@ -624,7 +630,7 @@ const dataManager = (function () {
 
   function loadAnimation(path: string, onComplete: (data: any) => void, onError: (() => void) | undefined) {
     setupWorker();
-    var processId = createProcess(onComplete, onError);
+    const processId = createProcess(onComplete, onError);
     (workerInstance as any).postMessage({
       type: 'loadAnimation',
       path: path,
@@ -635,7 +641,7 @@ const dataManager = (function () {
 
   function loadData(path: string, onComplete: (data: any) => void, onError: (() => void) | undefined) {
     setupWorker();
-    var processId = createProcess(onComplete, onError);
+    const processId = createProcess(onComplete, onError);
     (workerInstance as any).postMessage({
       type: 'loadData',
       path: path,
@@ -646,7 +652,7 @@ const dataManager = (function () {
 
   function completeAnimation(anim: any, onComplete: (data: any) => void, onError: (() => void) | undefined) {
     setupWorker();
-    var processId = createProcess(onComplete, onError);
+    const processId = createProcess(onComplete, onError);
     (workerInstance as any).postMessage({
       type: 'complete',
       animation: anim,
@@ -659,6 +665,6 @@ const dataManager = (function () {
     loadData: loadData,
     completeAnimation: completeAnimation,
   };
-}());
+})();
 
 export default dataManager;

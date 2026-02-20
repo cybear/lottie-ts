@@ -1,10 +1,6 @@
 // @ts-nocheck
-import {
-  extendPrototype,
-} from '../../utils/functionExtensions';
-import {
-  createSizedArray,
-} from '../../utils/helpers/arrays';
+import { extendPrototype } from '../../utils/functionExtensions';
+import { createSizedArray } from '../../utils/helpers/arrays';
 import createNS from '../../utils/helpers/svg_elements';
 import BaseElement from '../BaseElement';
 import TransformElement from '../helpers/TransformElement';
@@ -16,7 +12,7 @@ import ITextElement from '../TextElement';
 import SVGCompElement from './SVGCompElement'; // eslint-disable-line
 import SVGShapeElement from './SVGShapeElement';
 
-var emptyShapeData = {
+const emptyShapeData = {
   shapes: [],
 };
 
@@ -26,7 +22,10 @@ function SVGTextLottieElement(data, globalData, comp) {
   this.initElement(data, globalData, comp);
 }
 
-extendPrototype([BaseElement, TransformElement, SVGBaseElement, HierarchyElement, FrameElement, RenderableDOMElement, ITextElement], SVGTextLottieElement);
+extendPrototype(
+  [BaseElement, TransformElement, SVGBaseElement, HierarchyElement, FrameElement, RenderableDOMElement, ITextElement],
+  SVGTextLottieElement,
+);
 
 SVGTextLottieElement.prototype.createContent = function () {
   if (this.data.singleShape && !this.globalData.fontManager.chars) {
@@ -35,10 +34,10 @@ SVGTextLottieElement.prototype.createContent = function () {
 };
 
 SVGTextLottieElement.prototype.buildTextContents = function (textArray) {
-  var i = 0;
-  var len = textArray.length;
-  var textContents = [];
-  var currentTextContent = '';
+  let i = 0;
+  const len = textArray.length;
+  const textContents = [];
+  let currentTextContent = '';
   while (i < len) {
     if (textArray[i] === String.fromCharCode(13) || textArray[i] === String.fromCharCode(3)) {
       textContents.push(currentTextContent);
@@ -58,9 +57,9 @@ SVGTextLottieElement.prototype.buildShapeData = function (data, scale) {
   // it's probably safe not to clone data and reuse always the same instance even if the object is mutated.
   // Avoiding cloning is preferred since cloning each character shape data is expensive
   if (data.shapes && data.shapes.length) {
-    var shape = data.shapes[0];
+    const shape = data.shapes[0];
     if (shape.it) {
-      var shapeItem = shape.it[shape.it.length - 1];
+      const shapeItem = shape.it[shape.it.length - 1];
       if (shapeItem.s) {
         shapeItem.s.k[0] = scale;
         shapeItem.s.k[1] = scale;
@@ -72,10 +71,10 @@ SVGTextLottieElement.prototype.buildShapeData = function (data, scale) {
 
 SVGTextLottieElement.prototype.buildNewText = function () {
   this.addDynamicProperty(this);
-  var i;
-  var len;
+  let i;
+  let len;
 
-  var documentData = this.textProperty.currentData;
+  const documentData = this.textProperty.currentData;
   this.renderedLetters = createSizedArray(documentData ? documentData.l.length : 0);
   if (documentData.fc) {
     this.layerElement.setAttribute('fill', this.buildColor(documentData.fc));
@@ -87,33 +86,33 @@ SVGTextLottieElement.prototype.buildNewText = function () {
     this.layerElement.setAttribute('stroke-width', documentData.sw);
   }
   this.layerElement.setAttribute('font-size', documentData.finalSize);
-  var fontData = this.globalData.fontManager.getFontByName(documentData.f);
+  const fontData = this.globalData.fontManager.getFontByName(documentData.f);
   if (fontData.fClass) {
     this.layerElement.setAttribute('class', fontData.fClass);
   } else {
     this.layerElement.setAttribute('font-family', fontData.fFamily);
-    var fWeight = documentData.fWeight;
-    var fStyle = documentData.fStyle;
+    const fWeight = documentData.fWeight;
+    const fStyle = documentData.fStyle;
     this.layerElement.setAttribute('font-style', fStyle);
     this.layerElement.setAttribute('font-weight', fWeight);
   }
   this.layerElement.setAttribute('aria-label', documentData.t);
 
-  var letters = documentData.l || [];
-  var usesGlyphs = !!this.globalData.fontManager.chars;
+  const letters = documentData.l || [];
+  const usesGlyphs = !!this.globalData.fontManager.chars;
   len = letters.length;
 
-  var tSpan;
-  var matrixHelper = this.mHelper;
-  var shapeStr = '';
-  var singleShape = this.data.singleShape;
-  var xPos = 0;
-  var yPos = 0;
-  var firstLine = true;
-  var trackingOffset = documentData.tr * 0.001 * documentData.finalSize;
+  let tSpan;
+  const matrixHelper = this.mHelper;
+  const shapeStr = '';
+  const singleShape = this.data.singleShape;
+  let xPos = 0;
+  let yPos = 0;
+  let firstLine = true;
+  const trackingOffset = documentData.tr * 0.001 * documentData.finalSize;
   if (singleShape && !usesGlyphs && !documentData.sz) {
-    var tElement = this.textContainer;
-    var justify = 'start';
+    const tElement = this.textContainer;
+    let justify = 'start';
     switch (documentData.j) {
       case 1:
         justify = 'end';
@@ -127,7 +126,7 @@ SVGTextLottieElement.prototype.buildNewText = function () {
     }
     tElement.setAttribute('text-anchor', justify);
     tElement.setAttribute('letter-spacing', trackingOffset);
-    var textContent = this.buildTextContents(documentData.finalText);
+    const textContent = this.buildTextContents(documentData.finalText);
     len = textContent.length;
     yPos = documentData.ps ? documentData.ps[1] + documentData.ascent : 0;
     for (i = 0; i < len; i += 1) {
@@ -149,8 +148,8 @@ SVGTextLottieElement.prototype.buildNewText = function () {
 
     this.layerElement.appendChild(tElement);
   } else {
-    var cachedSpansLength = this.textSpans.length;
-    var charData;
+    const cachedSpansLength = this.textSpans.length;
+    let charData;
     for (i = 0; i < len; i += 1) {
       if (!this.textSpans[i]) {
         this.textSpans[i] = {
@@ -167,7 +166,7 @@ SVGTextLottieElement.prototype.buildNewText = function () {
           tSpan.setAttribute('stroke-miterlimit', '4');
           this.textSpans[i].span = tSpan;
           if (usesGlyphs) {
-            var childSpan = createNS('g');
+            const childSpan = createNS('g');
             tSpan.appendChild(childSpan);
             this.textSpans[i].childSpan = childSpan;
           }
@@ -194,21 +193,21 @@ SVGTextLottieElement.prototype.buildNewText = function () {
         charData = this.globalData.fontManager.getCharData(
           documentData.finalText[i],
           fontData.fStyle,
-          this.globalData.fontManager.getFontByName(documentData.f).fFamily
+          this.globalData.fontManager.getFontByName(documentData.f).fFamily,
         );
-        var glyphElement;
+        let glyphElement;
         // t === 1 means the character has been replaced with an animated shaped
         if (charData.t === 1) {
           glyphElement = new SVGCompElement(charData.data, this.globalData, this);
         } else {
-          var data = emptyShapeData;
+          let data = emptyShapeData;
           if (charData.data && charData.data.shapes) {
             data = this.buildShapeData(charData.data, documentData.finalSize);
           }
           glyphElement = new SVGShapeElement(data, this.globalData, this);
         }
         if (this.textSpans[i].glyph) {
-          var glyph = this.textSpans[i].glyph;
+          const glyph = this.textSpans[i].glyph;
           this.textSpans[i].childSpan.removeChild(glyph.layerElement);
           glyph.destroy();
         }
@@ -220,7 +219,10 @@ SVGTextLottieElement.prototype.buildNewText = function () {
         // when using animated shapes, the layer will be scaled instead of replacing the internal scale
         // this might have issues with strokes and might need a different solution
         if (charData.t === 1) {
-          this.textSpans[i].childSpan.setAttribute('transform', 'scale(' + documentData.finalSize / 100 + ',' + documentData.finalSize / 100 + ')');
+          this.textSpans[i].childSpan.setAttribute(
+            'transform',
+            'scale(' + documentData.finalSize / 100 + ',' + documentData.finalSize / 100 + ')',
+          );
         }
       } else {
         if (singleShape) {
@@ -248,7 +250,7 @@ SVGTextLottieElement.prototype.sourceRectAtTime = function () {
   this.renderInnerContent();
   if (this._sizeChanged) {
     this._sizeChanged = false;
-    var textBox = this.layerElement.getBBox();
+    const textBox = this.layerElement.getBBox();
     this.bbox = {
       top: textBox.y,
       left: textBox.x,
@@ -260,9 +262,9 @@ SVGTextLottieElement.prototype.sourceRectAtTime = function () {
 };
 
 SVGTextLottieElement.prototype.getValue = function () {
-  var i;
-  var len = this.textSpans.length;
-  var glyphElement;
+  let i;
+  const len = this.textSpans.length;
+  let glyphElement;
   this.renderedFrame = this.comp.renderedFrame;
   for (i = 0; i < len; i += 1) {
     glyphElement = this.textSpans[i].glyph;
@@ -281,16 +283,15 @@ SVGTextLottieElement.prototype.renderInnerContent = function () {
     this.textAnimator.getMeasures(this.textProperty.currentData, this.lettersChangedFlag);
     if (this.lettersChangedFlag || this.textAnimator.lettersChangedFlag) {
       this._sizeChanged = true;
-      var i;
-      var len;
-      var renderedLetters = this.textAnimator.renderedLetters;
+      let i;
+      const renderedLetters = this.textAnimator.renderedLetters;
 
-      var letters = this.textProperty.currentData.l;
+      const letters = this.textProperty.currentData.l;
 
-      len = letters.length;
-      var renderedLetter;
-      var textSpan;
-      var glyphElement;
+      const len = letters.length;
+      let renderedLetter;
+      let textSpan;
+      let glyphElement;
       for (i = 0; i < len; i += 1) {
         if (!letters[i].n) {
           renderedLetter = renderedLetters[i];

@@ -1,6 +1,4 @@
-import {
-  createSizedArray,
-} from '../helpers/arrays';
+import { createSizedArray } from '../helpers/arrays';
 
 const pooling = (function () {
   function double(arr: unknown[]): unknown[] {
@@ -10,6 +8,6 @@ const pooling = (function () {
   return {
     double,
   };
-}());
+})();
 
 export default pooling;

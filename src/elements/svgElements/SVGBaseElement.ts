@@ -1,16 +1,13 @@
 // @ts-nocheck
 import { getLocationHref } from '../../main';
-import {
-  createElementID,
-} from '../../utils/common';
+import { createElementID } from '../../utils/common';
 import createNS from '../../utils/helpers/svg_elements';
 import MaskElement from '../../mask';
 import filtersFactory from '../../utils/filters';
 import featureSupport from '../../utils/featureSupport';
 import SVGEffects from './SVGEffects';
 
-function SVGBaseElement() {
-}
+function SVGBaseElement() {}
 
 SVGBaseElement.prototype = {
   initRendererElement: function () {
@@ -21,11 +18,11 @@ SVGBaseElement.prototype = {
     this.transformedElement = this.layerElement;
     this.maskedElement = this.layerElement;
     this._sizeChanged = false;
-    var layerElementParent = null;
+    let layerElementParent = null;
     // If this layer acts as a mask for the following layer
     if (this.data.td) {
       this.matteMasks = {};
-      var gg = createNS('g');
+      const gg = createNS('g');
       gg.setAttribute('id', this.layerId);
       gg.appendChild(this.layerElement);
       layerElementParent = gg;
@@ -45,16 +42,19 @@ SVGBaseElement.prototype = {
     }
     // Clipping compositions to hide content that exceeds boundaries. If collapsed transformations is on, component should not be clipped
     if (this.data.ty === 0 && !this.data.hd) {
-      var cp = createNS('clipPath');
-      var pt = createNS('path');
-      pt.setAttribute('d', 'M0,0 L' + this.data.w + ',0 L' + this.data.w + ',' + this.data.h + ' L0,' + this.data.h + 'z');
-      var clipId = createElementID();
+      const cp = createNS('clipPath');
+      const pt = createNS('path');
+      pt.setAttribute(
+        'd',
+        'M0,0 L' + this.data.w + ',0 L' + this.data.w + ',' + this.data.h + ' L0,' + this.data.h + 'z',
+      );
+      const clipId = createElementID();
       cp.setAttribute('id', clipId);
       cp.appendChild(pt);
       this.globalData.defs.appendChild(cp);
 
       if (this.checkMasks()) {
-        var cpGroup = createNS('g');
+        const cpGroup = createNS('g');
         cpGroup.setAttribute('clip-path', 'url(' + getLocationHref() + '#' + clipId + ')');
         cpGroup.appendChild(this.layerElement);
         this.transformedElement = cpGroup;
@@ -103,13 +103,13 @@ SVGBaseElement.prototype = {
       this.matteMasks = {};
     }
     if (!this.matteMasks[matteType]) {
-      var id = this.layerId + '_' + matteType;
-      var filId;
-      var fil;
-      var useElement;
-      var gg;
+      const id = this.layerId + '_' + matteType;
+      let filId;
+      let fil;
+      let useElement;
+      let gg;
       if (matteType === 1 || matteType === 3) {
-        var masker = createNS('mask');
+        const masker = createNS('mask');
         masker.setAttribute('id', id);
         masker.setAttribute('mask-type', matteType === 3 ? 'luminance' : 'alpha');
         useElement = createNS('use');
@@ -128,24 +128,24 @@ SVGBaseElement.prototype = {
           gg.setAttribute('filter', 'url(' + getLocationHref() + '#' + filId + ')');
         }
       } else if (matteType === 2) {
-        var maskGroup = createNS('mask');
+        const maskGroup = createNS('mask');
         maskGroup.setAttribute('id', id);
         maskGroup.setAttribute('mask-type', 'alpha');
-        var maskGrouper = createNS('g');
+        const maskGrouper = createNS('g');
         maskGroup.appendChild(maskGrouper);
         filId = createElementID();
         fil = filtersFactory.createFilter(filId);
         /// /
-        var feCTr = createNS('feComponentTransfer');
+        const feCTr = createNS('feComponentTransfer');
         feCTr.setAttribute('in', 'SourceGraphic');
         fil.appendChild(feCTr);
-        var feFunc = createNS('feFuncA');
+        const feFunc = createNS('feFuncA');
         feFunc.setAttribute('type', 'table');
         feFunc.setAttribute('tableValues', '1.0 0.0');
         feCTr.appendChild(feFunc);
         /// /
         this.globalData.defs.appendChild(fil);
-        var alphaRect = createNS('rect');
+        const alphaRect = createNS('rect');
         alphaRect.setAttribute('width', this.comp.data.w);
         alphaRect.setAttribute('height', this.comp.data.h);
         alphaRect.setAttribute('x', '0');

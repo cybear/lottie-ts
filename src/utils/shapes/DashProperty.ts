@@ -1,12 +1,7 @@
 // @ts-nocheck
-import {
-  extendPrototype,
-} from '../functionExtensions';
+import { extendPrototype } from '../functionExtensions';
 import DynamicPropertyContainer from '../helpers/dynamicProperties';
-import {
-  createSizedArray,
-  createTypedArray,
-} from '../helpers/arrays';
+import { createSizedArray, createTypedArray } from '../helpers/arrays';
 import PropertyFactory from '../PropertyFactory';
 
 function DashProperty(elem, data, renderer, container) {
@@ -19,9 +14,9 @@ function DashProperty(elem, data, renderer, container) {
   this.dashArray = createTypedArray('float32', data.length ? data.length - 1 : 0);
   this.dashoffset = createTypedArray('float32', 1);
   this.initDynamicPropertyContainer(container);
-  var i;
-  var len = data.length || 0;
-  var prop;
+  let i;
+  const len = data.length || 0;
+  let prop;
   for (i = 0; i < len; i += 1) {
     prop = PropertyFactory.getProp(elem, data[i].v, 0, 0, this);
     this.k = prop.k || this.k;
@@ -41,8 +36,8 @@ DashProperty.prototype.getValue = function (forceRender) {
   this.iterateDynamicProperties();
   this._mdf = this._mdf || forceRender;
   if (this._mdf) {
-    var i = 0;
-    var len = this.dataProps.length;
+    let i = 0;
+    const len = this.dataProps.length;
     if (this.renderer === 'svg') {
       this.dashStr = '';
     }

@@ -2,15 +2,13 @@
 import AnimationItem from './AnimationItem';
 import CanvasRenderer from '../renderers/CanvasRenderer';
 import dataManager from '../utils/DataManager';
-import {
-  getExpressionsPlugin,
-} from '../utils/common';
+import { getExpressionsPlugin } from '../utils/common';
 
 AnimationItem.prototype.setParams = function (params) {
   if (params.context) {
     this.context = params.context;
   }
-  var animType = 'svg';
+  let animType = 'svg';
   if (params.animType) {
     animType = params.animType;
   } else if (params.renderer) {
@@ -26,10 +24,7 @@ AnimationItem.prototype.setParams = function (params) {
   this.renderer.setProjectInterface(this.projectInterface);
   this.animType = animType;
 
-  if (params.loop === ''
-        || params.loop === null
-        || params.loop === undefined
-        || params.loop === true) {
+  if (params.loop === '' || params.loop === null || params.loop === undefined || params.loop === true) {
     this.loop = true;
   } else if (params.loop === false) {
     this.loop = false;
@@ -38,13 +33,12 @@ AnimationItem.prototype.setParams = function (params) {
   }
   this.autoplay = 'autoplay' in params ? params.autoplay : true;
   this.name = params.name ? params.name : '';
-  this.autoloadSegments = Object.prototype.hasOwnProperty.call(params, 'autoloadSegments') ? params.autoloadSegments : true;
+  this.autoloadSegments = Object.prototype.hasOwnProperty.call(params, 'autoloadSegments')
+    ? params.autoloadSegments
+    : true;
   this.assetsPath = null;
   if (params.animationData) {
-    dataManager.completeAnimation(
-      params.animationData,
-      this.configAnimation
-    );
+    dataManager.completeAnimation(params.animationData, this.configAnimation);
   } else if (params.path) {
     throw new Error('Canvas worker renderer cannot load animation from url');
   }
@@ -59,12 +53,12 @@ AnimationItem.prototype.includeLayers = function (data) {
     this.animationData.op = data.op;
     this.totalFrames = Math.floor(data.op - this.animationData.ip);
   }
-  var layers = this.animationData.layers;
-  var i;
-  var len = layers.length;
-  var newLayers = data.layers;
-  var j;
-  var jLen = newLayers.length;
+  const layers = this.animationData.layers;
+  let i;
+  const len = layers.length;
+  const newLayers = data.layers;
+  let j;
+  const jLen = newLayers.length;
   for (j = 0; j < jLen; j += 1) {
     i = 0;
     while (i < len) {
@@ -78,7 +72,7 @@ AnimationItem.prototype.includeLayers = function (data) {
   this.animationData.__complete = false;
   dataManager.completeAnimation(this.animationData);
   this.renderer.includeLayers(data.layers);
-  var expressionsPlugin = getExpressionsPlugin();
+  const expressionsPlugin = getExpressionsPlugin();
   if (expressionsPlugin) {
     expressionsPlugin.initExpressions(this);
   }
@@ -86,7 +80,7 @@ AnimationItem.prototype.includeLayers = function (data) {
 };
 
 AnimationItem.prototype.loadNextSegment = function () {
-  var segments = this.animationData.segments;
+  const segments = this.animationData.segments;
   if (!segments || segments.length === 0 || !this.autoloadSegments) {
     this.timeCompleted = this.totalFrames;
     return;
@@ -95,7 +89,7 @@ AnimationItem.prototype.loadNextSegment = function () {
 };
 
 AnimationItem.prototype.loadSegments = function () {
-  var segments = this.animationData.segments;
+  const segments = this.animationData.segments;
   if (!segments) {
     this.timeCompleted = this.totalFrames;
   }
@@ -132,7 +126,7 @@ AnimationItem.prototype.waitForFontsLoaded = null;
 AnimationItem.prototype.checkLoaded = function () {
   if (!this.isLoaded) {
     this.isLoaded = true;
-    var expressionsPlugin = getExpressionsPlugin();
+    const expressionsPlugin = getExpressionsPlugin();
     if (expressionsPlugin) {
       expressionsPlugin.initExpressions(this);
     }

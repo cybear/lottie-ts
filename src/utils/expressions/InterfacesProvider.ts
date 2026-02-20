@@ -6,7 +6,7 @@ import ShapeExpressionInterface from './ShapeInterface';
 import TextExpressionInterface from './TextInterface';
 import FootageInterface from './FootageInterface';
 
-var interfaces = {
+const interfaces = {
   layer: LayerExpressionInterface,
   effects: EffectsExpressionInterface,
   comp: CompExpressionInterface,

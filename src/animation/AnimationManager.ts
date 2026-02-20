@@ -3,17 +3,17 @@ import createTag from '../utils/helpers/html_elements';
 import AnimationItem from './AnimationItem';
 
 const animationManager = (function () {
-  var moduleOb = {};
-  var registeredAnimations = [];
-  var initTime = 0;
-  var len = 0;
-  var playingAnimationsNum = 0;
-  var _stopped = true;
-  var _isFrozen = false;
+  const moduleOb = {};
+  const registeredAnimations = [];
+  let initTime = 0;
+  let len = 0;
+  let playingAnimationsNum = 0;
+  let _stopped = true;
+  let _isFrozen = false;
 
   function removeElement(ev) {
-    var i = 0;
-    var animItem = ev.target;
+    let i = 0;
+    const animItem = ev.target;
     while (i < len) {
       if (registeredAnimations[i].animation === animItem) {
         registeredAnimations.splice(i, 1);
@@ -31,23 +31,23 @@ const animationManager = (function () {
     if (!element) {
       return null;
     }
-    var i = 0;
+    let i = 0;
     while (i < len) {
       if (registeredAnimations[i].elem === element && registeredAnimations[i].elem !== null) {
         return registeredAnimations[i].animation;
       }
       i += 1;
     }
-    var animItem = new AnimationItem();
+    const animItem = new AnimationItem();
     setupAnimation(animItem, element);
     animItem.setData(element, animationData);
     return animItem;
   }
 
   function getRegisteredAnimations() {
-    var i;
-    var lenAnims = registeredAnimations.length;
-    var animations = [];
+    let i;
+    const lenAnims = registeredAnimations.length;
+    const animations = [];
     for (i = 0; i < lenAnims; i += 1) {
       animations.push(registeredAnimations[i].animation);
     }
@@ -72,35 +72,35 @@ const animationManager = (function () {
   }
 
   function loadAnimation(params) {
-    var animItem = new AnimationItem();
+    const animItem = new AnimationItem();
     setupAnimation(animItem, null);
     animItem.setParams(params);
     return animItem;
   }
 
   function setSpeed(val, animation) {
-    var i;
+    let i;
     for (i = 0; i < len; i += 1) {
       registeredAnimations[i].animation.setSpeed(val, animation);
     }
   }
 
   function setDirection(val, animation) {
-    var i;
+    let i;
     for (i = 0; i < len; i += 1) {
       registeredAnimations[i].animation.setDirection(val, animation);
     }
   }
 
   function play(animation) {
-    var i;
+    let i;
     for (i = 0; i < len; i += 1) {
       registeredAnimations[i].animation.play(animation);
     }
   }
   function resume(nowTime) {
-    var elapsedTime = nowTime - initTime;
-    var i;
+    const elapsedTime = nowTime - initTime;
+    let i;
     for (i = 0; i < len; i += 1) {
       registeredAnimations[i].animation.advanceTime(elapsedTime);
     }
@@ -118,45 +118,47 @@ const animationManager = (function () {
   }
 
   function pause(animation) {
-    var i;
+    let i;
     for (i = 0; i < len; i += 1) {
       registeredAnimations[i].animation.pause(animation);
     }
   }
 
   function goToAndStop(value, isFrame, animation) {
-    var i;
+    let i;
     for (i = 0; i < len; i += 1) {
       registeredAnimations[i].animation.goToAndStop(value, isFrame, animation);
     }
   }
 
   function stop(animation) {
-    var i;
+    let i;
     for (i = 0; i < len; i += 1) {
       registeredAnimations[i].animation.stop(animation);
     }
   }
 
   function togglePause(animation) {
-    var i;
+    let i;
     for (i = 0; i < len; i += 1) {
       registeredAnimations[i].animation.togglePause(animation);
     }
   }
 
   function destroy(animation) {
-    var i;
-    for (i = (len - 1); i >= 0; i -= 1) {
+    let i;
+    for (i = len - 1; i >= 0; i -= 1) {
       registeredAnimations[i].animation.destroy(animation);
     }
   }
 
   function searchAnimations(animationData, standalone, renderer) {
-    var animElements = [].concat([].slice.call(document.getElementsByClassName('lottie')),
-      [].slice.call(document.getElementsByClassName('bodymovin')));
-    var i;
-    var lenAnims = animElements.length;
+    const animElements = [].concat(
+      [].slice.call(document.getElementsByClassName('lottie')),
+      [].slice.call(document.getElementsByClassName('bodymovin')),
+    );
+    let i;
+    const lenAnims = animElements.length;
     for (i = 0; i < lenAnims; i += 1) {
       if (renderer) {
         animElements[i].setAttribute('data-bm-type', renderer);
@@ -167,9 +169,9 @@ const animationManager = (function () {
       if (!renderer) {
         renderer = 'svg';
       }
-      var body = document.getElementsByTagName('body')[0];
+      const body = document.getElementsByTagName('body')[0];
       body.innerText = '';
-      var div = createTag('div');
+      const div = createTag('div');
       div.style.width = '100%';
       div.style.height = '100%';
       div.setAttribute('data-bm-type', renderer);
@@ -179,7 +181,7 @@ const animationManager = (function () {
   }
 
   function resize() {
-    var i;
+    let i;
     for (i = 0; i < len; i += 1) {
       registeredAnimations[i].animation.resize();
     }
@@ -204,21 +206,21 @@ const animationManager = (function () {
   }
 
   function setVolume(val, animation) {
-    var i;
+    let i;
     for (i = 0; i < len; i += 1) {
       registeredAnimations[i].animation.setVolume(val, animation);
     }
   }
 
   function mute(animation) {
-    var i;
+    let i;
     for (i = 0; i < len; i += 1) {
       registeredAnimations[i].animation.mute(animation);
     }
   }
 
   function unmute(animation) {
-    var i;
+    let i;
     for (i = 0; i < len; i += 1) {
       registeredAnimations[i].animation.unmute(animation);
     }
@@ -244,6 +246,6 @@ const animationManager = (function () {
   moduleOb.unmute = unmute;
   moduleOb.getRegisteredAnimations = getRegisteredAnimations;
   return moduleOb;
-}());
+})();
 
 export default animationManager;

@@ -1,31 +1,24 @@
-import {
-  degToRads,
-} from './common';
-import {
-  createTypedArray,
-} from './helpers/arrays';
+import { degToRads } from './common';
+import { createTypedArray } from './helpers/arrays';
 import BezierFactory from '../3rd_party/BezierEaser';
-import {
-  initialDefaultFrame,
-} from '../main';
+import { initialDefaultFrame } from '../main';
 import bez from './bez';
 
-var initFrame = initialDefaultFrame;
-var mathAbs = Math.abs;
+const initFrame = initialDefaultFrame;
+const mathAbs = Math.abs;
 
 function interpolateValue(this: any, frameNum: number, caching: any) {
-  var offsetTime = this.offsetTime;
-  var newValue: any;
+  const offsetTime = this.offsetTime;
+  let newValue: any;
   if (this.propType === 'multidimensional') {
     newValue = createTypedArray('float32', this.pv.length);
   }
-  var iterationIndex = caching.lastIndex;
-  var i = iterationIndex;
-  var len = this.keyframes.length - 1;
-  var flag = true;
-  var keyData: any;
-  var nextKeyData: any;
-  var keyframeMetadata: any;
+  let iterationIndex = caching.lastIndex;
+  let i = iterationIndex;
+  let len = this.keyframes.length - 1;
+  let flag = true;
+  let keyData: any;
+  let nextKeyData: any;
 
   while (flag) {
     keyData = this.keyframes[i];
@@ -37,7 +30,7 @@ function interpolateValue(this: any, frameNum: number, caching: any) {
       iterationIndex = 0;
       break;
     }
-    if ((nextKeyData.t - offsetTime) > frameNum) {
+    if (nextKeyData.t - offsetTime > frameNum) {
       iterationIndex = i;
       break;
     }
@@ -48,24 +41,24 @@ function interpolateValue(this: any, frameNum: number, caching: any) {
       flag = false;
     }
   }
-  keyframeMetadata = this.keyframesMetadata[i] || {};
+  const keyframeMetadata = this.keyframesMetadata[i] || {};
 
-  var k: number;
-  var kLen: number;
-  var perc: number = 0;
-  var jLen: number;
-  var j: number;
-  var fnc: any;
-  var nextKeyTime = nextKeyData.t - offsetTime;
-  var keyTime = keyData.t - offsetTime;
-  var endValue: any;
+  let k: number;
+  let kLen: number;
+  let perc: number = 0;
+  let jLen: number;
+  let j: number;
+  let fnc: any;
+  const nextKeyTime = nextKeyData.t - offsetTime;
+  const keyTime = keyData.t - offsetTime;
+  let endValue: any;
   if (keyData.to) {
     if (!keyframeMetadata.bezierData) {
       keyframeMetadata.bezierData = bez.buildBezierData(keyData.s, nextKeyData.s || keyData.e, keyData.to, keyData.ti);
     }
-    var bezierData = keyframeMetadata.bezierData;
+    const bezierData = keyframeMetadata.bezierData;
     if (frameNum >= nextKeyTime || frameNum < keyTime) {
-      var ind = frameNum >= nextKeyTime ? bezierData.points.length - 1 : 0;
+      const ind = frameNum >= nextKeyTime ? bezierData.points.length - 1 : 0;
       kLen = bezierData.points[ind].point.length;
       for (k = 0; k < kLen; k += 1) {
         newValue[k] = bezierData.points[ind].point[k];
@@ -79,11 +72,11 @@ function interpolateValue(this: any, frameNum: number, caching: any) {
         keyframeMetadata.__fnct = fnc;
       }
       perc = fnc((frameNum - keyTime) / (nextKeyTime - keyTime));
-      var distanceInLine = bezierData.segmentLength * perc;
+      const distanceInLine = bezierData.segmentLength * perc;
 
-      var segmentPerc: number;
-      var addedLength = (caching.lastFrame < frameNum && caching._lastKeyframeIndex === i) ? caching._lastAddedLength : 0;
-      j = (caching.lastFrame < frameNum && caching._lastKeyframeIndex === i) ? caching._lastPoint : 0;
+      let segmentPerc: number;
+      let addedLength = caching.lastFrame < frameNum && caching._lastKeyframeIndex === i ? caching._lastAddedLength : 0;
+      j = caching.lastFrame < frameNum && caching._lastKeyframeIndex === i ? caching._lastPoint : 0;
       flag = true;
       jLen = bezierData.points.length;
       while (flag) {
@@ -94,11 +87,16 @@ function interpolateValue(this: any, frameNum: number, caching: any) {
             newValue[k] = bezierData.points[j].point[k];
           }
           break;
-        } else if (distanceInLine >= addedLength && distanceInLine < addedLength + bezierData.points[j + 1].partialLength) {
+        } else if (
+          distanceInLine >= addedLength &&
+          distanceInLine < addedLength + bezierData.points[j + 1].partialLength
+        ) {
           segmentPerc = (distanceInLine - addedLength) / bezierData.points[j + 1].partialLength;
           kLen = bezierData.points[j].point.length;
           for (k = 0; k < kLen; k += 1) {
-            newValue[k] = bezierData.points[j].point[k] + (bezierData.points[j + 1].point[k] - bezierData.points[j].point[k]) * segmentPerc;
+            newValue[k] =
+              bezierData.points[j].point[k] +
+              (bezierData.points[j + 1].point[k] - bezierData.points[j].point[k]) * segmentPerc;
           }
           break;
         }
@@ -113,11 +111,11 @@ function interpolateValue(this: any, frameNum: number, caching: any) {
       caching._lastKeyframeIndex = i;
     }
   } else {
-    var outX: any;
-    var outY: any;
-    var inX: any;
-    var inY: any;
-    var keyValue: any;
+    let outX: any;
+    let outY: any;
+    let inX: any;
+    let inY: any;
+    let keyValue: any;
     len = keyData.s.length;
     endValue = nextKeyData.s || keyData.e;
     if (this.sh && keyData.h !== 1) {
@@ -130,9 +128,9 @@ function interpolateValue(this: any, frameNum: number, caching: any) {
         newValue[1] = keyData.s[1];
         newValue[2] = keyData.s[2];
       } else {
-        var quatStart = createQuaternion(keyData.s);
-        var quatEnd = createQuaternion(endValue);
-        var time = (frameNum - keyTime) / (nextKeyTime - keyTime);
+        const quatStart = createQuaternion(keyData.s);
+        const quatEnd = createQuaternion(endValue);
+        const time = (frameNum - keyTime) / (nextKeyTime - keyTime);
         quaternionToEuler(newValue, slerp(quatStart, quatEnd, time));
       }
     } else {
@@ -188,21 +186,21 @@ function interpolateValue(this: any, frameNum: number, caching: any) {
 
 // based on @Toji's https://github.com/toji/gl-matrix/
 function slerp(a: number[], b: number[], t: number): number[] {
-  var out: number[] = [];
-  var ax = a[0];
-  var ay = a[1];
-  var az = a[2];
-  var aw = a[3];
-  var bx = b[0];
-  var by = b[1];
-  var bz = b[2];
-  var bw = b[3];
+  const out: number[] = [];
+  const ax = a[0];
+  const ay = a[1];
+  const az = a[2];
+  const aw = a[3];
+  let bx = b[0];
+  let by = b[1];
+  let bz = b[2];
+  let bw = b[3];
 
-  var omega: number;
-  var cosom: number;
-  var sinom: number;
-  var scale0: number;
-  var scale1: number;
+  let omega: number;
+  let cosom: number;
+  let sinom: number;
+  let scale0: number;
+  let scale1: number;
 
   cosom = ax * bx + ay * by + az * bz + aw * bw;
   if (cosom < 0.0) {
@@ -212,7 +210,7 @@ function slerp(a: number[], b: number[], t: number): number[] {
     bz = -bz;
     bw = -bw;
   }
-  if ((1.0 - cosom) > 0.000001) {
+  if (1.0 - cosom > 0.000001) {
     omega = Math.acos(cosom);
     sinom = Math.sin(omega);
     scale0 = Math.sin((1.0 - t) * omega) / sinom;
@@ -230,47 +228,54 @@ function slerp(a: number[], b: number[], t: number): number[] {
 }
 
 function quaternionToEuler(out: number[], quat: number[]): void {
-  var qx = quat[0];
-  var qy = quat[1];
-  var qz = quat[2];
-  var qw = quat[3];
-  var heading = Math.atan2(2 * qy * qw - 2 * qx * qz, 1 - 2 * qy * qy - 2 * qz * qz);
-  var attitude = Math.asin(2 * qx * qy + 2 * qz * qw);
-  var bank = Math.atan2(2 * qx * qw - 2 * qy * qz, 1 - 2 * qx * qx - 2 * qz * qz);
+  const qx = quat[0];
+  const qy = quat[1];
+  const qz = quat[2];
+  const qw = quat[3];
+  const heading = Math.atan2(2 * qy * qw - 2 * qx * qz, 1 - 2 * qy * qy - 2 * qz * qz);
+  const attitude = Math.asin(2 * qx * qy + 2 * qz * qw);
+  const bank = Math.atan2(2 * qx * qw - 2 * qy * qz, 1 - 2 * qx * qx - 2 * qz * qz);
   out[0] = heading / degToRads;
   out[1] = attitude / degToRads;
   out[2] = bank / degToRads;
 }
 
 function createQuaternion(values: number[]): number[] {
-  var heading = values[0] * degToRads;
-  var attitude = values[1] * degToRads;
-  var bank = values[2] * degToRads;
-  var c1 = Math.cos(heading / 2);
-  var c2 = Math.cos(attitude / 2);
-  var c3 = Math.cos(bank / 2);
-  var s1 = Math.sin(heading / 2);
-  var s2 = Math.sin(attitude / 2);
-  var s3 = Math.sin(bank / 2);
-  var w = c1 * c2 * c3 - s1 * s2 * s3;
-  var x = s1 * s2 * c3 + c1 * c2 * s3;
-  var y = s1 * c2 * c3 + c1 * s2 * s3;
-  var z = c1 * s2 * c3 - s1 * c2 * s3;
+  const heading = values[0] * degToRads;
+  const attitude = values[1] * degToRads;
+  const bank = values[2] * degToRads;
+  const c1 = Math.cos(heading / 2);
+  const c2 = Math.cos(attitude / 2);
+  const c3 = Math.cos(bank / 2);
+  const s1 = Math.sin(heading / 2);
+  const s2 = Math.sin(attitude / 2);
+  const s3 = Math.sin(bank / 2);
+  const w = c1 * c2 * c3 - s1 * s2 * s3;
+  const x = s1 * s2 * c3 + c1 * c2 * s3;
+  const y = s1 * c2 * c3 + c1 * s2 * s3;
+  const z = c1 * s2 * c3 - s1 * c2 * s3;
 
   return [x, y, z, w];
 }
 
 function getValueAtCurrentTime(this: any) {
-  var frameNum = this.comp.renderedFrame - this.offsetTime;
-  var initTime = this.keyframes[0].t - this.offsetTime;
-  var endTime = this.keyframes[this.keyframes.length - 1].t - this.offsetTime;
-  if (!(frameNum === this._caching.lastFrame || (this._caching.lastFrame !== initFrame && ((this._caching.lastFrame >= endTime && frameNum >= endTime) || (this._caching.lastFrame < initTime && frameNum < initTime))))) {
+  const frameNum = this.comp.renderedFrame - this.offsetTime;
+  const initTime = this.keyframes[0].t - this.offsetTime;
+  const endTime = this.keyframes[this.keyframes.length - 1].t - this.offsetTime;
+  if (
+    !(
+      frameNum === this._caching.lastFrame ||
+      (this._caching.lastFrame !== initFrame &&
+        ((this._caching.lastFrame >= endTime && frameNum >= endTime) ||
+          (this._caching.lastFrame < initTime && frameNum < initTime)))
+    )
+  ) {
     if (this._caching.lastFrame >= frameNum) {
       this._caching._lastKeyframeIndex = -1;
       this._caching.lastIndex = 0;
     }
 
-    var renderResult = this.interpolateValue(frameNum, this._caching);
+    const renderResult = this.interpolateValue(frameNum, this._caching);
     this.pv = renderResult;
   }
   this._caching.lastFrame = frameNum;
@@ -278,7 +283,7 @@ function getValueAtCurrentTime(this: any) {
 }
 
 function setVValue(this: any, val: any) {
-  var multipliedValue: any;
+  let multipliedValue: any;
   if (this.propType === 'unidimensional') {
     multipliedValue = val * this.mult;
     if (mathAbs(this.v - multipliedValue) > 0.00001) {
@@ -286,8 +291,8 @@ function setVValue(this: any, val: any) {
       this._mdf = true;
     }
   } else {
-    var i = 0;
-    var len = this.v.length;
+    let i = 0;
+    const len = this.v.length;
     while (i < len) {
       multipliedValue = val[i] * this.mult;
       if (mathAbs(this.v[i] - multipliedValue) > 0.00001) {
@@ -309,9 +314,9 @@ function processEffectsSequence(this: any) {
   }
   this.lock = true;
   this._mdf = this._isFirstFrame;
-  var i;
-  var len = this.effectsSequence.length;
-  var finalValue = this.kf ? this.pv : this.data.k;
+  let i;
+  const len = this.effectsSequence.length;
+  let finalValue = this.kf ? this.pv : this.data.k;
   for (i = 0; i < len; i += 1) {
     finalValue = this.effectsSequence[i](finalValue);
   }
@@ -357,8 +362,8 @@ function MultiDimensionalProperty(this: any, elem: any, data: any, mult: any, co
   this.k = false;
   this.kf = false;
   this.frameId = -1;
-  var i;
-  var len = data.k.length;
+  let i;
+  const len = data.k.length;
   this.v = createTypedArray('float32', len);
   this.pv = createTypedArray('float32', len);
   this.vel = createTypedArray('float32', len);
@@ -380,7 +385,10 @@ function KeyframedValueProperty(this: any, elem: any, data: any, mult: any, cont
   this.offsetTime = elem.data.st;
   this.frameId = -1;
   this._caching = {
-    lastFrame: initFrame, lastIndex: 0, value: 0, _lastKeyframeIndex: -1,
+    lastFrame: initFrame,
+    lastIndex: 0,
+    value: 0,
+    _lastKeyframeIndex: -1,
   };
   this.k = true;
   this.kf = true;
@@ -401,19 +409,28 @@ function KeyframedValueProperty(this: any, elem: any, data: any, mult: any, cont
 
 function KeyframedMultidimensionalProperty(this: any, elem: any, data: any, mult: any, container: any) {
   this.propType = 'multidimensional';
-  var i;
-  var len = data.k.length;
-  var s: any;
-  var e: any;
-  var to: any;
-  var ti: any;
+  let i;
+  const len = data.k.length;
+  let s: any;
+  let e: any;
+  let to: any;
+  let ti: any;
   for (i = 0; i < len - 1; i += 1) {
     if (data.k[i].to && data.k[i].s && data.k[i + 1] && data.k[i + 1].s) {
       s = data.k[i].s;
       e = data.k[i + 1].s;
       to = data.k[i].to;
       ti = data.k[i].ti;
-      if ((s.length === 2 && !(s[0] === e[0] && s[1] === e[1]) && bez.pointOnLine2D(s[0], s[1], e[0], e[1], s[0] + to[0], s[1] + to[1]) && bez.pointOnLine2D(s[0], s[1], e[0], e[1], e[0] + ti[0], e[1] + ti[1])) || (s.length === 3 && !(s[0] === e[0] && s[1] === e[1] && s[2] === e[2]) && bez.pointOnLine3D(s[0], s[1], s[2], e[0], e[1], e[2], s[0] + to[0], s[1] + to[1], s[2] + to[2]) && bez.pointOnLine3D(s[0], s[1], s[2], e[0], e[1], e[2], e[0] + ti[0], e[1] + ti[1], e[2] + ti[2]))) {
+      if (
+        (s.length === 2 &&
+          !(s[0] === e[0] && s[1] === e[1]) &&
+          bez.pointOnLine2D(s[0], s[1], e[0], e[1], s[0] + to[0], s[1] + to[1]) &&
+          bez.pointOnLine2D(s[0], s[1], e[0], e[1], e[0] + ti[0], e[1] + ti[1])) ||
+        (s.length === 3 &&
+          !(s[0] === e[0] && s[1] === e[1] && s[2] === e[2]) &&
+          bez.pointOnLine3D(s[0], s[1], s[2], e[0], e[1], e[2], s[0] + to[0], s[1] + to[1], s[2] + to[2]) &&
+          bez.pointOnLine3D(s[0], s[1], s[2], e[0], e[1], e[2], e[0] + ti[0], e[1] + ti[1], e[2] + ti[2]))
+      ) {
         data.k[i].to = null;
         data.k[i].ti = null;
       }
@@ -441,7 +458,7 @@ function KeyframedMultidimensionalProperty(this: any, elem: any, data: any, mult
   this.setVValue = setVValue;
   this.interpolateValue = interpolateValue;
   this.frameId = -1;
-  var arrLen = data.k[0].s.length;
+  const arrLen = data.k[0].s.length;
   this.v = createTypedArray('float32', arrLen);
   this.pv = createTypedArray('float32', arrLen);
   for (i = 0; i < arrLen; i += 1) {
@@ -457,10 +474,10 @@ const PropertyFactory = (function () {
     if (data.sid) {
       data = elem.globalData.slotManager.getProp(data);
     }
-    var p: any;
+    let p: any;
     if (!data.k.length) {
       p = new (ValueProperty as any)(elem, data, mult, container);
-    } else if (typeof (data.k[0]) === 'number') {
+    } else if (typeof data.k[0] === 'number') {
       p = new (MultiDimensionalProperty as any)(elem, data, mult, container);
     } else {
       switch (type) {
@@ -480,10 +497,10 @@ const PropertyFactory = (function () {
     return p;
   }
 
-  var ob = {
+  const ob = {
     getProp: getProp,
   };
   return ob;
-}());
+})();
 
 export default PropertyFactory;

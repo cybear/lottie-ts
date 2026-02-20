@@ -63,8 +63,12 @@ const audioControllerFactory = (function () {
       }
       return {
         isPlaying: false,
-        play() { (this as { isPlaying: boolean }).isPlaying = true; },
-        seek() { (this as { isPlaying: boolean }).isPlaying = false; },
+        play() {
+          (this as { isPlaying: boolean }).isPlaying = true;
+        },
+        seek() {
+          (this as { isPlaying: boolean }).isPlaying = false;
+        },
         playing() {},
         rate() {},
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -105,6 +109,6 @@ const audioControllerFactory = (function () {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     return new (AudioController as any)();
   };
-}());
+})();
 
 export default audioControllerFactory;

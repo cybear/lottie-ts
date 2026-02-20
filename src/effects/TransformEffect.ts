@@ -3,8 +3,7 @@ import effectTypes from '../utils/helpers/effectTypes';
 import Matrix from '../3rd_party/transformation-matrix';
 import { degToRads } from '../utils/common';
 
-function TransformEffect() {
-}
+function TransformEffect() {}
 
 TransformEffect.prototype.init = function (effectsManager) {
   this.effectsManager = effectsManager;
@@ -19,15 +18,15 @@ TransformEffect.prototype.renderFrame = function (forceFrame) {
   this._opMdf = false;
   this._mdf = false;
   if (forceFrame || this.effectsManager._mdf) {
-    var effectElements = this.effectsManager.effectElements;
-    var anchor = effectElements[0].p.v;
-    var position = effectElements[1].p.v;
-    var isUniformScale = effectElements[2].p.v === 1;
-    var scaleHeight = effectElements[3].p.v;
-    var scaleWidth = isUniformScale ? scaleHeight : effectElements[4].p.v;
-    var skew = effectElements[5].p.v;
-    var skewAxis = effectElements[6].p.v;
-    var rotation = effectElements[7].p.v;
+    const effectElements = this.effectsManager.effectElements;
+    const anchor = effectElements[0].p.v;
+    const position = effectElements[1].p.v;
+    const isUniformScale = effectElements[2].p.v === 1;
+    const scaleHeight = effectElements[3].p.v;
+    const scaleWidth = isUniformScale ? scaleHeight : effectElements[4].p.v;
+    const skew = effectElements[5].p.v;
+    const skewAxis = effectElements[6].p.v;
+    const rotation = effectElements[7].p.v;
     this.matrix.reset();
     this.matrix.translate(-anchor[0], -anchor[1], anchor[2]);
     this.matrix.scale(scaleWidth * 0.01, scaleHeight * 0.01, 1);

@@ -1,26 +1,24 @@
 // @ts-nocheck
-import {
-  getDescriptor,
-} from '../functionExtensions';
+import { getDescriptor } from '../functionExtensions';
 import Matrix from '../../3rd_party/transformation-matrix';
 import MaskManagerInterface from './MaskInterface';
 import TransformExpressionInterface from './TransformInterface';
 
 const LayerExpressionInterface = (function () {
   function getMatrix(time) {
-    var toWorldMat = new Matrix();
+    const toWorldMat = new Matrix();
     if (time !== undefined) {
-      var propMatrix = this._elem.finalTransform.mProp.getValueAtTime(time);
+      const propMatrix = this._elem.finalTransform.mProp.getValueAtTime(time);
       propMatrix.clone(toWorldMat);
     } else {
-      var transformMat = this._elem.finalTransform.mProp;
+      const transformMat = this._elem.finalTransform.mProp;
       transformMat.applyToMatrix(toWorldMat);
     }
     return toWorldMat;
   }
 
   function toWorldVec(arr, time) {
-    var toWorldMat = this.getMatrix(time);
+    const toWorldMat = this.getMatrix(time);
     toWorldMat.props[12] = 0;
     toWorldMat.props[13] = 0;
     toWorldMat.props[14] = 0;
@@ -28,12 +26,12 @@ const LayerExpressionInterface = (function () {
   }
 
   function toWorld(arr, time) {
-    var toWorldMat = this.getMatrix(time);
+    const toWorldMat = this.getMatrix(time);
     return this.applyPoint(toWorldMat, arr);
   }
 
   function fromWorldVec(arr, time) {
-    var toWorldMat = this.getMatrix(time);
+    const toWorldMat = this.getMatrix(time);
     toWorldMat.props[12] = 0;
     toWorldMat.props[13] = 0;
     toWorldMat.props[14] = 0;
@@ -41,14 +39,14 @@ const LayerExpressionInterface = (function () {
   }
 
   function fromWorld(arr, time) {
-    var toWorldMat = this.getMatrix(time);
+    const toWorldMat = this.getMatrix(time);
     return this.invertPoint(toWorldMat, arr);
   }
 
   function applyPoint(matrix, arr) {
     if (this._elem.hierarchy && this._elem.hierarchy.length) {
-      var i;
-      var len = this._elem.hierarchy.length;
+      let i;
+      const len = this._elem.hierarchy.length;
       for (i = 0; i < len; i += 1) {
         this._elem.hierarchy[i].finalTransform.mProp.applyToMatrix(matrix);
       }
@@ -58,8 +56,8 @@ const LayerExpressionInterface = (function () {
 
   function invertPoint(matrix, arr) {
     if (this._elem.hierarchy && this._elem.hierarchy.length) {
-      var i;
-      var len = this._elem.hierarchy.length;
+      let i;
+      const len = this._elem.hierarchy.length;
       for (i = 0; i < len; i += 1) {
         this._elem.hierarchy[i].finalTransform.mProp.applyToMatrix(matrix);
       }
@@ -68,12 +66,12 @@ const LayerExpressionInterface = (function () {
   }
 
   function fromComp(arr) {
-    var toWorldMat = new Matrix();
+    const toWorldMat = new Matrix();
     toWorldMat.reset();
     this._elem.finalTransform.mProp.applyToMatrix(toWorldMat);
     if (this._elem.hierarchy && this._elem.hierarchy.length) {
-      var i;
-      var len = this._elem.hierarchy.length;
+      let i;
+      const len = this._elem.hierarchy.length;
       for (i = 0; i < len; i += 1) {
         this._elem.hierarchy[i].finalTransform.mProp.applyToMatrix(toWorldMat);
       }
@@ -87,8 +85,6 @@ const LayerExpressionInterface = (function () {
   }
 
   return function (elem) {
-    var transformInterface;
-
     function _registerMaskInterface(maskManager) {
       _thisLayerFunction.mask = new MaskManagerInterface(maskManager, elem);
     }
@@ -131,8 +127,8 @@ const LayerExpressionInterface = (function () {
     _thisLayerFunction.sampleImage = sampleImage;
     _thisLayerFunction.sourceRectAtTime = elem.sourceRectAtTime.bind(elem);
     _thisLayerFunction._elem = elem;
-    transformInterface = TransformExpressionInterface(elem.finalTransform.mProp);
-    var anchorPointDescriptor = getDescriptor(transformInterface, 'anchorPoint');
+    const transformInterface = TransformExpressionInterface(elem.finalTransform.mProp);
+    const anchorPointDescriptor = getDescriptor(transformInterface, 'anchorPoint');
     Object.defineProperties(_thisLayerFunction, {
       hasParent: {
         get: function () {
@@ -175,6 +171,6 @@ const LayerExpressionInterface = (function () {
     _thisLayerFunction.registerEffectsInterface = _registerEffectsInterface;
     return _thisLayerFunction;
   };
-}());
+})();
 
 export default LayerExpressionInterface;

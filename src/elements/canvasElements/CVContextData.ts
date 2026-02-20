@@ -1,7 +1,5 @@
 // @ts-nocheck
-import {
-  createTypedArray,
-} from '../../utils/helpers/arrays';
+import { createTypedArray } from '../../utils/helpers/arrays';
 import Matrix from '../../3rd_party/transformation-matrix';
 
 function CanvasContext() {
@@ -20,10 +18,10 @@ function CVContextData() {
   this.stack = [];
   this.cArrPos = 0;
   this.cTr = new Matrix();
-  var i;
-  var len = 15;
+  let i;
+  const len = 15;
   for (i = 0; i < len; i += 1) {
-    var canvasContext = new CanvasContext();
+    const canvasContext = new CanvasContext();
     this.stack[i] = canvasContext;
   }
   this._length = len;
@@ -51,8 +49,8 @@ function CVContextData() {
 }
 
 CVContextData.prototype.duplicate = function () {
-  var newLength = this._length * 2;
-  var i = 0;
+  const newLength = this._length * 2;
+  let i = 0;
   for (i = this._length; i < newLength; i += 1) {
     this.stack[i] = new CanvasContext();
   }
@@ -67,16 +65,16 @@ CVContextData.prototype.reset = function () {
 
 CVContextData.prototype.restore = function (forceRestore) {
   this.cArrPos -= 1;
-  var currentContext = this.stack[this.cArrPos];
-  var transform = currentContext.transform;
-  var i;
-  var arr = this.cTr.props;
+  const currentContext = this.stack[this.cArrPos];
+  const transform = currentContext.transform;
+  let i;
+  const arr = this.cTr.props;
   for (i = 0; i < 16; i += 1) {
     arr[i] = transform[i];
   }
   if (forceRestore) {
     this.nativeContext.restore();
-    var prevStack = this.stack[this.cArrPos + 1];
+    const prevStack = this.stack[this.cArrPos + 1];
     this.appliedFillStyle = prevStack.fillStyle;
     this.appliedStrokeStyle = prevStack.strokeStyle;
     this.appliedLineWidth = prevStack.lineWidth;
@@ -101,18 +99,18 @@ CVContextData.prototype.save = function (saveOnNativeFlag) {
   if (saveOnNativeFlag) {
     this.nativeContext.save();
   }
-  var props = this.cTr.props;
+  const props = this.cTr.props;
   if (this._length <= this.cArrPos) {
     this.duplicate();
   }
 
-  var currentStack = this.stack[this.cArrPos];
-  var i;
+  const currentStack = this.stack[this.cArrPos];
+  let i;
   for (i = 0; i < 16; i += 1) {
     currentStack.transform[i] = props[i];
   }
   this.cArrPos += 1;
-  var newStack = this.stack[this.cArrPos];
+  const newStack = this.stack[this.cArrPos];
   newStack.opacity = currentStack.opacity;
   newStack.fillStyle = currentStack.fillStyle;
   newStack.strokeStyle = currentStack.strokeStyle;
@@ -175,18 +173,18 @@ CVContextData.prototype.miterLimit = function (value) {
 CVContextData.prototype.transform = function (props) {
   this.transformMat.cloneFromProps(props);
   // Taking the last transform value from the stored stack of transforms
-  var currentTransform = this.cTr;
+  const currentTransform = this.cTr;
   // Applying the last transform value after the new transform to respect the order of transformations
   this.transformMat.multiply(currentTransform);
   // Storing the new transformed value in the stored transform
   currentTransform.cloneFromProps(this.transformMat.props);
-  var trProps = currentTransform.props;
+  const trProps = currentTransform.props;
   // Applying the new transform to the canvas
   this.nativeContext.setTransform(trProps[0], trProps[1], trProps[4], trProps[5], trProps[12], trProps[13]);
 };
 
 CVContextData.prototype.opacity = function (op) {
-  var currentOpacity = this.stack[this.cArrPos].opacity;
+  let currentOpacity = this.stack[this.cArrPos].opacity;
   currentOpacity *= op < 0 ? 0 : op;
   if (this.stack[this.cArrPos].opacity !== currentOpacity) {
     if (this.currentOpacity !== op) {

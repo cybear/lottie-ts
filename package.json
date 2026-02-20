@@ -6,43 +6,43 @@
   "module": "./build/player/esm/lottie.min.js",
   "exports": {
     ".": {
-      "types":   "./index.d.ts",
-      "import":  "./build/player/esm/lottie.min.js",
+      "types": "./index.d.ts",
+      "import": "./build/player/esm/lottie.min.js",
       "require": "./build/player/cjs/lottie.min.js",
       "default": "./build/player/lottie.js"
     },
     "./lottie_svg": {
-      "types":   "./build/player/lottie_svg.d.ts",
-      "import":  "./build/player/esm/lottie_svg.min.js",
+      "types": "./build/player/lottie_svg.d.ts",
+      "import": "./build/player/esm/lottie_svg.min.js",
       "require": "./build/player/cjs/lottie_svg.min.js",
       "default": "./build/player/lottie_svg.js"
     },
     "./lottie_canvas": {
-      "import":  "./build/player/esm/lottie_canvas.min.js",
+      "import": "./build/player/esm/lottie_canvas.min.js",
       "require": "./build/player/cjs/lottie_canvas.min.js",
       "default": "./build/player/lottie_canvas.js"
     },
     "./lottie_html": {
-      "types":   "./build/player/lottie_html.d.ts",
-      "import":  "./build/player/esm/lottie_html.min.js",
+      "types": "./build/player/lottie_html.d.ts",
+      "import": "./build/player/esm/lottie_html.min.js",
       "require": "./build/player/cjs/lottie_html.min.js",
       "default": "./build/player/lottie_html.js"
     },
     "./lottie_light": {
-      "types":   "./build/player/lottie_light.d.ts",
-      "import":  "./build/player/esm/lottie_light.min.js",
+      "types": "./build/player/lottie_light.d.ts",
+      "import": "./build/player/esm/lottie_light.min.js",
       "require": "./build/player/cjs/lottie_light.min.js",
       "default": "./build/player/lottie_light.js"
     },
     "./lottie_light_canvas": {
-      "types":   "./build/player/lottie_light_canvas.d.ts",
-      "import":  "./build/player/esm/lottie_light_canvas.min.js",
+      "types": "./build/player/lottie_light_canvas.d.ts",
+      "import": "./build/player/esm/lottie_light_canvas.min.js",
       "require": "./build/player/cjs/lottie_light_canvas.min.js",
       "default": "./build/player/lottie_light_canvas.js"
     },
     "./lottie_light_html": {
-      "types":   "./build/player/lottie_light_html.d.ts",
-      "import":  "./build/player/esm/lottie_light_html.min.js",
+      "types": "./build/player/lottie_light_html.d.ts",
+      "import": "./build/player/esm/lottie_light_html.min.js",
       "require": "./build/player/cjs/lottie_light_html.min.js",
       "default": "./build/player/lottie_light_html.js"
     }
@@ -53,15 +53,18 @@
   },
   "sideEffects": false,
   "scripts": {
-    "build": "npx eslint ./src/**/* && rollup -c && node tasks/build_worker",
-    "lint": "npx eslint ./src/**/*",
-    "lint:fix": "npx eslint ./src/**/* --fix",
+    "build": "eslint --ext .ts,.js src/ && rollup -c && node tasks/build_worker",
+    "lint": "eslint --ext .ts,.js src/",
+    "lint:fix": "eslint --ext .ts,.js src/ --fix",
+    "typecheck": "tsc --noEmit",
+    "prepublishOnly": "npm run lint && npm run typecheck && npm run build && npm test",
     "test": "vitest run",
     "test:smoke": "node tests/verification/smoke-test.cjs",
     "test:e2e": "node tests/verification/puppeteer-test.cjs",
     "test:e2e:capture": "node tests/verification/puppeteer-test.cjs --capture",
     "test:create": "node test/index.js",
-    "test:compare": "node test/index.js -s compare"
+    "test:compare": "node test/index.js -s compare",
+    "prepare": "husky"
   },
   "keywords": [
     "animation",
@@ -75,15 +78,19 @@
     "@rollup/plugin-node-resolve": "^16.0.3",
     "@rollup/plugin-terser": "^0.4.4",
     "@rollup/plugin-typescript": "^12.3.0",
+    "@typescript-eslint/eslint-plugin": "^7.18.0",
+    "@typescript-eslint/parser": "^7.18.0",
     "@vitest/coverage-v8": "^4.0.18",
     "cheerio": "^1.0.0-rc.2",
     "command-line-args": "^5.2.1",
-    "eslint": "^7.16.0",
-    "eslint-config-airbnb-base": "^14.2.1",
-    "eslint-plugin-import": "^2.22.1",
+    "eslint": "^8.57.1",
+    "eslint-config-prettier": "^10.1.8",
     "express": "^4.18.2",
+    "husky": "^9.1.7",
+    "lint-staged": "^16.2.7",
     "pixelmatch": "^5.3.0",
     "pngjs": "^7.0.0",
+    "prettier": "^3.8.1",
     "puppeteer": "^20.5.0",
     "rollup": "^4.57.1",
     "tslib": "^2.8.1",
@@ -91,5 +98,11 @@
     "vitest": "^4.0.18"
   },
   "types": "./index.d.ts",
-  "license": "MIT"
+  "license": "MIT",
+  "lint-staged": {
+    "src/**/*.{ts,js}": [
+      "prettier --write",
+      "eslint --fix --ext .ts,.js"
+    ]
+  }
 }

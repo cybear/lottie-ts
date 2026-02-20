@@ -1,6 +1,4 @@
-import {
-  createTypedArray,
-} from '../helpers/arrays';
+import { createTypedArray } from '../helpers/arrays';
 import poolFactory from './pool_factory';
 
 const pointPool = (function () {
@@ -8,6 +6,6 @@ const pointPool = (function () {
     return createTypedArray('float32', 2) as Float32Array;
   }
   return poolFactory(8, create);
-}());
+})();
 
 export default pointPool;

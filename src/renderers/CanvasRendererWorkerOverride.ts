@@ -1,17 +1,15 @@
 // @ts-nocheck
-import {
-  createSizedArray,
-} from '../utils/helpers/arrays';
+import { createSizedArray } from '../utils/helpers/arrays';
 import CanvasRenderer from './CanvasRenderer';
 import createTag from '../utils/helpers/html_elements';
 
 CanvasRenderer.prototype.configAnimation = function (animData) {
   if (this.animationItem.wrapper) {
     this.animationItem.container = createTag('canvas');
-    var containerStyle = this.animationItem.container.style;
+    const containerStyle = this.animationItem.container.style;
     containerStyle.width = '100%';
     containerStyle.height = '100%';
-    var origin = '0px 0px 0px';
+    const origin = '0px 0px 0px';
     containerStyle.transformOrigin = origin;
     containerStyle.mozTransformOrigin = origin;
     containerStyle.webkitTransformOrigin = origin;

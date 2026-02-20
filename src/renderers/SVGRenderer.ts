@@ -1,10 +1,6 @@
 // @ts-nocheck
-import {
-  createElementID,
-} from '../utils/common';
-import {
-  extendPrototype,
-} from '../utils/functionExtensions';
+import { createElementID } from '../utils/common';
+import { extendPrototype } from '../utils/functionExtensions';
 import createNS from '../utils/helpers/svg_elements';
 
 import SVGCompElement from '../elements/svgElements/SVGCompElement';
@@ -15,18 +11,18 @@ function SVGRenderer(animationItem, config) {
   this.layers = null;
   this.renderedFrame = -1;
   this.svgElement = createNS('svg');
-  var ariaLabel = '';
+  let ariaLabel = '';
   if (config && config.title) {
-    var titleElement = createNS('title');
-    var titleId = createElementID();
+    const titleElement = createNS('title');
+    const titleId = createElementID();
     titleElement.setAttribute('id', titleId);
     titleElement.textContent = config.title;
     this.svgElement.appendChild(titleElement);
     ariaLabel += titleId;
   }
   if (config && config.description) {
-    var descElement = createNS('desc');
-    var descId = createElementID();
+    const descElement = createNS('desc');
+    const descId = createElementID();
     descElement.setAttribute('id', descId);
     descElement.textContent = config.description;
     this.svgElement.appendChild(descElement);
@@ -35,9 +31,9 @@ function SVGRenderer(animationItem, config) {
   if (ariaLabel) {
     this.svgElement.setAttribute('aria-labelledby', ariaLabel);
   }
-  var defs = createNS('defs');
+  const defs = createNS('defs');
   this.svgElement.appendChild(defs);
-  var maskElement = createNS('g');
+  const maskElement = createNS('g');
   this.svgElement.appendChild(maskElement);
   this.layerElement = maskElement;
   this.renderConfig = {
@@ -45,7 +41,7 @@ function SVGRenderer(animationItem, config) {
     imagePreserveAspectRatio: (config && config.imagePreserveAspectRatio) || 'xMidYMid slice',
     contentVisibility: (config && config.contentVisibility) || 'visible',
     progressiveLoad: (config && config.progressiveLoad) || false,
-    hideOnTransparent: !((config && config.hideOnTransparent === false)),
+    hideOnTransparent: !(config && config.hideOnTransparent === false),
     viewBoxOnly: (config && config.viewBoxOnly) || false,
     viewBoxSize: (config && config.viewBoxSize) || false,
     className: (config && config.className) || '',
@@ -57,8 +53,8 @@ function SVGRenderer(animationItem, config) {
       x: (config && config.filterSize && config.filterSize.x) || '0%',
       y: (config && config.filterSize && config.filterSize.y) || '0%',
     },
-    width: (config && config.width),
-    height: (config && config.height),
+    width: config && config.width,
+    height: config && config.height,
     runExpressions: !config || config.runExpressions === undefined || config.runExpressions,
   };
 

@@ -6,8 +6,8 @@ const ProjectInterface = (function () {
 
   return function () {
     function _thisProjectFunction(name) {
-      var i = 0;
-      var len = this.compositions.length;
+      let i = 0;
+      const len = this.compositions.length;
       while (i < len) {
         if (this.compositions[i].data && this.compositions[i].data.nm === name) {
           if (this.compositions[i].prepareFrame && this.compositions[i].data.xt) {
@@ -27,6 +27,6 @@ const ProjectInterface = (function () {
 
     return _thisProjectFunction;
   };
-}());
+})();
 
 export default ProjectInterface;

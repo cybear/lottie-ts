@@ -1,7 +1,5 @@
 // @ts-nocheck
-import {
-  extendPrototype,
-} from '../../utils/functionExtensions';
+import { extendPrototype } from '../../utils/functionExtensions';
 import createNS from '../../utils/helpers/svg_elements';
 import RenderableElement from '../helpers/RenderableElement';
 import BaseElement from '../BaseElement';
@@ -16,11 +14,14 @@ function HImageElement(data, globalData, comp) {
   this.initElement(data, globalData, comp);
 }
 
-extendPrototype([BaseElement, TransformElement, HBaseElement, HSolidElement, HierarchyElement, FrameElement, RenderableElement], HImageElement);
+extendPrototype(
+  [BaseElement, TransformElement, HBaseElement, HSolidElement, HierarchyElement, FrameElement, RenderableElement],
+  HImageElement,
+);
 
 HImageElement.prototype.createContent = function () {
-  var assetPath = this.globalData.getAssetsPath(this.assetData);
-  var img = new Image();
+  const assetPath = this.globalData.getAssetsPath(this.assetData);
+  const img = new Image();
 
   if (this.data.hasMask) {
     this.imageElem = createNS('image');

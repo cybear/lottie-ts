@@ -38,7 +38,7 @@ const ImagePreloader = (function () {
     ctx.fillStyle = 'rgba(0,0,0,0)';
     ctx.fillRect(0, 0, 1, 1);
     return canvas;
-  }());
+  })();
 
   function imageLoaded(this: ImagePreloaderInstance) {
     this.loadedAssets += 1;
@@ -78,14 +78,17 @@ const ImagePreloader = (function () {
 
   function testImageLoaded(this: ImagePreloaderInstance, img: SVGElement) {
     let _count = 0;
-    const intervalId = setInterval(function (this: ImagePreloaderInstance) {
-      const box = (img as SVGGraphicsElement).getBBox();
-      if (box.width || _count > 500) {
-        this._imageLoaded();
-        clearInterval(intervalId);
-      }
-      _count += 1;
-    }.bind(this), 50);
+    const intervalId = setInterval(
+      function (this: ImagePreloaderInstance) {
+        const box = (img as SVGGraphicsElement).getBBox();
+        if (box.width || _count > 500) {
+          this._imageLoaded();
+          clearInterval(intervalId);
+        }
+        _count += 1;
+      }.bind(this),
+      50,
+    );
   }
 
   function createImageData(this: ImagePreloaderInstance, assetData: AssetData): ImageEntry {
@@ -97,10 +100,14 @@ const ImagePreloader = (function () {
       img.addEventListener('load', this._imageLoaded, false);
     }
     const ob: ImageEntry = { img, assetData };
-    img.addEventListener('error', function (this: ImagePreloaderInstance) {
-      ob.img = proxyImage;
-      this._imageLoaded();
-    }.bind(this), false);
+    img.addEventListener(
+      'error',
+      function (this: ImagePreloaderInstance) {
+        ob.img = proxyImage;
+        this._imageLoaded();
+      }.bind(this),
+      false,
+    );
     img.setAttributeNS('http://www.w3.org/1999/xlink', 'href', path);
     if (this._elementHelper.append) {
       this._elementHelper.append(img);
@@ -116,10 +123,14 @@ const ImagePreloader = (function () {
     img.crossOrigin = 'anonymous';
     img.addEventListener('load', this._imageLoaded, false);
     const ob: ImageEntry = { img, assetData };
-    img.addEventListener('error', function (this: ImagePreloaderInstance) {
-      ob.img = proxyImage;
-      this._imageLoaded();
-    }.bind(this), false);
+    img.addEventListener(
+      'error',
+      function (this: ImagePreloaderInstance) {
+        ob.img = proxyImage;
+        this._imageLoaded();
+      }.bind(this),
+      false,
+    );
     img.src = path;
     return ob;
   }
@@ -128,13 +139,17 @@ const ImagePreloader = (function () {
     const ob: ImageEntry = { img: null, assetData: data };
     const path = getAssetsPath(data, this.assetsPath, this.path);
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    (dataManager as any).loadData(path, function (this: ImagePreloaderInstance, footageData: unknown) {
-      ob.img = footageData;
-      this._footageLoaded();
-    }.bind(this), function (this: ImagePreloaderInstance) {
-      ob.img = {};
-      this._footageLoaded();
-    }.bind(this));
+    (dataManager as any).loadData(
+      path,
+      function (this: ImagePreloaderInstance, footageData: unknown) {
+        ob.img = footageData;
+        this._footageLoaded();
+      }.bind(this),
+      function (this: ImagePreloaderInstance) {
+        ob.img = {};
+        this._footageLoaded();
+      }.bind(this),
+    );
     return ob;
   }
 
@@ -228,6 +243,6 @@ const ImagePreloader = (function () {
   };
 
   return ImagePreloaderFactory;
-}());
+})();
 
 export default ImagePreloader;

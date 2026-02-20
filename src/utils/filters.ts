@@ -33,6 +33,6 @@ const filtersFactory = (function () {
   }
 
   return ob;
-}());
+})();
 
 export default filtersFactory;

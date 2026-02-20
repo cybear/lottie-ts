@@ -14,9 +14,9 @@ import ShapePropertyFactory from '../utils/shapes/ShapeProperty';
 import Matrix from '../3rd_party/transformation-matrix';
 
 const lottie = {};
-var standalone = '__[STANDALONE]__';
-var animationData = '__[ANIMATIONDATA]__';
-var renderer = '';
+const standalone = '__[STANDALONE]__';
+const animationData = '__[ANIMATIONDATA]__';
+let renderer = '';
 
 function setLocation(href) {
   setLocationHref(href);
@@ -129,31 +129,33 @@ function checkReady() {
 }
 
 function getQueryVariable(variable) {
-  var vars = queryString.split('&');
-  for (var i = 0; i < vars.length; i += 1) {
-    var pair = vars[i].split('=');
-    if (decodeURIComponent(pair[0]) == variable) { // eslint-disable-line eqeqeq
+  const vars = queryString.split('&');
+  for (let i = 0; i < vars.length; i += 1) {
+    const pair = vars[i].split('=');
+    if (decodeURIComponent(pair[0]) == variable) {
+      // eslint-disable-line eqeqeq
       return decodeURIComponent(pair[1]);
     }
   }
   return null;
 }
-var queryString = '';
+let queryString = '';
 if (standalone) {
-  var scripts = document.getElementsByTagName('script');
-  var index = scripts.length - 1;
-  var myScript = scripts[index] || {
+  const scripts = document.getElementsByTagName('script');
+  const index = scripts.length - 1;
+  const myScript = scripts[index] || {
     src: '',
   };
   queryString = myScript.src ? myScript.src.replace(/^[^\?]+\??/, '') : ''; // eslint-disable-line no-useless-escape
   renderer = getQueryVariable('renderer');
 }
-var readyStateCheckInterval = setInterval(checkReady, 100);
+const readyStateCheckInterval = setInterval(checkReady, 100);
 
 // this adds bodymovin to the window object for backwards compatibility
 try {
-  if (!(typeof exports === 'object' && typeof module !== 'undefined')
-    && !(typeof define === 'function' && define.amd) // eslint-disable-line no-undef
+  if (
+    !(typeof exports === 'object' && typeof module !== 'undefined') &&
+    !(typeof define === 'function' && define.amd) // eslint-disable-line no-undef
   ) {
     window.bodymovin = lottie;
   }

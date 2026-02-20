@@ -63,10 +63,10 @@ const TransformExpressionInterface = (function () {
     Object.defineProperty(_thisFunction, 'scale', {
       get: ExpressionPropertyInterface(transform.s),
     });
-    var _px;
-    var _py;
-    var _pz;
-    var _transformFactory;
+    let _px;
+    let _py;
+    let _pz;
+    let _transformFactory;
     if (transform.p) {
       _transformFactory = ExpressionPropertyInterface(transform.p);
     } else {
@@ -81,10 +81,7 @@ const TransformExpressionInterface = (function () {
         if (transform.p) {
           return _transformFactory();
         }
-        return [
-          _px(),
-          _py(),
-          _pz ? _pz() : 0];
+        return [_px(), _py(), _pz ? _pz() : 0];
       },
     });
 
@@ -122,6 +119,6 @@ const TransformExpressionInterface = (function () {
 
     return _thisFunction;
   };
-}());
+})();
 
 export default TransformExpressionInterface;

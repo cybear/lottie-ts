@@ -1,10 +1,6 @@
 // @ts-nocheck
-import {
-  extendPrototype,
-} from '../../utils/functionExtensions';
-import {
-  createSizedArray,
-} from '../../utils/helpers/arrays';
+import { extendPrototype } from '../../utils/functionExtensions';
+import { createSizedArray } from '../../utils/helpers/arrays';
 import PropertyFactory from '../../utils/PropertyFactory';
 import SVGRendererBase from '../../renderers/SVGRendererBase'; // eslint-disable-line
 import SVGBaseElement from './SVGBaseElement';

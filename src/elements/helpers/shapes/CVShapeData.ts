@@ -5,7 +5,7 @@ import SVGShapeData from './SVGShapeData';
 function CVShapeData(element, data, styles, transformsManager) {
   this.styledShapes = [];
   this.tr = [0, 0, 0, 0, 0, 0];
-  var ty = 4;
+  let ty = 4;
   if (data.ty === 'rc') {
     ty = 5;
   } else if (data.ty === 'el') {
@@ -14,9 +14,9 @@ function CVShapeData(element, data, styles, transformsManager) {
     ty = 7;
   }
   this.sh = ShapePropertyFactory.getShapeProp(element, data, ty, element);
-  var i;
-  var len = styles.length;
-  var styledShape;
+  let i;
+  const len = styles.length;
+  let styledShape;
   for (i = 0; i < len; i += 1) {
     if (!styles[i].closed) {
       styledShape = {
