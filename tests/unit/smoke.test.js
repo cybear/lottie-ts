@@ -74,7 +74,7 @@ describe('Version string', () => {
   const v = pkg.version;
 
   it.each(['lottie.js', 'lottie.min.js', 'esm/lottie.min.js'])(
-    '%s contains version %s',
+    '%s contains version string',
     (file) => {
       expect(read(file)).toContain(v);
     },

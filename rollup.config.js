@@ -143,7 +143,7 @@ const plugins = [
   nodeResolve(),
   typescript({
     tsconfig: './tsconfig.json',
-    include: ['player/js/**/*.js'],
+    include: ['player/js/**/*.{js,ts}'],
     declaration: false,
     sourceMap: false,
     outDir: '.',
