@@ -3,6 +3,50 @@
   "version": "5.13.0",
   "description": "After Effects plugin for exporting animations to SVG + JavaScript or canvas + JavaScript",
   "main": "./build/player/lottie.js",
+  "module": "./build/player/esm/lottie.min.js",
+  "exports": {
+    ".": {
+      "types":   "./index.d.ts",
+      "import":  "./build/player/esm/lottie.min.js",
+      "require": "./build/player/cjs/lottie.min.js",
+      "default": "./build/player/lottie.js"
+    },
+    "./lottie_svg": {
+      "types":   "./build/player/lottie_svg.d.ts",
+      "import":  "./build/player/esm/lottie_svg.min.js",
+      "require": "./build/player/cjs/lottie_svg.min.js",
+      "default": "./build/player/lottie_svg.js"
+    },
+    "./lottie_canvas": {
+      "import":  "./build/player/esm/lottie_canvas.min.js",
+      "require": "./build/player/cjs/lottie_canvas.min.js",
+      "default": "./build/player/lottie_canvas.js"
+    },
+    "./lottie_html": {
+      "types":   "./build/player/lottie_html.d.ts",
+      "import":  "./build/player/esm/lottie_html.min.js",
+      "require": "./build/player/cjs/lottie_html.min.js",
+      "default": "./build/player/lottie_html.js"
+    },
+    "./lottie_light": {
+      "types":   "./build/player/lottie_light.d.ts",
+      "import":  "./build/player/esm/lottie_light.min.js",
+      "require": "./build/player/cjs/lottie_light.min.js",
+      "default": "./build/player/lottie_light.js"
+    },
+    "./lottie_light_canvas": {
+      "types":   "./build/player/lottie_light_canvas.d.ts",
+      "import":  "./build/player/esm/lottie_light_canvas.min.js",
+      "require": "./build/player/cjs/lottie_light_canvas.min.js",
+      "default": "./build/player/lottie_light_canvas.js"
+    },
+    "./lottie_light_html": {
+      "types":   "./build/player/lottie_light_html.d.ts",
+      "import":  "./build/player/esm/lottie_light_html.min.js",
+      "require": "./build/player/cjs/lottie_light_html.min.js",
+      "default": "./build/player/lottie_light_html.js"
+    }
+  },
   "repository": {
     "type": "git",
     "url": "https://github.com/airbnb/lottie-web.git"
