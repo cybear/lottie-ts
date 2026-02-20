@@ -745,38 +745,243 @@ function buildHints(manifest) {
 }
 
 // ─────────────────────────────────────────────
-// 6.  ENTRY POINT
+// 6.  MULTI-FILE HELPERS
+// ─────────────────────────────────────────────
+
+/**
+ * Merge an array of manifests (from multiple animation files) by unioning all
+ * feature sets.  Non-Set fields are summed / OR'd as appropriate.
+ */
+function mergeManifests(manifests, renderers) {
+  if (manifests.length === 0) throw new Error('No manifests to merge');
+  if (manifests.length === 1) {
+    const m = { ...manifests[0] };
+    m.renderers = renderers;
+    return m;
+  }
+
+  const merged = {
+    version: manifests.map(m => m.version).join(', '),
+    dimensions: manifests.map(m => m.dimensions).join(' / '),
+    frameRate: manifests[0].frameRate,
+    duration: manifests.map(m => m.duration).join(' / '),
+    renderers,
+    hasExpressions: false, hasMasks: false, has3d: false,
+    hasImages: false, hasAudio: false, hasText: false,
+    hasTimeRemap: false, hasMarkers: false,
+    assetCount: { precomp: 0, image: 0, audio: 0, footage: 0 },
+    expressionCount: 0,
+  };
+
+  const ltSet = new Set(), stSet = new Set(), smSet = new Set(),
+        etSet = new Set(), mtSet = new Set(), featSet = new Set();
+
+  for (const m of manifests) {
+    const arr = (v) => Array.isArray(v) ? v : [...v];
+    arr(m.layerTypes).forEach(x => ltSet.add(x));
+    arr(m.shapeTypes).forEach(x => stSet.add(x));
+    arr(m.shapeModifiers).forEach(x => smSet.add(x));
+    arr(m.effectTypes).forEach(x => etSet.add(x));
+    arr(m.matteTypes).forEach(x => mtSet.add(x));
+    arr(m.features).forEach(x => featSet.add(x));
+
+    merged.expressionCount += m.expressionCount;
+    for (const k of Object.keys(merged.assetCount)) merged.assetCount[k] += (m.assetCount[k] || 0);
+    merged.hasExpressions = merged.hasExpressions || m.hasExpressions;
+    merged.hasMasks       = merged.hasMasks       || m.hasMasks;
+    merged.has3d          = merged.has3d          || m.has3d;
+    merged.hasImages      = merged.hasImages      || m.hasImages;
+    merged.hasAudio       = merged.hasAudio       || m.hasAudio;
+    merged.hasText        = merged.hasText        || m.hasText;
+    merged.hasTimeRemap   = merged.hasTimeRemap   || m.hasTimeRemap;
+    merged.hasMarkers     = merged.hasMarkers     || m.hasMarkers;
+  }
+
+  merged.layerTypes     = [...ltSet].sort();
+  merged.shapeTypes     = [...stSet].sort();
+  merged.shapeModifiers = [...smSet].sort();
+  merged.effectTypes    = [...etSet].sort();
+  merged.matteTypes     = [...mtSet].sort();
+  merged.features       = [...featSet].sort();
+  return merged;
+}
+
+/**
+ * Build the machine-readable flags object consumed by the custom build system.
+ * Flag names map directly to @rollup/plugin-replace constants.
+ */
+function buildFlagsJson(manifest, renderers, sourceFiles) {
+  const hasFeat = (f) => manifest.features.includes(f);
+  const hasMod  = (name) => manifest.shapeModifiers.includes(name);
+  return {
+    LOTTIE_INCLUDE_SVG:           renderers.includes('svg'),
+    LOTTIE_INCLUDE_CANVAS:        renderers.includes('canvas'),
+    LOTTIE_INCLUDE_HTML:          renderers.includes('html'),
+    LOTTIE_INCLUDE_EXPRESSIONS:   manifest.hasExpressions,
+    LOTTIE_INCLUDE_TEXT:          manifest.hasText,
+    LOTTIE_INCLUDE_AUDIO:         manifest.hasAudio,
+    LOTTIE_INCLUDE_IMAGES:        manifest.hasImages,
+    LOTTIE_INCLUDE_GRADIENTS:     hasFeat('feature.gradients'),
+    LOTTIE_INCLUDE_EFFECTS:       hasFeat('feature.effects'),
+    LOTTIE_INCLUDE_3D:            manifest.has3d,
+    LOTTIE_INCLUDE_TRIM:          hasMod('trim'),
+    LOTTIE_INCLUDE_REPEATER:      hasMod('repeater'),
+    LOTTIE_INCLUDE_ZIGZAG:        hasMod('zigZag'),
+    LOTTIE_INCLUDE_ROUND_CORNERS: hasMod('roundCorners'),
+    LOTTIE_INCLUDE_PUCKER_BLOAT:  hasMod('puckerBloat'),
+    LOTTIE_INCLUDE_OFFSET_PATH:   hasMod('offsetPath'),
+    LOTTIE_INCLUDE_MERGE:         hasMod('merge'),
+    LOTTIE_INCLUDE_STAR:          hasFeat('feature.star'),
+    _sources:     sourceFiles,
+    _renderers:   renderers,
+    _generatedAt: new Date().toISOString(),
+  };
+}
+
+/**
+ * Short combined report for multi-file mode.
+ */
+function printBatchReport(files, manifest, renderers, needed, unused) {
+  const totalLines  = MODULES.reduce((s, m) => s + m.lines, 0);
+  const unusedLines = unused.reduce((s, m) => s + m.lines, 0);
+  const savingsPct  = Math.round(unusedLines / totalLines * 100);
+  const BUILD_SIZES = { svg: 619891, canvas: 669985, html: 672930, all: 750350 };
+  const refFile = renderers.length === 1 ? (BUILD_SIZES[renderers[0]] ?? BUILD_SIZES.all) : BUILD_SIZES.all;
+
+  console.log('');
+  console.log(`${BOLD}${CYAN}╔══════════════════════════════════════════════════════╗${RESET}`);
+  console.log(`${BOLD}${CYAN}║   Lottie Feature Analyser — batch (${files.length} file${files.length > 1 ? 's' : ''})          ║${RESET}`);
+  console.log(`${BOLD}${CYAN}╚══════════════════════════════════════════════════════╝${RESET}`);
+  console.log('');
+  console.log(`  ${BOLD}Files:${RESET}`);
+  files.forEach(f => console.log(`    ${DIM}${f}${RESET}`));
+  console.log(`  ${BOLD}Renderers:${RESET} ${renderers.join(', ')}`);
+  console.log('');
+
+  section('Combined features (union of all files)');
+  const flags = buildFlagsJson(manifest, renderers, files);
+  const trueFlags = Object.entries(flags)
+    .filter(([k, v]) => !k.startsWith('_') && v === true)
+    .map(([k]) => k.replace('LOTTIE_INCLUDE_', ''));
+  printList(trueFlags, GREEN);
+
+  section('Required modules  ✅');
+  needed.forEach(m => console.log(`  ${GREEN}✓${RESET} ${BOLD}${m.name}${RESET}  ${DIM}(~${fmt(m.lines)} lines)${RESET}`));
+
+  section('Strippable modules  🔴');
+  if (unused.length === 0) {
+    console.log(`  ${DIM}none${RESET}`);
+  } else {
+    unused.forEach(m => console.log(`  ${RED}✗${RESET} ${BOLD}${m.name}${RESET}  ${DIM}(~${fmt(m.lines)} lines)${RESET}`));
+  }
+
+  section('Bundle size estimate');
+  const estSavings = Math.round(refFile * savingsPct / 100);
+  const refLabel = renderers.length === 1 ? `lottie_${renderers[0]}.js` : 'lottie.js';
+  console.log(`  Reference (${refLabel}):  ${BOLD}${fmt(refFile)} bytes${RESET}`);
+  console.log(`  ${RED}−${fmt(estSavings)} bytes${RESET}  strippable (~${savingsPct}% of modelled)`);
+  console.log(`  ${BOLD}${GREEN}Potential custom bundle:  ~${Math.round((refFile - estSavings) / 1024)} KB${RESET}`);
+  console.log('');
+}
+
+/**
+ * --strict: list any features that are detected but not yet covered by a
+ * source-level LOTTIE_INCLUDE_* guard.  Once Steps 8.2-8.4 are complete
+ * this set should always be empty.
+ */
+const SOURCE_GUARDED = new Set([
+  'LOTTIE_INCLUDE_SVG', 'LOTTIE_INCLUDE_CANVAS', 'LOTTIE_INCLUDE_HTML',
+  'LOTTIE_INCLUDE_EXPRESSIONS', 'LOTTIE_INCLUDE_EFFECTS',
+  'LOTTIE_INCLUDE_TRIM', 'LOTTIE_INCLUDE_REPEATER', 'LOTTIE_INCLUDE_ZIGZAG',
+  'LOTTIE_INCLUDE_ROUND_CORNERS', 'LOTTIE_INCLUDE_PUCKER_BLOAT',
+  'LOTTIE_INCLUDE_OFFSET_PATH', 'LOTTIE_INCLUDE_AUDIO',
+]);
+
+function checkStrict(flags) {
+  return Object.entries(flags)
+    .filter(([k, v]) => !k.startsWith('_') && v === true && !SOURCE_GUARDED.has(k))
+    .map(([k]) => k);
+}
+
+// ─────────────────────────────────────────────
+// 7.  ENTRY POINT
 // ─────────────────────────────────────────────
 
 function main() {
-  const args = process.argv.slice(2);
-  if (!args.length || args[0] === '--help' || args[0] === '-h') {
-    console.log('Usage: node tools/analyze-animation.cjs <animation.json> [--renderer svg|canvas|html|all] [--json]');
+  const rawArgs = process.argv.slice(2);
+  if (!rawArgs.length || rawArgs[0] === '--help' || rawArgs[0] === '-h') {
+    console.log([
+      'Usage: node tools/analyze-animation.cjs <file1.json> [file2.json ...] [options]',
+      '',
+      'Options:',
+      '  --renderer svg|canvas|html|all   Renderer(s) to target (default: all)',
+      '  --output <path>                  Write machine-readable flags JSON to path',
+      '  --json                           Print raw JSON manifest to stdout',
+      '  --strict                         Exit 1 if any detected features lack a',
+      '                                   source-level build guard',
+    ].join('\n'));
     process.exit(0);
   }
 
-  const filePath    = args[0];
-  const rendererArg = (args[args.indexOf('--renderer') + 1] || 'all');
-  const outputJson  = args.includes('--json');
+  const files = [];
+  let rendererArg = 'all';
+  let outputJson  = false;
+  let outputPath  = null;
+  let strictMode  = false;
+
+  for (let i = 0; i < rawArgs.length; i++) {
+    const a = rawArgs[i];
+    if      (a === '--renderer') { rendererArg = rawArgs[++i]; }
+    else if (a === '--output')   { outputPath  = rawArgs[++i]; }
+    else if (a === '--json')     { outputJson  = true; }
+    else if (a === '--strict')   { strictMode  = true; }
+    else if (!a.startsWith('--')) { files.push(a); }
+    else { console.error(`Unknown flag: ${a}`); process.exit(1); }
+  }
+
+  if (!files.length) { console.error('No animation files specified.'); process.exit(1); }
 
   const renderers = rendererArg === 'all'
     ? ['svg', 'canvas', 'html']
     : rendererArg.split(',').map(s => s.trim());
 
-  let data;
-  try {
-    data = JSON.parse(fs.readFileSync(filePath, 'utf8'));
-  } catch (e) {
-    console.error('Could not read/parse', filePath, ':', e.message);
-    process.exit(1);
+  const manifests = files.map(f => {
+    let data;
+    try { data = JSON.parse(fs.readFileSync(f, 'utf8')); }
+    catch (e) { console.error('Could not read/parse', f, ':', e.message); process.exit(1); }
+    const m = scan(data);
+    m.renderers = renderers;
+    return m;
+  });
+
+  const merged = mergeManifests(manifests, renderers);
+  const { needed, unused } = analyzeModules(merged, renderers);
+  const flags = buildFlagsJson(merged, renderers, files);
+
+  if (outputPath) {
+    fs.writeFileSync(outputPath, JSON.stringify(flags, null, 2) + '\n');
+    if (!outputJson) console.log(`${GREEN}✓${RESET} Wrote flags → ${BOLD}${outputPath}${RESET}`);
   }
 
-  const manifest = scan(data);
-  manifest.renderers = renderers;
+  if (outputJson) {
+    console.log(JSON.stringify({ flags, manifest: merged, needed: needed.map(m => m.name), unused: unused.map(m => m.name) }, null, 2));
+  } else if (files.length === 1) {
+    printReport(files[0], merged, renderers, needed, unused, false);
+  } else {
+    printBatchReport(files, merged, renderers, needed, unused);
+  }
 
-  const { needed, unused } = analyzeModules(manifest, renderers);
-
-  printReport(filePath, manifest, renderers, needed, unused, outputJson);
+  if (strictMode) {
+    const unguarded = checkStrict(flags);
+    if (unguarded.length) {
+      console.error(`\n${RED}[strict]${RESET} Features detected but not source-guarded:`);
+      unguarded.forEach(f => console.error(`  ${RED}✗${RESET} ${f}`));
+      console.error('  See PLAN.md Steps 8.3-8.4.\n');
+      process.exit(1);
+    }
+    console.log(`\n${GREEN}[strict]${RESET} All detected features are covered by build flags. ✓\n`);
+  }
 }
 
 main();
+

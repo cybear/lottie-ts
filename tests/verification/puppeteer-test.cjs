@@ -316,6 +316,98 @@ async function main() {
       }
     }
 
+    // ── Section 5: Custom build (tree-shaken) smoke test ─────────────────────
+
+    console.log('\n\uD83E\uDDF9  Custom build (tree-shaken) verification\n');
+
+    {
+      const { spawnSync } = require('child_process');
+      const CUSTOM_OUT = path.join(PLAYER_DIR, 'lottie.custom.test.js');
+      const ANIM_FILE  = path.join(ROOT, 'demo/happy2016/data.json');
+      const ANIM_EXISTS = fs.existsSync(ANIM_FILE);
+
+      if (!ANIM_EXISTS) {
+        process.stdout.write('  demo/happy2016/data.json not found, skipping custom build section\n');
+      } else {
+        // 1. Build the custom bundle
+        const buildResult = spawnSync(
+          process.execPath,
+          [
+            path.join(ROOT, 'tools/build-custom.cjs'),
+            '--animations', ANIM_FILE,
+            '--renderer', 'svg',
+            '--output', CUSTOM_OUT,
+            '--no-minify',   // faster build for test environment
+          ],
+          { cwd: ROOT, encoding: 'utf8' },
+        );
+
+        if (buildResult.status !== 0) {
+          fail('custom build: happy2016 svg', 'build-custom.cjs failed:\n' + (buildResult.stderr || buildResult.stdout));
+        } else {
+          const customSizeKb  = (fs.statSync(CUSTOM_OUT).size / 1024).toFixed(1);
+          pass(`custom build: happy2016-svg produced ${customSizeKb} KB (unminified)`);
+
+          // 2. Verify the custom bundle (unminified) is smaller than the full lottie.js (unminified)
+          const refUnminPath = path.join(PLAYER_DIR, 'lottie_svg.js');
+          if (fs.existsSync(refUnminPath)) {
+            const customSize = fs.statSync(CUSTOM_OUT).size;
+            const refSize    = fs.statSync(refUnminPath).size;
+            const ratio      = customSize / refSize;
+            if (ratio < 1.0) {
+              pass(`custom build: ${(ratio * 100).toFixed(1)}% of lottie_svg.js — tree-shaking works`);
+            } else {
+              fail(`custom build: size vs reference`, `custom is ${(ratio * 100).toFixed(1)}% of lottie_svg.js — expected < 100%`);
+            }
+          }
+
+          // 3. Load the custom bundle in Puppeteer and check it renders
+          const page = await newPage(browser, BASE);
+          await page.setViewport({ width: 512, height: 512 });
+          try {
+            await injectLottie(page, path.basename(CUSTOM_OUT));
+            pass('custom build: lottie global defined');
+
+            const animData = JSON.parse(fs.readFileSync(ANIM_FILE, 'utf8'));
+            await withTimeout(
+              page.evaluate((data) => {
+                window.__TEST_ANIM__ = data;
+                return window.__testLoadAnimation('svg');
+              }, animData),
+              15000,
+            );
+            pass('custom build: animation loaded without error');
+
+            await page.evaluate(() => { lottie.goToAndStop(0, true); });
+            await page.evaluate(() =>
+              new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r)))
+            );
+            await new Promise(r => setTimeout(r, 150));
+
+            // Compare screenshot against the existing happy2016-svg baseline
+            const buf          = await page.screenshot({ type: 'png' });
+            const baselinePath = path.join(BASELINE_DIR, 'happy2016-svg.png');
+
+            if (CAPTURE_MODE) {
+              // In capture mode just save the custom baseline (but don't overwrite the main one)
+              const customBaselinePath = path.join(BASELINE_DIR, 'happy2016-svg-custom.png');
+              fs.writeFileSync(customBaselinePath, buf);
+              pass('custom build: screenshot captured');
+            } else {
+              compareScreenshots(buf, baselinePath, 'happy2016-svg-custom');
+            }
+
+            // Cleanup the custom output after we're done with it
+            try { fs.unlinkSync(CUSTOM_OUT); } catch (_) { /* ignore */ }
+          } catch (e) {
+            fail('custom build: render verification', e.message);
+          } finally {
+            try { await page.close(); } catch (_) { /* ignore */ }
+          }
+        }
+      }
+    }
+
   } finally {
     await browser.close();
     srv.close();

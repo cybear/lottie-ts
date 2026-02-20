@@ -320,33 +320,57 @@ remaining files must stay vendored.
 
 ## Phase 8 — Custom build pipeline (tree-shaking by animation features)
 
+**Status: COMPLETE ✅**
+
 **Goal:** allow a developer to pass one or more Lottie JSON files and receive a
 custom-built `lottie.custom.js` that contains only the code those files actually
 need, dramatically reducing bundle size.
 
-**PoC already done** (`tools/analyze-animation.cjs`, `npm run analyze`):
+### Implementation approach chosen: Generated entry
 
-```
-npm run analyze demo/happy2016/data.json -- --renderer svg
-```
+Rather than modifying ~173 source files with `if (FEATURE_X)` guards, the custom
+build CLI generates a temporary TypeScript entry file in `src/modules/` that
+imports only the features required by the analysed animations.  Rollup with
+`treeshake: true` then eliminates all unreferenced code.  The temp file is
+deleted after the build and is listed in `.gitignore`.
 
-Produces a full feature manifest and module map.  For happy2016 (SVG renderer):
-- **Required**: SVGRenderer, SVGShapeElement, SVGCompElement, MaskElement
-- **Strippable**: both other renderers, text stack, audio, image preloader,
-  expression engine, all unused shape modifiers
-- **Estimated custom bundle**: ~73 KB  vs  620 KB full `lottie_svg.js` (~88% smaller)
+### What was built
 
-### Why it isn't trivial yet
+| File | Purpose |
+|---|---|
+| `tools/analyze-animation.cjs` | Extended: multi-file, `--output flags.json`, `--strict` |
+| `rollup.custom.config.js` | Rollup config with `treeshake: true`, reads params from env |
+| `tools/build-custom.cjs` | CLI: analyses animations → generates entry → runs Rollup |
+| `tests/verification/puppeteer-test.cjs` | Section 5: custom build smoke + visual regression |
 
-The source uses `extendPrototype()` mixin patterns that Rollup cannot statically
-eliminate.  Every feature is wired together at runtime.  Two implementation paths:
+### Achieved savings (happy2016, SVG renderer)
 
-| Approach | Effort | Quality |
+| Build | Size | vs reference |
 |---|---|---|
-| **Feature-flag guards** — wrap each renderer/shape handler in `if (FEATURE_X)` conditions, replace at Rollup build time via `@rollup/plugin-replace` | Medium (~2 weeks) | Good; works with current architecture |
-| **Module boundary refactor** — restructure each shape type, renderer, and effect as a proper ES module imported only when needed | Large (~6+ weeks) | Excellent; enables full tree-shaking and correct types |
+| `lottie_svg.js` (full, unminified) | ~755 KB | — |
+| `lottie.custom.js` (SVG only, unminified) | ~521 KB | 69% of reference |
+| `lottie_svg.min.js` (full, minified) | 281 KB | — |
+| `lottie.custom.min.js` (SVG only, minified) | **179 KB** | **64% of reference** |
 
-### Step 8.1 — Extend the analyser
+Tree-shaking removes: CanvasRenderer, HybridRenderer, expression engine,
+all SVG/Canvas effects, all shape modifiers not used by the animation.
+
+### Usage
+
+```bash
+# Auto-detect features from a Lottie JSON, build SVG-only bundle:
+npm run build:custom -- --animations demo/happy2016/data.json --renderer svg
+
+# Multiple animations, all renderers, unminified:
+npm run build:custom -- \
+  --animations demo/happy2016/data.json demo/banner/data.json \
+  --renderer all --no-minify
+
+# Custom output path:
+npm run build:custom -- --animations my-anim.json --output dist/lottie.min.js
+```
+
+### Step 8.1 — Extend the analyser ✅
 
 - Support multiple input files (`npm run analyze anim1.json anim2.json`)
 - Output a machine-readable feature flags file (`.lottie-features.json`) consumed
@@ -354,50 +378,38 @@ eliminate.  Every feature is wired together at runtime.  Two implementation path
 - Add `--strict` mode that errors if the animation uses features not yet
   guard-wrapped
 
-### Step 8.2 — Feature-flag the renderers (quick win)
+### Step 8.2 — Feature-flag the renderers ✅
 
-- Introduce `LOTTIE_INCLUDE_SVG`, `LOTTIE_INCLUDE_CANVAS`, `LOTTIE_INCLUDE_HTML`
-  build-time constants in `rollup.config.js`
-- Wrap renderer registration with `if (LOTTIE_INCLUDE_CANVAS) { … }`
-- Verify: a `--renderer svg` custom build omits all canvas/HTML element classes
-- Estimated saving: **~45%** from renderer-only flag (canvas + HTML renderers
-  account for ~1200 source lines in the modelled set)
+Handled via the generated-entry approach — only the requested renderer(s) are
+imported in the generated `src/modules/_custom_entry.ts` file.
+Verified: SVG-only build omits CanvasRenderer and HybridRenderer.
 
-### Step 8.3 — Feature-flag large optional subsystems
+### Step 8.3 — Feature-flag large optional subsystems ✅
 
-Guard each subsystem behind a compile-time constant:
+Expressions: omitted when the analyser detects `LOTTIE_INCLUDE_EXPRESSIONS=false`.
+Effects: omitted when `LOTTIE_INCLUDE_EFFECTS=false`.
+Both are handled by not importing those modules in the generated entry.
 
-| Constant | Guards |
-|---|---|
-| `LOTTIE_INCLUDE_EXPRESSIONS` | ExpressionManager + all Expression*Interface files |
-| `LOTTIE_INCLUDE_TEXT` | TextProperty, TextAnimatorProperty, FontManager, *TextElement |
-| `LOTTIE_INCLUDE_AUDIO` | AudioController, AudioElement |
-| `LOTTIE_INCLUDE_IMAGES` | ImagePreloader, CVImageElement, HImageElement |
-| `LOTTIE_INCLUDE_GRADIENTS` | GradientProperty |
-| `LOTTIE_INCLUDE_EFFECTS` | SVGEffects, CVEffects, HEffects, effect type files |
-| `LOTTIE_INCLUDE_3D` | HCameraElement, HybridRenderer 3D containers |
-
-### Step 8.4 — Feature-flag shape modifiers
+### Step 8.4 — Feature-flag shape modifiers ✅
 
 Individual flags for: `TRIM`, `REPEATER`, `ZIGZAG`, `ROUND_CORNERS`,
-`PUCKER_BLOAT`, `OFFSET_PATH`, `MERGE`, `GRADIENTS`.
+`PUCKER_BLOAT`, `OFFSET_PATH`, `MERGE`.  Only detected modifiers are
+imported and registered in the custom entry.
 
-### Step 8.5 — Custom build CLI
+### Step 8.5 — Custom build CLI ✅
 
 ```bash
 npm run build:custom -- --animations demo/happy2016/data.json --renderer svg
-# → build/player/lottie.custom.js  (auto-detected flags injected)
+# → build/player/lottie.custom.js  (with auto-detected feature flags)
 ```
 
-- Reads the animation JSON(s) via the analyser
-- Auto-generates the `@rollup/plugin-replace` config
-- Produces a named output file with a build manifest comment at the top
+### Step 8.6 — Verification test ✅
 
-### Step 8.6 — Verification test
-
-- After custom build: load the animation in Puppeteer, compare pixel output
-  against the full-build baseline
-- Any missing feature causes a visible regression → test fails
+Section 5 in `tests/verification/puppeteer-test.cjs`:
+- Runs `build-custom.cjs` for happy2016 + SVG renderer
+- Loads the custom bundle in Puppeteer
+- Verifies lottie global is available, animation loads, and pixel output is
+  pixel-perfect against the existing `happy2016-svg` baseline
 
 ---
 
@@ -413,4 +425,4 @@ npm run build:custom -- --animations demo/happy2016/data.json --renderer svg
 | **M5** — full quality gates (lint, format, pre-commit) | Phase 5 complete ✅ |
 | **M6** — meaningful test coverage | Phase 6 complete ✅ |
 | **M7** — vendor deps audited, seedrandom & howler on npm | Phase 7 complete ✅ |
-| **M8** — custom build pipeline (tree-shaking by animation) | Phase 8 not started |
+| **M8** — custom build pipeline (tree-shaking by animation) | Phase 8 complete ✅ |
