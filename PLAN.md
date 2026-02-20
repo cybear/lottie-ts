@@ -426,3 +426,131 @@ Section 5 in `tests/verification/puppeteer-test.cjs`:
 | **M6** — meaningful test coverage | Phase 6 complete ✅ |
 | **M7** — vendor deps audited, seedrandom & howler on npm | Phase 7 complete ✅ |
 | **M8** — custom build pipeline (tree-shaking by animation) | Phase 8 complete ✅ |
+| **M9** — GitHub Pages documentation site | Phase 9 not started |
+
+---
+
+## Phase 9 — GitHub Pages documentation site
+
+**Goal:** publish a proper documentation site at `https://bsod.github.io/lottie-ts/`
+that replaces `airbnb.io/lottie` as the canonical reference for lottie-ts users.
+
+### Why GitHub Pages
+
+- Free hosting, versioned with the repo, deployable via a single GitHub Actions workflow
+- Supports custom domains if needed later
+- Markdown source lives alongside the code so docs PRs and code PRs can be reviewed together
+
+### Proposed stack
+
+| Tool | Role |
+|---|---|
+| [VitePress](https://vitepress.dev) | Static site generator (Markdown → HTML, Vue-powered) |
+| GitHub Actions | CI: build + deploy to `gh-pages` branch on every push to `main` |
+| `docs/` folder | Source for all Markdown pages (already partially populated) |
+
+VitePress is chosen over Docusaurus/MkDocs because it is Vue-based (lightweight),
+has first-class TypeScript support, and produces fast static output with no
+React/Node server required.
+
+### Site structure
+
+```
+docs/
+  index.md              ← landing page (what is lottie-ts, quick-start)
+  guide/
+    installation.md     ← npm install, CDN, script tag
+    getting-started.md  ← loadAnimation(), first animation
+    renderers.md        ← svg / canvas / html comparison
+    custom-builds.md    ← npm run analyze + npm run build:custom
+    expressions.md      ← expression engine overview
+    events.md           ← all events + addEventListener
+    api.md              ← full lottie.* API reference
+  advanced/
+    composition-settings.md
+    text-layers.md
+    performance.md
+  migration/
+    from-lottie-web.md  ← what changed from v5 (lottie-web) to v6 (lottie-ts)
+  .vitepress/
+    config.ts           ← site title, nav, sidebar, theme
+```
+
+### Step 9.1 — Scaffold VitePress
+
+```bash
+npm install -D vitepress
+npx vitepress init docs
+```
+
+- Set site title to **lottie-ts**, base to `/lottie-ts/`
+- Configure sidebar matching the structure above
+- Add `docs:dev` / `docs:build` / `docs:preview` scripts to `package.json`
+
+### Step 9.2 — Migrate existing docs content
+
+- Port `docs/json/` (animation JSON schema) into Markdown pages
+- Write `guide/installation.md` and `guide/getting-started.md` from README content
+- Write `guide/custom-builds.md` documenting `npm run analyze` and `npm run build:custom`
+- Write `migration/from-lottie-web.md` covering: TypeScript, tree-shaking, npm deps, removed Babel/Bower/Gulp
+
+### Step 9.3 — API reference page
+
+Auto-generate the API reference from TypeScript types using
+[typedoc-plugin-markdown](https://www.npmjs.com/package/typedoc-plugin-markdown)
++ a VitePress integration, or write it manually from `index.d.ts`.
+
+### Step 9.4 — GitHub Actions deployment workflow
+
+Create `.github/workflows/docs.yml`:
+
+```yaml
+name: Deploy docs
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 20, cache: npm }
+      - run: npm ci
+      - run: npm run docs:build
+      - uses: actions/upload-pages-artifact@v3
+        with: { path: docs/.vitepress/dist }
+
+  deploy:
+    needs: build
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/deploy-pages@v4
+        id: deployment
+```
+
+### Step 9.5 — Enable GitHub Pages in repo settings
+
+- Go to Settings → Pages → Source: **GitHub Actions**
+- After first deploy, verify `https://bsod.github.io/lottie-ts/` loads correctly
+- Update README badge and all internal links
+
+### Step 9.6 — Wiki seed (optional shortcut)
+
+The GitHub wiki is available at `github.com/bjorn-soderqvist-milestone/lottie-ts/wiki` immediately
+without any build step. As an interim before VitePress is set up, the three wiki
+pages referenced in the README can be seeded manually:
+- `Composition-Settings`
+- `TextLayer.updateDocumentData`
+- `Expressions`
+

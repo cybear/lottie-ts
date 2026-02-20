@@ -1,7 +1,7 @@
 {
-  "name": "lottie-web",
-  "version": "5.13.0",
-  "description": "After Effects plugin for exporting animations to SVG + JavaScript or canvas + JavaScript",
+  "name": "lottie-ts",
+  "version": "6.0.0",
+  "description": "Lottie web player — fully rewritten in TypeScript with tree-shakeable custom builds",
   "main": "./build/player/lottie.js",
   "module": "./build/player/esm/lottie.min.js",
   "exports": {
@@ -49,7 +49,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/airbnb/lottie-web.git"
+    "url": "https://github.com/bjorn-soderqvist-milestone/lottie-ts.git"
   },
   "sideEffects": false,
   "scripts": {
