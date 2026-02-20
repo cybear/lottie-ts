@@ -19,6 +19,12 @@ lottie.loadAnimation({
     title: 'Accessible title',       // adds <title> element
     description: 'Accessible desc',  // adds <desc> element
     focusable: false,
+    // Advanced
+    viewBoxOnly: false,          // use only the SVG viewBox, ignore container dimensions
+    viewBoxSize: '0 0 512 512',  // override the viewBox string
+    filterSize: { width: '100%', height: '100%', x: '0%', y: '0%' }, // SVG filter bounds
+    contentVisibility: 'auto',   // CSS content-visibility on root element
+    runExpressions: true,        // set false to skip expression evaluation
   },
 });
 ```
@@ -40,8 +46,11 @@ lottie.loadAnimation({
     progressiveLoad: false,
     preserveAspectRatio: 'xMidYMid meet',
     context: myExistingCtx,      // pass an existing CanvasRenderingContext2D
+    dpr: window.devicePixelRatio, // device pixel ratio (default: auto-detected)
     className: 'my-canvas-class',
     id: 'my-canvas-id',
+    contentVisibility: 'auto',   // CSS content-visibility
+    runExpressions: true,        // set false to skip expression evaluation
   },
 });
 ```
@@ -66,6 +75,9 @@ lottie.loadAnimation({
   rendererSettings: {
     className: 'my-class',
     id: 'my-id',
+    hideOnTransparent: true,
+    filterSize: { width: '400%', height: '400%', x: '-100%', y: '-100%' }, // CSS filter bounds
+    runExpressions: true,
   },
 });
 ```

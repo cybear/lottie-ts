@@ -35,7 +35,10 @@ const animation = lottie.loadAnimation({
 | `path` | `string` | — | URL to the animation JSON file |
 | `animationData` | `object` | — | Inline animation data (alternative to `path`) |
 | `name` | `string` | — | Optional name for targeting with global methods |
+| `assetsPath` | `string` | — | Base URL for external assets (images, audio) |
+| `initialSegment` | `[number, number]` | — | Constrain playback to this frame range on load |
 | `rendererSettings` | object | — | Renderer-specific settings (see [Renderers](./renderers)) |
+| `audioFactory` | function | — | Custom audio factory for audio layers (advanced) |
 
 ::: warning Note on animationData with repeaters
 If your animation contains repeaters and you plan to call `loadAnimation` multiple

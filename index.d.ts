@@ -114,6 +114,8 @@ export type AnimationItem = {
 export type BaseRendererConfig = {
     imagePreserveAspectRatio?: string;
     className?: string;
+    /** Sets the `id` attribute on the root renderer element. */
+    id?: string;
 };
 
 export type SVGRendererConfig = BaseRendererConfig & {
@@ -126,6 +128,10 @@ export type SVGRendererConfig = BaseRendererConfig & {
     viewBoxSize?: string;
     focusable?: boolean;
     filterSize?: FilterSizeConfig;
+    /** CSS `content-visibility` value on the root element (default: `'visible'`). */
+    contentVisibility?: string;
+    /** Enable or disable expression evaluation for this animation (default: `true`). */
+    runExpressions?: boolean;
 };
 
 export type CanvasRendererConfig = BaseRendererConfig & {
@@ -134,10 +140,17 @@ export type CanvasRendererConfig = BaseRendererConfig & {
     progressiveLoad?: boolean;
     preserveAspectRatio?: string;
     dpr?: number;
+    /** CSS `content-visibility` value on the canvas element (default: `'visible'`). */
+    contentVisibility?: string;
+    /** Enable or disable expression evaluation for this animation (default: `true`). */
+    runExpressions?: boolean;
 };
 
 export type HTMLRendererConfig = BaseRendererConfig & {
     hideOnTransparent?: boolean;
+    filterSize?: FilterSizeConfig;
+    /** Enable or disable expression evaluation for this animation (default: `true`). */
+    runExpressions?: boolean;
 };
 
 export type RendererType = 'svg' | 'canvas' | 'html';
