@@ -66,6 +66,11 @@
     "test:e2e:capture": "node tests/verification/puppeteer-test.cjs --capture",
     "test:create": "node test/index.js",
     "test:compare": "node test/index.js -s compare",
+    "test:watch": "vitest",
+    "coverage": "vitest run --coverage",
+    "docs:dev": "vitepress dev docs",
+    "docs:build": "vitepress build docs",
+    "docs:preview": "vitepress preview docs",
     "prepare": "husky"
   },
   "keywords": [
@@ -101,6 +106,7 @@
     "rollup": "^4.57.1",
     "tslib": "^2.8.1",
     "typescript": "^5.9.3",
+    "vitepress": "^1.6.4",
     "vitest": "^4.0.18"
   },
   "types": "./index.d.ts",

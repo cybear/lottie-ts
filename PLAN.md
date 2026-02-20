@@ -426,11 +426,31 @@ Section 5 in `tests/verification/puppeteer-test.cjs`:
 | **M6** — meaningful test coverage | Phase 6 complete ✅ |
 | **M7** — vendor deps audited, seedrandom & howler on npm | Phase 7 complete ✅ |
 | **M8** — custom build pipeline (tree-shaking by animation) | Phase 8 complete ✅ |
-| **M9** — GitHub Pages documentation site | Phase 9 not started |
+| **M9** — GitHub Pages documentation site | Phase 9 complete ✅ |
 
 ---
 
-## Phase 9 — GitHub Pages documentation site
+## Phase 9 — GitHub Pages documentation site ✅
+
+**Status:** Complete — VitePress site builds successfully, GitHub Actions workflow in place.
+
+**Implemented:**
+| File | Description |
+|---|---|
+| `docs/.vitepress/config.mts` | VitePress config: title, base `/lottie-ts/`, nav, sidebar, search, edit links |
+| `docs/index.md` | Landing page with hero, feature cards, quick-start snippet |
+| `docs/guide/installation.md` | npm/yarn/pnpm, CDN, ESM imports |
+| `docs/guide/getting-started.md` | `loadAnimation`, options table, control methods |
+| `docs/guide/renderers.md` | SVG/Canvas/HTML comparison, `rendererSettings` |
+| `docs/guide/custom-builds.md` | `npm run analyze` + `npm run build:custom` full docs |
+| `docs/guide/events.md` | Full event table, TypeScript payload types |
+| `docs/guide/expressions.md` | Support matrix, limitations, custom build integration |
+| `docs/guide/api.md` | Full `lottie.*` + `AnimationItem` API reference |
+| `docs/advanced/composition-settings.md` | JSON schema reference |
+| `docs/advanced/text-layers.md` | `updateDocumentData`, font management, feature matrix |
+| `docs/advanced/performance.md` | Quality, progressive load, freeze/unfreeze, Canvas vs SVG |
+| `docs/migration/from-lottie-web.md` | Drop-in swap guide, what changed, new capabilities |
+| `.github/workflows/docs.yml` | Build + deploy to GitHub Pages on push to `main` |
 
 **Goal:** publish a proper documentation site at `https://bsod.github.io/lottie-ts/`
 that replaces `airbnb.io/lottie` as the canonical reference for lottie-ts users.
