@@ -1,6 +1,6 @@
 # PLAN — Step-by-step Migration to Target Architecture
 
-Last updated: 2026-02-19
+Last updated: 2026-02-20
 
 Read OLD.md and NEW.md first for context.
 
@@ -277,7 +277,48 @@ npx husky init
 
 ---
 
-## Phase 7 — Custom build pipeline (tree-shaking by animation features)
+## Phase 7 — Vendor dependency audit & replacement
+
+**Goal:** replace or rationalise the four files vendored under `src/3rd_party/`
+with properly-versioned npm packages where possible, and document why the
+remaining files must stay vendored.
+
+### Inventory & decision (already researched)
+
+| File | Origin | npm package | Decision |
+|---|---|---|---|
+| `transformation-matrix.js` | Epistemex v2.0 | `transformation-matrix` (v3 — breaking API) | **Keep vendored** — file was intentionally modified to import `createTypedArray` from lottie's own typed-array pool; v3 also has breaking changes |
+| `BezierEaser.js` | bezier-easing (Gaëtan Renaudeau) | `bezier-easing@2.1.0` | **Keep vendored** — the wrapper adds a string-keyed cache (`nm` arg) used across 4 source files; an adapter would add more code than it removes |
+| `seedrandom.js` | David Bau's seedrandom | `seedrandom@3.0.5` | **Replace with npm** — single usage site, identical API, straightforward swap |
+| `howler.js` | howler.js v2.2.0 | `howler@2.2.4` | **Install but keep dormant for now** — the import in `AudioController.ts` is already commented out; install the package so it's available when audio is re-enabled |
+
+### Step 7.1 — Replace `seedrandom` with the npm package
+
+- `npm install seedrandom && npm install -D @types/seedrandom`
+- Update the one import in `src/utils/expressions/ExpressionManager.ts`
+- Delete `src/3rd_party/seedrandom.js`
+- Verify: `npm test` and `npm run build` still pass; expression-driven
+  animations (e.g. `monster.json`) still render correctly
+
+### Step 7.2 — Install `howler` for when audio is re-enabled
+
+- `npm install howler && npm install -D @types/howler`
+- Update the commented-out import in `src/utils/audio/AudioController.ts` to
+  point at `howler` instead of `../../3rd_party/howler`
+- Delete `src/3rd_party/howler.js`
+- Leave the `import` commented until the audio feature is explicitly enabled
+- Verify: `npm run build` passes with no new type errors
+
+### Step 7.3 — Add explanatory header comments to the remaining vendored files
+
+- `transformation-matrix.js` — document *why* the `createTypedArray` import
+  exists and why upgrading to v3 would need a migration
+- `BezierEaser.js` — document the named-cache extension and link to the original
+  MIT-licensed source on GitHub
+
+---
+
+## Phase 8 — Custom build pipeline (tree-shaking by animation features)
 
 **Goal:** allow a developer to pass one or more Lottie JSON files and receive a
 custom-built `lottie.custom.js` that contains only the code those files actually
@@ -305,7 +346,7 @@ eliminate.  Every feature is wired together at runtime.  Two implementation path
 | **Feature-flag guards** — wrap each renderer/shape handler in `if (FEATURE_X)` conditions, replace at Rollup build time via `@rollup/plugin-replace` | Medium (~2 weeks) | Good; works with current architecture |
 | **Module boundary refactor** — restructure each shape type, renderer, and effect as a proper ES module imported only when needed | Large (~6+ weeks) | Excellent; enables full tree-shaking and correct types |
 
-### Step 7.1 — Extend the analyser
+### Step 8.1 — Extend the analyser
 
 - Support multiple input files (`npm run analyze anim1.json anim2.json`)
 - Output a machine-readable feature flags file (`.lottie-features.json`) consumed
@@ -313,7 +354,7 @@ eliminate.  Every feature is wired together at runtime.  Two implementation path
 - Add `--strict` mode that errors if the animation uses features not yet
   guard-wrapped
 
-### Step 7.2 — Feature-flag the renderers (quick win)
+### Step 8.2 — Feature-flag the renderers (quick win)
 
 - Introduce `LOTTIE_INCLUDE_SVG`, `LOTTIE_INCLUDE_CANVAS`, `LOTTIE_INCLUDE_HTML`
   build-time constants in `rollup.config.js`
@@ -322,7 +363,7 @@ eliminate.  Every feature is wired together at runtime.  Two implementation path
 - Estimated saving: **~45%** from renderer-only flag (canvas + HTML renderers
   account for ~1200 source lines in the modelled set)
 
-### Step 7.3 — Feature-flag large optional subsystems
+### Step 8.3 — Feature-flag large optional subsystems
 
 Guard each subsystem behind a compile-time constant:
 
@@ -336,12 +377,12 @@ Guard each subsystem behind a compile-time constant:
 | `LOTTIE_INCLUDE_EFFECTS` | SVGEffects, CVEffects, HEffects, effect type files |
 | `LOTTIE_INCLUDE_3D` | HCameraElement, HybridRenderer 3D containers |
 
-### Step 7.4 — Feature-flag shape modifiers
+### Step 8.4 — Feature-flag shape modifiers
 
 Individual flags for: `TRIM`, `REPEATER`, `ZIGZAG`, `ROUND_CORNERS`,
 `PUCKER_BLOAT`, `OFFSET_PATH`, `MERGE`, `GRADIENTS`.
 
-### Step 7.5 — Custom build CLI
+### Step 8.5 — Custom build CLI
 
 ```bash
 npm run build:custom -- --animations demo/happy2016/data.json --renderer svg
@@ -352,7 +393,7 @@ npm run build:custom -- --animations demo/happy2016/data.json --renderer svg
 - Auto-generates the `@rollup/plugin-replace` config
 - Produces a named output file with a build manifest comment at the top
 
-### Step 7.6 — Verification test
+### Step 8.6 — Verification test
 
 - After custom build: load the animation in Puppeteer, compare pixel output
   against the full-build baseline
@@ -371,4 +412,5 @@ npm run build:custom -- --animations demo/happy2016/data.json --renderer svg
 | **M4** — no build artefacts in git, CI publishes | Phase 4 complete ✅ |
 | **M5** — full quality gates (lint, format, pre-commit) | Phase 5 complete ✅ |
 | **M6** — meaningful test coverage | Phase 6 complete ✅ |
-| **M7** — custom build pipeline (tree-shaking by animation) | Phase 7 in progress 🔧 |
+| **M7** — vendor deps audited, seedrandom & howler on npm | Phase 7 not started |
+| **M8** — custom build pipeline (tree-shaking by animation) | Phase 8 not started |
