@@ -53,7 +53,7 @@
   },
   "sideEffects": false,
   "scripts": {
-    "build": "eslint --ext .ts,.js src/ && rollup -c && node tasks/build_worker",
+    "build": "eslint --ext .ts,.js src/ && rollup -c rollup.config.mjs && node tasks/build_worker",
     "lint": "eslint --ext .ts,.js src/",
     "lint:fix": "eslint --ext .ts,.js src/ --fix",
     "typecheck": "tsc --noEmit",

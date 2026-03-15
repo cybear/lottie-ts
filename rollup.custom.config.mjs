@@ -1,10 +1,10 @@
 /**
- * rollup.custom.config.js
+ * rollup.custom.config.mjs
  *
  * Rollup config for custom / tree-shaken animation builds.
  * Invoked by tools/build-custom.cjs via the Rollup CLI:
  *
- *   rollup --config rollup.custom.config.js
+ *   rollup --config rollup.custom.config.mjs
  *
  * Build parameters come in via environment variables set by build-custom.cjs:
  *   LOTTIE_CUSTOM_ENTRY     - absolute path to generated .ts entry file

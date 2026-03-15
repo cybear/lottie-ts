@@ -348,7 +348,7 @@ async function runRollup(entryFile, outputFile, minify, sourcemap) {
     LOTTIE_CUSTOM_SOURCEMAP:String(sourcemap),
   };
 
-  const configPath = path.join(REPO_ROOT, 'rollup.custom.config.js');
+  const configPath = path.join(REPO_ROOT, 'rollup.custom.config.mjs');
 
   console.log('[build-custom] Starting Rollup build…');
   console.log(`  Entry : ${path.relative(REPO_ROOT, entryFile)}`);
