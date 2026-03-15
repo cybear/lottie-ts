@@ -13,6 +13,7 @@ debug.txt
 build/player/
 build/extension/
 dist/
+.vitepress
 # e2e test diff images (generated on failure)
 tests/verification/screenshots/diff-*.png
 
