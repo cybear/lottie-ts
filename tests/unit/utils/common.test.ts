@@ -1,4 +1,4 @@
-// @vitest-environment jsdom
+// @vitest-environment happy-dom
 /**
  * Unit tests for src/utils/common.ts
  * Needs jsdom because common.ts reads navigator.userAgent at module load time.

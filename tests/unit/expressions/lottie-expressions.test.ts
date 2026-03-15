@@ -1,24 +1,20 @@
-// @vitest-environment jsdom
+// @vitest-environment happy-dom
 /**
  * Integration tests for lottie expression evaluation.
  *
- * Strategy: load the prebuilt CJS bundle (which includes ExpressionManager)
- * inside a jsdom environment, then run animations that contain expression
+ * Strategy: load the prebuilt SVG bundle (which includes ExpressionManager)
+ * inside a happy-dom environment, then run animations that contain expression
  * scripts and verify the output is what we expect.
  */
-import { createRequire } from 'node:module';
 import { afterEach, beforeAll, describe, expect, it } from 'vitest';
-
-// Use CJS require to load the expression-capable bundle.
-const require = createRequire(import.meta.url);
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 let lottie: any;
 
-beforeAll(() => {
-  // jsdom provides HTMLCanvasElement but not getContext. Lottie's color-map
+beforeAll(async () => {
+  // happy-dom provides HTMLCanvasElement but not getContext. Lottie's color-map
   // builder calls getContext('2d').fillStyle at module load time, so we stub it
-  // out before requiring the CJS bundle.
+  // out before loading the bundle.
   HTMLCanvasElement.prototype.getContext = () =>
     ({
       fillStyle: '',
@@ -30,9 +26,8 @@ beforeAll(() => {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
     }) as any;
 
-  // The SVG-only CJS bundle avoids canvas initialization errors in jsdom.
-  const mod = require('../../../build/player/cjs/lottie_svg.min.js');
-  // Rollup sets __esModule: true, so the actual API lives at .default
+  // SVG-only bundle avoids canvas initialization errors in happy-dom.
+  const mod = await import('../../../build/player/esm/lottie_svg.min.js');
   lottie = mod.default ?? mod;
 });
 

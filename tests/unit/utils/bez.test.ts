@@ -1,4 +1,4 @@
-// @vitest-environment jsdom
+// @vitest-environment happy-dom
 /**
  * Unit tests for src/utils/bez.ts
  * Needs jsdom because bez.ts imports common.ts which reads navigator.userAgent at module load.
