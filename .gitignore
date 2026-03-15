@@ -8,7 +8,6 @@ ZXPSignCmd.exe
 signer.bat
 commands.txt
 debug.txt
-package-lock.json
 
 # Build output — not committed; produced by npm run build
 build/player/
