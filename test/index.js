@@ -8,9 +8,11 @@ const puppeteer = require('puppeteer');
 const express = require('express');
 const fs = require('fs');
 const { promises: { readFile } } = require('fs');
-const commandLineArgs = require('command-line-args');
+const { parseArgs } = require('node:util');
 const PNG = require('pngjs').PNG;
-const pixelmatch = require('pixelmatch');
+const pixelmatchMod = require('pixelmatch');
+const pixelmatch =
+  typeof pixelmatchMod === 'function' ? pixelmatchMod : pixelmatchMod.default;
 
 /** Lottie JSON under repo root (served as /demo/.../data.json) */
 const examplesDirectory = '/demo/';
@@ -39,25 +41,14 @@ const animations = [
 ];
 
 const getSettings = async () => {
-    const defaultValues = {
-        step: 'create',
-    }
-    const opts = [
-        {
-          name: 'step',
-          alias: 's',
-          type: (val) => {
-            
-            return val === 'compare' ? 'compare' : 'create';
-          },
-          description: 'Whether it is the create or the compare step',
-        }
-    ];
-  const settings = {
-    ...defaultValues,
-    ...commandLineArgs(opts),
-  };
-  return settings;
+  const { values } = parseArgs({
+    args: process.argv.slice(2),
+    options: {
+      step: { type: 'string', short: 's', default: 'create' },
+    },
+  });
+  const step = values.step === 'compare' ? 'compare' : 'create';
+  return { step };
 };
 
 const wait = (time) => new Promise((resolve) => setTimeout(resolve, time));
@@ -128,7 +119,7 @@ const startServer = async () => {
 
 const getBrowser = async () => puppeteer.launch({
   defaultViewport: null,
-  headless: 'new',
+  headless: true,
   args: ['--no-sandbox', '--disable-setuid-sandbox'],
 });
 

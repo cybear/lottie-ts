@@ -89,8 +89,10 @@ async function injectLottie(page, buildFile) {
 // ─── visual comparison ────────────────────────────────────────────────────────
 
 function compareScreenshots(currentBuf, baselinePath, label) {
-  const { PNG }    = require('pngjs');
-  const pixelmatch = require('pixelmatch');
+  const { PNG } = require('pngjs');
+  const pixelmatchMod = require('pixelmatch');
+  const pixelmatch =
+    typeof pixelmatchMod === 'function' ? pixelmatchMod : pixelmatchMod.default;
 
   if (!fs.existsSync(baselinePath)) {
     fail(`${label} baseline`, 'not found — run with --capture first');
