@@ -120,6 +120,18 @@ class HybridRendererBase extends BaseRenderer {
     return new HSolidElement(data, this.globalData, this);
   }
 
+  createNull(data) {
+    return SVGRendererBase.prototype.createNull.call(this, data);
+  }
+
+  buildItem(pos) {
+    return SVGRendererBase.prototype.buildItem.call(this, pos);
+  }
+
+  renderFrame(num) {
+    return SVGRendererBase.prototype.renderFrame.call(this, num);
+  }
+
   getThreeDContainerByPos(pos) {
     let i = 0;
     const len = this.threeDElements.length;
@@ -331,9 +343,5 @@ class HybridRendererBase extends BaseRenderer {
     }
   }
 }
-
-HybridRendererBase.prototype.buildItem = SVGRendererBase.prototype.buildItem;
-HybridRendererBase.prototype.renderFrame = SVGRendererBase.prototype.renderFrame;
-HybridRendererBase.prototype.createNull = SVGRendererBase.prototype.createNull;
 
 export default HybridRendererBase;

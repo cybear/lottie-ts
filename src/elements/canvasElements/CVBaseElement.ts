@@ -63,6 +63,15 @@ class CVBaseElement {
       this.maskManager._isFirstFrame = true;
     }
   }
+
+  hide() {
+    return this.hideElement();
+  }
+
+  show() {
+    return this.showElement();
+  }
+
   clearCanvas(canvasContext) {
     canvasContext.clearRect(
       this.transformCanvas.tx,
@@ -163,7 +172,5 @@ class CVBaseElement {
 }
 
 CVBaseElement.prototype.mHelper = new Matrix();
-CVBaseElement.prototype.hide = CVBaseElement.prototype.hideElement;
-CVBaseElement.prototype.show = CVBaseElement.prototype.showElement;
 
 export default CVBaseElement;

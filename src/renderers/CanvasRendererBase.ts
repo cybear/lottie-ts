@@ -25,6 +25,10 @@ class CanvasRendererBase extends BaseRenderer {
     return new CVSolidElement(data, this.globalData, this);
   }
 
+  createNull(data) {
+    return SVGRendererBase.prototype.createNull.call(this, data);
+  }
+
   ctxTransform(props) {
     if (props[0] === 1 && props[1] === 0 && props[4] === 0 && props[5] === 1 && props[12] === 0 && props[13] === 0) {
       return;
@@ -347,7 +351,5 @@ class CanvasRendererBase extends BaseRenderer {
     this.animationItem.container.style.display = 'block';
   }
 }
-
-CanvasRendererBase.prototype.createNull = SVGRendererBase.prototype.createNull;
 
 export default CanvasRendererBase;
