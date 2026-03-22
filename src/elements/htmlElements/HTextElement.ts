@@ -201,118 +201,123 @@ class HTextElement {
       cnt += 1;
     }
   }
+
+  renderInnerContent() {
+    this.validateText();
+    let svgStyle;
+    if (this.data.singleShape) {
+      if (!this._isFirstFrame && !this.lettersChangedFlag) {
+        return;
+      }
+      if (this.isMasked && this.finalTransform._matMdf) {
+        // Todo Benchmark if using this is better than getBBox
+        this.svgElement.setAttribute(
+          'viewBox',
+          -this.finalTransform.mProp.p.v[0] +
+            ' ' +
+            -this.finalTransform.mProp.p.v[1] +
+            ' ' +
+            this.compW +
+            ' ' +
+            this.compH,
+        );
+        svgStyle = this.svgElement.style;
+        const translation =
+          'translate(' + -this.finalTransform.mProp.p.v[0] + 'px,' + -this.finalTransform.mProp.p.v[1] + 'px)';
+        svgStyle.transform = translation;
+        svgStyle.webkitTransform = translation;
+      }
+    }
+
+    this.textAnimator.getMeasures(this.textProperty.currentData, this.lettersChangedFlag);
+    if (!this.lettersChangedFlag && !this.textAnimator.lettersChangedFlag) {
+      return;
+    }
+    let i;
+    let count = 0;
+    const renderedLetters = this.textAnimator.renderedLetters;
+
+    const letters = this.textProperty.currentData.l;
+
+    const len = letters.length;
+    let renderedLetter;
+    let textSpan;
+    let textPath;
+    for (i = 0; i < len; i += 1) {
+      if (letters[i].n) {
+        count += 1;
+      } else {
+        textSpan = this.textSpans[i];
+        textPath = this.textPaths[i];
+        renderedLetter = renderedLetters[count];
+        count += 1;
+        if (renderedLetter._mdf.m) {
+          if (!this.isMasked) {
+            textSpan.style.webkitTransform = renderedLetter.m;
+            textSpan.style.transform = renderedLetter.m;
+          } else {
+            textSpan.setAttribute('transform', renderedLetter.m);
+          }
+        }
+        /// /textSpan.setAttribute('opacity',renderedLetter.o);
+        textSpan.style.opacity = renderedLetter.o;
+        if (renderedLetter.sw && renderedLetter._mdf.sw) {
+          textPath.setAttribute('stroke-width', renderedLetter.sw);
+        }
+        if (renderedLetter.sc && renderedLetter._mdf.sc) {
+          textPath.setAttribute('stroke', renderedLetter.sc);
+        }
+        if (renderedLetter.fc && renderedLetter._mdf.fc) {
+          textPath.setAttribute('fill', renderedLetter.fc);
+          textPath.style.color = renderedLetter.fc;
+        }
+      }
+    }
+
+    if (this.innerElem.getBBox && !this.hidden && (this._isFirstFrame || this._mdf)) {
+      const boundingBox = this.innerElem.getBBox();
+
+      if (this.currentBBox.w !== boundingBox.width) {
+        this.currentBBox.w = boundingBox.width;
+        this.svgElement.setAttribute('width', boundingBox.width);
+      }
+      if (this.currentBBox.h !== boundingBox.height) {
+        this.currentBBox.h = boundingBox.height;
+        this.svgElement.setAttribute('height', boundingBox.height);
+      }
+
+      const margin = 1;
+      if (
+        this.currentBBox.w !== boundingBox.width + margin * 2 ||
+        this.currentBBox.h !== boundingBox.height + margin * 2 ||
+        this.currentBBox.x !== boundingBox.x - margin ||
+        this.currentBBox.y !== boundingBox.y - margin
+      ) {
+        this.currentBBox.w = boundingBox.width + margin * 2;
+        this.currentBBox.h = boundingBox.height + margin * 2;
+        this.currentBBox.x = boundingBox.x - margin;
+        this.currentBBox.y = boundingBox.y - margin;
+
+        this.svgElement.setAttribute(
+          'viewBox',
+          this.currentBBox.x + ' ' + this.currentBBox.y + ' ' + this.currentBBox.w + ' ' + this.currentBBox.h,
+        );
+        svgStyle = this.svgElement.style;
+        const svgTransform = 'translate(' + this.currentBBox.x + 'px,' + this.currentBBox.y + 'px)';
+        svgStyle.transform = svgTransform;
+        svgStyle.webkitTransform = svgTransform;
+      }
+    }
+  }
 }
+
+const hTextRenderInnerContent = HTextElement.prototype.renderInnerContent;
+
 extendPrototype(
   [BaseElement, TransformElement, HBaseElement, HierarchyElement, FrameElement, RenderableDOMElement, ITextElement],
   HTextElement,
 );
 
-HTextElement.prototype.renderInnerContent = function () {
-  this.validateText();
-  let svgStyle;
-  if (this.data.singleShape) {
-    if (!this._isFirstFrame && !this.lettersChangedFlag) {
-      return;
-    }
-    if (this.isMasked && this.finalTransform._matMdf) {
-      // Todo Benchmark if using this is better than getBBox
-      this.svgElement.setAttribute(
-        'viewBox',
-        -this.finalTransform.mProp.p.v[0] +
-          ' ' +
-          -this.finalTransform.mProp.p.v[1] +
-          ' ' +
-          this.compW +
-          ' ' +
-          this.compH,
-      );
-      svgStyle = this.svgElement.style;
-      const translation =
-        'translate(' + -this.finalTransform.mProp.p.v[0] + 'px,' + -this.finalTransform.mProp.p.v[1] + 'px)';
-      svgStyle.transform = translation;
-      svgStyle.webkitTransform = translation;
-    }
-  }
-
-  this.textAnimator.getMeasures(this.textProperty.currentData, this.lettersChangedFlag);
-  if (!this.lettersChangedFlag && !this.textAnimator.lettersChangedFlag) {
-    return;
-  }
-  let i;
-  let count = 0;
-  const renderedLetters = this.textAnimator.renderedLetters;
-
-  const letters = this.textProperty.currentData.l;
-
-  const len = letters.length;
-  let renderedLetter;
-  let textSpan;
-  let textPath;
-  for (i = 0; i < len; i += 1) {
-    if (letters[i].n) {
-      count += 1;
-    } else {
-      textSpan = this.textSpans[i];
-      textPath = this.textPaths[i];
-      renderedLetter = renderedLetters[count];
-      count += 1;
-      if (renderedLetter._mdf.m) {
-        if (!this.isMasked) {
-          textSpan.style.webkitTransform = renderedLetter.m;
-          textSpan.style.transform = renderedLetter.m;
-        } else {
-          textSpan.setAttribute('transform', renderedLetter.m);
-        }
-      }
-      /// /textSpan.setAttribute('opacity',renderedLetter.o);
-      textSpan.style.opacity = renderedLetter.o;
-      if (renderedLetter.sw && renderedLetter._mdf.sw) {
-        textPath.setAttribute('stroke-width', renderedLetter.sw);
-      }
-      if (renderedLetter.sc && renderedLetter._mdf.sc) {
-        textPath.setAttribute('stroke', renderedLetter.sc);
-      }
-      if (renderedLetter.fc && renderedLetter._mdf.fc) {
-        textPath.setAttribute('fill', renderedLetter.fc);
-        textPath.style.color = renderedLetter.fc;
-      }
-    }
-  }
-
-  if (this.innerElem.getBBox && !this.hidden && (this._isFirstFrame || this._mdf)) {
-    const boundingBox = this.innerElem.getBBox();
-
-    if (this.currentBBox.w !== boundingBox.width) {
-      this.currentBBox.w = boundingBox.width;
-      this.svgElement.setAttribute('width', boundingBox.width);
-    }
-    if (this.currentBBox.h !== boundingBox.height) {
-      this.currentBBox.h = boundingBox.height;
-      this.svgElement.setAttribute('height', boundingBox.height);
-    }
-
-    const margin = 1;
-    if (
-      this.currentBBox.w !== boundingBox.width + margin * 2 ||
-      this.currentBBox.h !== boundingBox.height + margin * 2 ||
-      this.currentBBox.x !== boundingBox.x - margin ||
-      this.currentBBox.y !== boundingBox.y - margin
-    ) {
-      this.currentBBox.w = boundingBox.width + margin * 2;
-      this.currentBBox.h = boundingBox.height + margin * 2;
-      this.currentBBox.x = boundingBox.x - margin;
-      this.currentBBox.y = boundingBox.y - margin;
-
-      this.svgElement.setAttribute(
-        'viewBox',
-        this.currentBBox.x + ' ' + this.currentBBox.y + ' ' + this.currentBBox.w + ' ' + this.currentBBox.h,
-      );
-      svgStyle = this.svgElement.style;
-      const svgTransform = 'translate(' + this.currentBBox.x + 'px,' + this.currentBBox.y + 'px)';
-      svgStyle.transform = svgTransform;
-      svgStyle.webkitTransform = svgTransform;
-    }
-  }
-};
+HTextElement.prototype.renderInnerContent = hTextRenderInnerContent;
 
 export default HTextElement;

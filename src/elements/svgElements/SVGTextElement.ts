@@ -256,71 +256,77 @@ class SVGTextLottieElement {
       }
     }
   }
+
+  sourceRectAtTime() {
+    this.prepareFrame(this.comp.renderedFrame - this.data.st);
+    this.renderInnerContent();
+    if (this._sizeChanged) {
+      this._sizeChanged = false;
+      const textBox = this.layerElement.getBBox();
+      this.bbox = {
+        top: textBox.y,
+        left: textBox.x,
+        width: textBox.width,
+        height: textBox.height,
+      };
+    }
+    return this.bbox;
+  }
+
+  renderInnerContent() {
+    this.validateText();
+    if (!this.data.singleShape || this._mdf) {
+      this.textAnimator.getMeasures(this.textProperty.currentData, this.lettersChangedFlag);
+      if (this.lettersChangedFlag || this.textAnimator.lettersChangedFlag) {
+        this._sizeChanged = true;
+        let i;
+        const renderedLetters = this.textAnimator.renderedLetters;
+
+        const letters = this.textProperty.currentData.l;
+
+        const len = letters.length;
+        let renderedLetter;
+        let textSpan;
+        let glyphElement;
+        for (i = 0; i < len; i += 1) {
+          if (!letters[i].n) {
+            renderedLetter = renderedLetters[i];
+            textSpan = this.textSpans[i].span;
+            glyphElement = this.textSpans[i].glyph;
+            if (glyphElement) {
+              glyphElement.renderFrame();
+            }
+            if (renderedLetter._mdf.m) {
+              textSpan.setAttribute('transform', renderedLetter.m);
+            }
+            if (renderedLetter._mdf.o) {
+              textSpan.setAttribute('opacity', renderedLetter.o);
+            }
+            if (renderedLetter._mdf.sw) {
+              textSpan.setAttribute('stroke-width', renderedLetter.sw);
+            }
+            if (renderedLetter._mdf.sc) {
+              textSpan.setAttribute('stroke', renderedLetter.sc);
+            }
+            if (renderedLetter._mdf.fc) {
+              textSpan.setAttribute('fill', renderedLetter.fc);
+            }
+          }
+        }
+      }
+    }
+  }
 }
+
+const svgTextSourceRectAtTime = SVGTextLottieElement.prototype.sourceRectAtTime;
+const svgTextRenderInnerContent = SVGTextLottieElement.prototype.renderInnerContent;
 
 extendPrototype(
   [BaseElement, TransformElement, SVGBaseElement, HierarchyElement, FrameElement, RenderableDOMElement, ITextElement],
   SVGTextLottieElement,
 );
 
-SVGTextLottieElement.prototype.sourceRectAtTime = function () {
-  this.prepareFrame(this.comp.renderedFrame - this.data.st);
-  this.renderInnerContent();
-  if (this._sizeChanged) {
-    this._sizeChanged = false;
-    const textBox = this.layerElement.getBBox();
-    this.bbox = {
-      top: textBox.y,
-      left: textBox.x,
-      width: textBox.width,
-      height: textBox.height,
-    };
-  }
-  return this.bbox;
-};
-
-SVGTextLottieElement.prototype.renderInnerContent = function () {
-  this.validateText();
-  if (!this.data.singleShape || this._mdf) {
-    this.textAnimator.getMeasures(this.textProperty.currentData, this.lettersChangedFlag);
-    if (this.lettersChangedFlag || this.textAnimator.lettersChangedFlag) {
-      this._sizeChanged = true;
-      let i;
-      const renderedLetters = this.textAnimator.renderedLetters;
-
-      const letters = this.textProperty.currentData.l;
-
-      const len = letters.length;
-      let renderedLetter;
-      let textSpan;
-      let glyphElement;
-      for (i = 0; i < len; i += 1) {
-        if (!letters[i].n) {
-          renderedLetter = renderedLetters[i];
-          textSpan = this.textSpans[i].span;
-          glyphElement = this.textSpans[i].glyph;
-          if (glyphElement) {
-            glyphElement.renderFrame();
-          }
-          if (renderedLetter._mdf.m) {
-            textSpan.setAttribute('transform', renderedLetter.m);
-          }
-          if (renderedLetter._mdf.o) {
-            textSpan.setAttribute('opacity', renderedLetter.o);
-          }
-          if (renderedLetter._mdf.sw) {
-            textSpan.setAttribute('stroke-width', renderedLetter.sw);
-          }
-          if (renderedLetter._mdf.sc) {
-            textSpan.setAttribute('stroke', renderedLetter.sc);
-          }
-          if (renderedLetter._mdf.fc) {
-            textSpan.setAttribute('fill', renderedLetter.fc);
-          }
-        }
-      }
-    }
-  }
-};
+SVGTextLottieElement.prototype.sourceRectAtTime = svgTextSourceRectAtTime;
+SVGTextLottieElement.prototype.renderInnerContent = svgTextRenderInnerContent;
 
 export default SVGTextLottieElement;

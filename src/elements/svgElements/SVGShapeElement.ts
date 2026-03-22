@@ -339,43 +339,49 @@ This method searches for multiple shapes that affect a single element and one of
       }
     }
   }
+
+  initSecondaryElement() {}
+
+  buildExpressionInterface() {}
+
+  renderInnerContent() {
+    this.renderModifiers();
+    let i;
+    const len = this.stylesList.length;
+    for (i = 0; i < len; i += 1) {
+      this.stylesList[i].reset();
+    }
+    this.renderShape();
+    for (i = 0; i < len; i += 1) {
+      if (this.stylesList[i]._mdf || this._isFirstFrame) {
+        if (this.stylesList[i].msElem) {
+          this.stylesList[i].msElem.setAttribute('d', this.stylesList[i].d);
+          // Adding M0 0 fixes same mask bug on all browsers
+          this.stylesList[i].d = 'M0 0' + this.stylesList[i].d;
+        }
+        this.stylesList[i].pElem.setAttribute('d', this.stylesList[i].d || 'M0 0');
+      }
+    }
+  }
+
+  destroy() {
+    this.destroyBaseElement();
+    this.shapesData = null;
+    this.itemsData = null;
+  }
 }
+
+const svgShapeRenderInnerContent = SVGShapeElement.prototype.renderInnerContent;
+const svgShapeDestroy = SVGShapeElement.prototype.destroy;
 
 extendPrototype(
   [BaseElement, TransformElement, SVGBaseElement, IShapeElement, HierarchyElement, FrameElement, RenderableDOMElement],
   SVGShapeElement,
 );
 
-SVGShapeElement.prototype.initSecondaryElement = function () {};
+SVGShapeElement.prototype.renderInnerContent = svgShapeRenderInnerContent;
+SVGShapeElement.prototype.destroy = svgShapeDestroy;
 
 SVGShapeElement.prototype.identityMatrix = new Matrix();
-
-SVGShapeElement.prototype.buildExpressionInterface = function () {};
-
-SVGShapeElement.prototype.renderInnerContent = function () {
-  this.renderModifiers();
-  let i;
-  const len = this.stylesList.length;
-  for (i = 0; i < len; i += 1) {
-    this.stylesList[i].reset();
-  }
-  this.renderShape();
-  for (i = 0; i < len; i += 1) {
-    if (this.stylesList[i]._mdf || this._isFirstFrame) {
-      if (this.stylesList[i].msElem) {
-        this.stylesList[i].msElem.setAttribute('d', this.stylesList[i].d);
-        // Adding M0 0 fixes same mask bug on all browsers
-        this.stylesList[i].d = 'M0 0' + this.stylesList[i].d;
-      }
-      this.stylesList[i].pElem.setAttribute('d', this.stylesList[i].d || 'M0 0');
-    }
-  }
-};
-
-SVGShapeElement.prototype.destroy = function () {
-  this.destroyBaseElement();
-  this.shapesData = null;
-  this.itemsData = null;
-};
 
 export default SVGShapeElement;
