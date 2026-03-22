@@ -2,11 +2,14 @@
 
 This document supports Track A (strict typing) and Track B (ES classes) modernization. *Last updated: 2025-03-22 — `CVShapeElement` holds the canvas shape pipeline (`createStyleElement` through `renderStroke`, plus `renderInnerContent`) on the `class`; **`createContent`** and **`destroy`** use save-restore vs **`CVBaseElement`**; only **`initElement`** (from **`RenderableDOMElement`**), **`transformHelper`**, and **`dashResetter`** stay **`prototype`** assignments after **`extendPrototype`**. `CVSolidElement` keeps `renderInnerContent` on the `class`. Compositions: `SVGCompElement`, `CVCompElement`, and `HCompElement` define `createComp` on the `class` (`HCompElement` also `addTo3dContainer`); `CVCompElement` keeps `renderInnerContent` and `destroy` on the `class` (save-restore); `HCompElement` keeps `createContainerElements` on the `class` (save-restore + `_createBaseContainerElements`). `NullElement` uses the same pattern for `sourceRectAtTime` vs `BaseElement`. `HShapeElement` keeps bbox helpers, **`createContent`**, and **`renderInnerContent`** on the **`class`** (save-restore vs **`SVGShapeElement`**); after **`extendPrototype`**, **`_renderShapeFrame`** is set to the mixed-in SVG **`renderInnerContent`**, then HTML **`createContent`** / **`renderInnerContent`** are restored; shared **`shapeBoundingBox`** / **`tempBoundingBox`** stay on **`prototype`**. `SVGShapeElement` keeps the pipeline on the `class`; `renderInnerContent` / `destroy` use save-restore vs `RenderableDOMElement`; `initSecondaryElement` / `buildExpressionInterface` are class methods; `identityMatrix` remains one shared `prototype` matrix after `extendPrototype`. `SVGTextLottieElement` / `HTextElement` use save-restore for text `renderInnerContent` (and SVG text `sourceRectAtTime`). `CVImageElement` uses save-restore for `createContent` / `destroy` vs `CVBaseElement`; `HImageElement` does the same for `createContent` vs `HSolidElement`. Track A: **`CVImageElement`**, **`CVSolidElement`**, **`CVTextElement`**, and **`CVShapeElement`** no longer use **`@ts-nocheck`**; **`CanvasRendererBase`** layer factories narrow **`RendererLayerData`** / **`globalData`** with **`as unknown as`** into **`lottieRuntime`** canvas types (**`GlobalDataCanvasImage`**, **`GlobalDataCanvasLayer`**, **`GlobalDataCanvasText`**, **`CanvasRenderer2D`**). Where the merged stack overrides base behavior, some elements still rely on explicit **`prototype` assertions** (**`SVGShapeElement`**, **`IImageElement`**). **`RenderableDOMElement`** is TypeScript-checked (file-level **`eslint-disable @typescript-eslint/no-explicit-any`**, typed **`this`** on the proxy object, **`extendPrototype`** casts); the IIFE + **`createProxyFunction`** pattern is unchanged at runtime. Earlier slices: `FootageElement` / `AudioElement` / `ICompElement`, etc.*
 
-Regenerate the call-site table with:
+Refresh inventories when call sites or **`@ts-nocheck`** coverage changes:
 
 ```bash
 rg "extendPrototype\(" src --glob '*.ts' -l
+rg '@ts-nocheck' src --glob '*.ts'
 ```
+
+The second command lists every TypeScript file that still opts out of typechecking (plus occasional doc comments that mention the pragma).
 
 ## How `extendPrototype` works
 
@@ -265,7 +268,7 @@ After each slice, run `npm test`, `npm run test:e2e`, and compare baselines wher
 - **Broad `@ts-nocheck` removal:** Large entrypoints and bundles still opt out: **`main.ts`**, **`module.ts`**, **`worker_wrapper.ts`**, **`animation/AnimationItem.ts`**, **`animation/AnimationManager.ts`**, worker overrides, and **`src/modules/*`** (`full`, `full_worker`, `svg`, `canvas`, `html`, `*_light`, `main`). Peel off **small vertical slices** with `npx tsc --noEmit` after each file or small group. Under **`src/utils/expressions/`** there is **no** `@ts-nocheck` left (file-level **`eslint-disable @typescript-eslint/no-explicit-any`** instead).
 - **Runtime types (`src/types/`):** Grow **`GlobalData`**, **`comp`**, and JSON shapes (`ElementData` / per-`ty` layers) as callers are typed; avoid one giant “full Lottie schema” PR.
 - **Worker bundle:** `worker_wrapper.ts` mirrors DOM/canvas behavior; structural changes should stay in sync or share a tiny shared module if tree-shaking allows.
-- **Docs table drift:** Regenerate the `extendPrototype` inventory table (`rg "extendPrototype\(" src --glob '*.ts' -l`) when call sites move.
+- **Docs table drift:** Regenerate the `extendPrototype` inventory and **`@ts-nocheck`** lists (see the **`rg`** block at the top of this doc) when call sites or Track A coverage move.
 
 ### Track A (incremental, started)
 
