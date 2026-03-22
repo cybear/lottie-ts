@@ -20,38 +20,44 @@ class CVCompElement {
   createComp(data) {
     return new CVCompElement(data, this.globalData, this);
   }
+
+  renderInnerContent() {
+    const ctx = this.canvasContext;
+    ctx.beginPath();
+    ctx.moveTo(0, 0);
+    ctx.lineTo(this.data.w, 0);
+    ctx.lineTo(this.data.w, this.data.h);
+    ctx.lineTo(0, this.data.h);
+    ctx.lineTo(0, 0);
+    ctx.clip();
+    let i;
+    const len = this.layers.length;
+    for (i = len - 1; i >= 0; i -= 1) {
+      if (this.completeLayers || this.elements[i]) {
+        this.elements[i].renderFrame();
+      }
+    }
+  }
+
+  destroy() {
+    let i;
+    const len = this.layers.length;
+    for (i = len - 1; i >= 0; i -= 1) {
+      if (this.elements[i]) {
+        this.elements[i].destroy();
+      }
+    }
+    this.layers = null;
+    this.elements = null;
+  }
 }
+
+const cvCompRenderInnerContent = CVCompElement.prototype.renderInnerContent;
+const cvCompDestroy = CVCompElement.prototype.destroy;
 
 extendPrototype([BaseRenderer, CanvasRendererBase, ICompElement, CVBaseElement], CVCompElement);
 
-CVCompElement.prototype.renderInnerContent = function () {
-  const ctx = this.canvasContext;
-  ctx.beginPath();
-  ctx.moveTo(0, 0);
-  ctx.lineTo(this.data.w, 0);
-  ctx.lineTo(this.data.w, this.data.h);
-  ctx.lineTo(0, this.data.h);
-  ctx.lineTo(0, 0);
-  ctx.clip();
-  let i;
-  const len = this.layers.length;
-  for (i = len - 1; i >= 0; i -= 1) {
-    if (this.completeLayers || this.elements[i]) {
-      this.elements[i].renderFrame();
-    }
-  }
-};
-
-CVCompElement.prototype.destroy = function () {
-  let i;
-  const len = this.layers.length;
-  for (i = len - 1; i >= 0; i -= 1) {
-    if (this.elements[i]) {
-      this.elements[i].destroy();
-    }
-  }
-  this.layers = null;
-  this.elements = null;
-};
+CVCompElement.prototype.renderInnerContent = cvCompRenderInnerContent;
+CVCompElement.prototype.destroy = cvCompDestroy;
 
 export default CVCompElement;

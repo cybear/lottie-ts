@@ -41,21 +41,25 @@ class HCompElement {
     }
     return new HCompElement(data, this.globalData, this);
   }
+
+  createContainerElements() {
+    this._createBaseContainerElements();
+    // divElement.style.clip = 'rect(0px, '+this.data.w+'px, '+this.data.h+'px, 0px)';
+    if (this.data.hasMask) {
+      this.svgElement.setAttribute('width', this.data.w);
+      this.svgElement.setAttribute('height', this.data.h);
+      this.transformedElement = this.baseElement;
+    } else {
+      this.transformedElement = this.layerElement;
+    }
+  }
 }
 
-extendPrototype([BaseRenderer, HybridRendererBase, ICompElement, HBaseElement], HCompElement);
-HCompElement.prototype._createBaseContainerElements = HCompElement.prototype.createContainerElements;
+const hcompCreateContainerElements = HCompElement.prototype.createContainerElements;
 
-HCompElement.prototype.createContainerElements = function () {
-  this._createBaseContainerElements();
-  // divElement.style.clip = 'rect(0px, '+this.data.w+'px, '+this.data.h+'px, 0px)';
-  if (this.data.hasMask) {
-    this.svgElement.setAttribute('width', this.data.w);
-    this.svgElement.setAttribute('height', this.data.h);
-    this.transformedElement = this.baseElement;
-  } else {
-    this.transformedElement = this.layerElement;
-  }
-};
+extendPrototype([BaseRenderer, HybridRendererBase, ICompElement, HBaseElement], HCompElement);
+
+HCompElement.prototype._createBaseContainerElements = HCompElement.prototype.createContainerElements;
+HCompElement.prototype.createContainerElements = hcompCreateContainerElements;
 
 export default HCompElement;
