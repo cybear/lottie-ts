@@ -1,4 +1,3 @@
-// @ts-nocheck
 class HEffects {
   renderFrame() {}
 }

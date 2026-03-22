@@ -1,7 +1,79 @@
-// @ts-nocheck
 import Matrix from '../../../3rd_party/transformation-matrix';
-import buildShapeString from '../../../utils/shapes/shapePathBuilder';
+import buildShapeString, {
+  type BezierPathNodesWithMeta,
+  type ShapePathMatrixHelper,
+} from '../../../utils/shapes/shapePathBuilder';
 import { bmFloor } from '../../../utils/common';
+import type SVGStyleData from './SVGStyleData';
+
+type MatrixInstance = InstanceType<typeof Matrix>;
+
+interface TyData {
+  ty: string;
+  t?: number;
+  hd?: boolean;
+}
+
+interface PathShapeCollection {
+  _length: number;
+  shapes: Array<BezierPathNodesWithMeta | null | undefined>;
+}
+
+interface PathItemData {
+  sh: {
+    _mdf: boolean;
+    paths: PathShapeCollection;
+  };
+  styles: Array<{ lvl: number; d: string; _mdf: boolean }>;
+  lvl: number;
+  caches: string[];
+  transformers: Array<{ mProps: { _mdf: boolean; v: MatrixInstance } }>;
+}
+
+interface FillItemData {
+  c: { v: number[]; _mdf: boolean };
+  o: { v: string | number; _mdf: boolean };
+  style: { pElem: SVGElement; msElem?: SVGElement | null };
+}
+
+interface StrokeItemData extends FillItemData {
+  d?: { _mdf: boolean; dashStr?: string; dashoffset: { 0: number } };
+  w: { v: string | number; _mdf: boolean };
+}
+
+interface GradientG {
+  _hasOpacity?: boolean;
+  _collapsable?: boolean;
+  _cmdf?: boolean;
+  _omdf?: boolean;
+  c?: number[];
+  o?: number[];
+}
+
+interface GradientItemData {
+  gf: SVGLinearGradientElement | SVGRadialGradientElement;
+  g: GradientG;
+  s: { v: number[]; _mdf: boolean };
+  e: { v: number[]; _mdf: boolean };
+  h: { v: number; _mdf: boolean };
+  a: { v: number; _mdf: boolean };
+  o: { v: string | number; _mdf: boolean };
+  c?: { v: number[]; _mdf: boolean };
+  cst: SVGStopElement[];
+  ost?: SVGStopElement[];
+  of?: SVGLinearGradientElement | SVGRadialGradientElement;
+  style: SVGStyleData;
+}
+
+interface TransformItemData {
+  transform: {
+    op: { v: string; _mdf: boolean };
+    mProps: { _mdf: boolean; v: MatrixInstance & { to2dCSS(): string } };
+    container: SVGElement;
+  };
+}
+
+type RenderFn = (styleData: TyData, itemData: unknown, isFirstFrame: boolean) => void;
 
 const SVGElementsRenderer = (function () {
   const _identityMatrix = new Matrix();
@@ -11,23 +83,23 @@ const SVGElementsRenderer = (function () {
     createRenderFunction: createRenderFunction,
   };
 
-  function createRenderFunction(data) {
+  function createRenderFunction(data: TyData): RenderFn | null {
     switch (data.ty) {
       case 'fl':
-        return renderFill;
+        return renderFill as RenderFn;
       case 'gf':
-        return renderGradient;
+        return renderGradient as RenderFn;
       case 'gs':
-        return renderGradientStroke;
+        return renderGradientStroke as RenderFn;
       case 'st':
-        return renderStroke;
+        return renderStroke as RenderFn;
       case 'sh':
       case 'el':
       case 'rc':
       case 'sr':
-        return renderPath;
+        return renderPath as RenderFn;
       case 'tr':
-        return renderContentTransform;
+        return renderContentTransform as RenderFn;
       case 'no':
         return renderNoop;
       default:
@@ -35,54 +107,56 @@ const SVGElementsRenderer = (function () {
     }
   }
 
-  function renderContentTransform(styleData, itemData, isFirstFrame) {
-    if (isFirstFrame || itemData.transform.op._mdf) {
-      itemData.transform.container.setAttribute('opacity', itemData.transform.op.v);
+  function renderContentTransform(_styleData: TyData, itemData: unknown, isFirstFrame: boolean) {
+    const id = itemData as TransformItemData;
+    if (isFirstFrame || id.transform.op._mdf) {
+      id.transform.container.setAttribute('opacity', id.transform.op.v);
     }
-    if (isFirstFrame || itemData.transform.mProps._mdf) {
-      itemData.transform.container.setAttribute('transform', itemData.transform.mProps.v.to2dCSS());
+    if (isFirstFrame || id.transform.mProps._mdf) {
+      id.transform.container.setAttribute('transform', id.transform.mProps.v.to2dCSS());
     }
   }
 
   function renderNoop() {}
 
-  function renderPath(styleData, itemData, isFirstFrame) {
-    let j;
-    let jLen;
-    let pathStringTransformed;
-    let redraw;
-    let pathNodes;
-    let l;
-    const lLen = itemData.styles.length;
-    const lvl = itemData.lvl;
-    let paths;
-    let mat;
-    let iterations;
-    let k;
+  function renderPath(styleData: TyData, itemData: unknown, isFirstFrame: boolean) {
+    const data = itemData as PathItemData;
+    let j: number;
+    let jLen: number;
+    let pathStringTransformed: string;
+    let redraw: boolean;
+    let pathNodes: BezierPathNodesWithMeta | null | undefined;
+    let l: number;
+    const lLen = data.styles.length;
+    const lvl = data.lvl;
+    let paths: PathShapeCollection;
+    let mat: MatrixInstance & ShapePathMatrixHelper;
+    let iterations: number;
+    let k: number;
     for (l = 0; l < lLen; l += 1) {
-      redraw = itemData.sh._mdf || isFirstFrame;
-      if (itemData.styles[l].lvl < lvl) {
-        mat = _matrixHelper.reset();
-        iterations = lvl - itemData.styles[l].lvl;
-        k = itemData.transformers.length - 1;
+      redraw = data.sh._mdf || isFirstFrame;
+      if (data.styles[l].lvl < lvl) {
+        mat = _matrixHelper.reset() as MatrixInstance & ShapePathMatrixHelper;
+        iterations = lvl - data.styles[l].lvl;
+        k = data.transformers.length - 1;
         while (!redraw && iterations > 0) {
-          redraw = itemData.transformers[k].mProps._mdf || redraw;
+          redraw = data.transformers[k].mProps._mdf || redraw;
           iterations -= 1;
           k -= 1;
         }
         if (redraw) {
-          iterations = lvl - itemData.styles[l].lvl;
-          k = itemData.transformers.length - 1;
+          iterations = lvl - data.styles[l].lvl;
+          k = data.transformers.length - 1;
           while (iterations > 0) {
-            mat.multiply(itemData.transformers[k].mProps.v);
+            mat.multiply(data.transformers[k].mProps.v);
             iterations -= 1;
             k -= 1;
           }
         }
       } else {
-        mat = _identityMatrix;
+        mat = _identityMatrix as MatrixInstance & ShapePathMatrixHelper;
       }
-      paths = itemData.sh.paths;
+      paths = data.sh.paths;
       jLen = paths._length;
       if (redraw) {
         pathStringTransformed = '';
@@ -92,61 +166,63 @@ const SVGElementsRenderer = (function () {
             pathStringTransformed += buildShapeString(pathNodes, pathNodes._length, pathNodes.c, mat);
           }
         }
-        itemData.caches[l] = pathStringTransformed;
+        data.caches[l] = pathStringTransformed;
       } else {
-        pathStringTransformed = itemData.caches[l];
+        pathStringTransformed = data.caches[l];
       }
-      itemData.styles[l].d += styleData.hd === true ? '' : pathStringTransformed;
-      itemData.styles[l]._mdf = redraw || itemData.styles[l]._mdf;
+      data.styles[l].d += styleData.hd === true ? '' : pathStringTransformed;
+      data.styles[l]._mdf = redraw || data.styles[l]._mdf;
     }
   }
 
-  function renderFill(styleData, itemData, isFirstFrame) {
-    const styleElem = itemData.style;
+  function renderFill(_styleData: TyData, itemData: unknown, isFirstFrame: boolean) {
+    const item = itemData as FillItemData;
+    const styleElem = item.style;
 
-    if (itemData.c._mdf || isFirstFrame) {
+    if (item.c._mdf || isFirstFrame) {
       styleElem.pElem.setAttribute(
         'fill',
-        'rgb(' + bmFloor(itemData.c.v[0]) + ',' + bmFloor(itemData.c.v[1]) + ',' + bmFloor(itemData.c.v[2]) + ')',
+        'rgb(' + bmFloor(item.c.v[0]) + ',' + bmFloor(item.c.v[1]) + ',' + bmFloor(item.c.v[2]) + ')',
       );
     }
-    if (itemData.o._mdf || isFirstFrame) {
-      styleElem.pElem.setAttribute('fill-opacity', itemData.o.v);
+    if (item.o._mdf || isFirstFrame) {
+      styleElem.pElem.setAttribute('fill-opacity', String(item.o.v));
     }
   }
 
-  function renderGradientStroke(styleData, itemData, isFirstFrame) {
+  function renderGradientStroke(styleData: TyData, itemData: unknown, isFirstFrame: boolean) {
     renderGradient(styleData, itemData, isFirstFrame);
     renderStroke(styleData, itemData, isFirstFrame);
   }
 
-  function renderGradient(styleData, itemData, isFirstFrame) {
-    const gfill = itemData.gf;
-    const hasOpacity = itemData.g._hasOpacity;
-    const pt1 = itemData.s.v;
-    const pt2 = itemData.e.v;
+  function renderGradient(styleData: TyData, itemData: unknown, isFirstFrame: boolean) {
+    const item = itemData as GradientItemData;
+    const gfill = item.gf;
+    const hasOpacity = !!item.g._hasOpacity;
+    const pt1 = item.s.v;
+    const pt2 = item.e.v;
 
-    if (itemData.o._mdf || isFirstFrame) {
+    if (item.o._mdf || isFirstFrame) {
       const attr = styleData.ty === 'gf' ? 'fill-opacity' : 'stroke-opacity';
-      itemData.style.pElem.setAttribute(attr, itemData.o.v);
+      item.style.pElem.setAttribute(attr, String(item.o.v));
     }
-    if (itemData.s._mdf || isFirstFrame) {
+    if (item.s._mdf || isFirstFrame) {
       const attr1 = styleData.t === 1 ? 'x1' : 'cx';
       const attr2 = attr1 === 'x1' ? 'y1' : 'cy';
-      gfill.setAttribute(attr1, pt1[0]);
-      gfill.setAttribute(attr2, pt1[1]);
-      if (hasOpacity && !itemData.g._collapsable) {
-        itemData.of.setAttribute(attr1, pt1[0]);
-        itemData.of.setAttribute(attr2, pt1[1]);
+      gfill.setAttribute(attr1, String(pt1[0]));
+      gfill.setAttribute(attr2, String(pt1[1]));
+      if (hasOpacity && !item.g._collapsable && item.of) {
+        item.of.setAttribute(attr1, String(pt1[0]));
+        item.of.setAttribute(attr2, String(pt1[1]));
       }
     }
-    let stops;
-    let i;
-    let len;
-    let stop;
-    if (itemData.g._cmdf || isFirstFrame) {
-      stops = itemData.cst;
-      const cValues = itemData.g.c;
+    let stops: SVGStopElement[];
+    let i: number;
+    let len: number;
+    let stop: SVGStopElement;
+    if (item.g._cmdf || isFirstFrame) {
+      stops = item.cst;
+      const cValues = item.g.c!;
       len = stops.length;
       for (i = 0; i < len; i += 1) {
         stop = stops[i];
@@ -157,86 +233,86 @@ const SVGElementsRenderer = (function () {
         );
       }
     }
-    if (hasOpacity && (itemData.g._omdf || isFirstFrame)) {
-      const oValues = itemData.g.o;
-      if (itemData.g._collapsable) {
-        stops = itemData.cst;
+    if (hasOpacity && (item.g._omdf || isFirstFrame)) {
+      const oValues = item.g.o!;
+      if (item.g._collapsable) {
+        stops = item.cst;
       } else {
-        stops = itemData.ost;
+        stops = item.ost!;
       }
       len = stops.length;
       for (i = 0; i < len; i += 1) {
         stop = stops[i];
-        if (!itemData.g._collapsable) {
+        if (!item.g._collapsable) {
           stop.setAttribute('offset', oValues[i * 2] + '%');
         }
-        stop.setAttribute('stop-opacity', oValues[i * 2 + 1]);
+        stop.setAttribute('stop-opacity', String(oValues[i * 2 + 1]));
       }
     }
     if (styleData.t === 1) {
-      if (itemData.e._mdf || isFirstFrame) {
-        gfill.setAttribute('x2', pt2[0]);
-        gfill.setAttribute('y2', pt2[1]);
-        if (hasOpacity && !itemData.g._collapsable) {
-          itemData.of.setAttribute('x2', pt2[0]);
-          itemData.of.setAttribute('y2', pt2[1]);
+      if (item.e._mdf || isFirstFrame) {
+        gfill.setAttribute('x2', String(pt2[0]));
+        gfill.setAttribute('y2', String(pt2[1]));
+        if (hasOpacity && !item.g._collapsable && item.of) {
+          item.of.setAttribute('x2', String(pt2[0]));
+          item.of.setAttribute('y2', String(pt2[1]));
         }
       }
     } else {
-      let rad;
-      if (itemData.s._mdf || itemData.e._mdf || isFirstFrame) {
+      let rad: number | undefined;
+      if (item.s._mdf || item.e._mdf || isFirstFrame) {
         rad = Math.sqrt(Math.pow(pt1[0] - pt2[0], 2) + Math.pow(pt1[1] - pt2[1], 2));
-        gfill.setAttribute('r', rad);
-        if (hasOpacity && !itemData.g._collapsable) {
-          itemData.of.setAttribute('r', rad);
+        gfill.setAttribute('r', String(rad));
+        if (hasOpacity && !item.g._collapsable && item.of) {
+          item.of.setAttribute('r', String(rad));
         }
       }
-      if (itemData.s._mdf || itemData.e._mdf || itemData.h._mdf || itemData.a._mdf || isFirstFrame) {
+      if (item.s._mdf || item.e._mdf || item.h._mdf || item.a._mdf || isFirstFrame) {
         if (!rad) {
           rad = Math.sqrt(Math.pow(pt1[0] - pt2[0], 2) + Math.pow(pt1[1] - pt2[1], 2));
         }
         const ang = Math.atan2(pt2[1] - pt1[1], pt2[0] - pt1[0]);
 
-        let percent = itemData.h.v;
+        let percent = item.h.v;
         if (percent >= 1) {
           percent = 0.99;
         } else if (percent <= -1) {
           percent = -0.99;
         }
         const dist = rad * percent;
-        const x = Math.cos(ang + itemData.a.v) * dist + pt1[0];
-        const y = Math.sin(ang + itemData.a.v) * dist + pt1[1];
-        gfill.setAttribute('fx', x);
-        gfill.setAttribute('fy', y);
-        if (hasOpacity && !itemData.g._collapsable) {
-          itemData.of.setAttribute('fx', x);
-          itemData.of.setAttribute('fy', y);
+        const x = Math.cos(ang + item.a.v) * dist + pt1[0];
+        const y = Math.sin(ang + item.a.v) * dist + pt1[1];
+        gfill.setAttribute('fx', String(x));
+        gfill.setAttribute('fy', String(y));
+        if (hasOpacity && !item.g._collapsable && item.of) {
+          item.of.setAttribute('fx', String(x));
+          item.of.setAttribute('fy', String(y));
         }
       }
-      // gfill.setAttribute('fy','200');
     }
   }
 
-  function renderStroke(styleData, itemData, isFirstFrame) {
-    const styleElem = itemData.style;
-    const d = itemData.d;
+  function renderStroke(styleData: TyData, itemData: unknown, isFirstFrame: boolean) {
+    const item = itemData as StrokeItemData;
+    const styleElem = item.style;
+    const d = item.d;
     if (d && (d._mdf || isFirstFrame) && d.dashStr) {
       styleElem.pElem.setAttribute('stroke-dasharray', d.dashStr);
-      styleElem.pElem.setAttribute('stroke-dashoffset', d.dashoffset[0]);
+      styleElem.pElem.setAttribute('stroke-dashoffset', String(d.dashoffset[0]));
     }
-    if (itemData.c && (itemData.c._mdf || isFirstFrame)) {
+    if (item.c && (item.c._mdf || isFirstFrame)) {
       styleElem.pElem.setAttribute(
         'stroke',
-        'rgb(' + bmFloor(itemData.c.v[0]) + ',' + bmFloor(itemData.c.v[1]) + ',' + bmFloor(itemData.c.v[2]) + ')',
+        'rgb(' + bmFloor(item.c.v[0]) + ',' + bmFloor(item.c.v[1]) + ',' + bmFloor(item.c.v[2]) + ')',
       );
     }
-    if (itemData.o._mdf || isFirstFrame) {
-      styleElem.pElem.setAttribute('stroke-opacity', itemData.o.v);
+    if (item.o._mdf || isFirstFrame) {
+      styleElem.pElem.setAttribute('stroke-opacity', String(item.o.v));
     }
-    if (itemData.w._mdf || isFirstFrame) {
-      styleElem.pElem.setAttribute('stroke-width', itemData.w.v);
+    if (item.w._mdf || isFirstFrame) {
+      styleElem.pElem.setAttribute('stroke-width', String(item.w.v));
       if (styleElem.msElem) {
-        styleElem.msElem.setAttribute('stroke-width', itemData.w.v);
+        styleElem.msElem.setAttribute('stroke-width', String(item.w.v));
       }
     }
   }

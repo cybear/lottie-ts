@@ -1,4 +1,4 @@
-// @ts-nocheck
+/* eslint-disable @typescript-eslint/no-explicit-any -- expression runtime hooks on property prototypes */
 import { extendPrototype } from '../functionExtensions';
 import { createSizedArray, createTypedArray } from '../helpers/arrays';
 import ShapePropertyFactory from '../shapes/ShapeProperty';
@@ -12,7 +12,7 @@ import expressionHelpers from './expressionHelpers';
 import ExpressionManager from './ExpressionManager';
 
 function addPropertyDecorator() {
-  function loopOut(type, duration, durationFlag) {
+  function loopOut(this: any, type: any, duration: any, durationFlag: any) {
     if (!this.k || !this.keyframes) {
       return this.pv;
     }
@@ -90,7 +90,7 @@ function addPropertyDecorator() {
     ); // eslint-disable-line
   }
 
-  function loopIn(type, duration, durationFlag) {
+  function loopIn(this: any, type: any, duration: any, durationFlag: any) {
     if (!this.k) {
       return this.pv;
     }
@@ -166,7 +166,7 @@ function addPropertyDecorator() {
     ); // eslint-disable-line
   }
 
-  function smooth(width, samples) {
+  function smooth(this: any, width: any, samples: any) {
     if (!this.k) {
       return this.pv;
     }
@@ -181,7 +181,7 @@ function addPropertyDecorator() {
     const sampleFrequency = samples > 1 ? (endFrame - initFrame) / (samples - 1) : 1;
     let i = 0;
     let j = 0;
-    let value;
+    let value: any;
     if (this.pv.length) {
       value = createTypedArray('float32', this.pv.length);
     } else {
@@ -209,7 +209,7 @@ function addPropertyDecorator() {
     return value;
   }
 
-  function getTransformValueAtTime(time) {
+  function getTransformValueAtTime(this: any, time: any) {
     if (!this._transformCachingAtTime) {
       this._transformCachingAtTime = {
         v: new Matrix(),
@@ -264,13 +264,13 @@ function addPropertyDecorator() {
     /// /
   }
 
-  function getTransformStaticValueAtTime() {
+  function getTransformStaticValueAtTime(this: any) {
     return this.v.clone(new Matrix());
   }
 
   const getTransformProperty = TransformPropertyFactory.getTransformProperty;
-  TransformPropertyFactory.getTransformProperty = function (elem, data, container) {
-    const prop = getTransformProperty(elem, data, container);
+  (TransformPropertyFactory as any).getTransformProperty = function (elem: any, data: any, container: any) {
+    const prop = getTransformProperty(elem, data, container) as any;
     if (prop.dynamicProperties.length) {
       prop.getValueAtTime = getTransformValueAtTime.bind(prop);
     } else {
@@ -281,7 +281,7 @@ function addPropertyDecorator() {
   };
 
   const propertyGetProp = PropertyFactory.getProp;
-  PropertyFactory.getProp = function (elem, data, type, mult, container) {
+  (PropertyFactory as any).getProp = function (elem: any, data: any, type: any, mult: any, container: any) {
     const prop = propertyGetProp(elem, data, type, mult, container);
     // prop.getVelocityAtTime = getVelocityAtTime;
     // prop.loopOut = loopOut;
@@ -299,7 +299,7 @@ function addPropertyDecorator() {
     prop.getSpeedAtTime = expressionHelpers.getSpeedAtTime.bind(prop);
     prop.numKeys = data.a === 1 ? data.k.length : 0;
     prop.propertyIndex = data.ix;
-    let value = 0;
+    let value: any = 0;
     if (type !== 0) {
       value = createTypedArray('float32', data.a === 1 ? data.k[0].s.length : data.k.length);
     }
@@ -316,11 +316,11 @@ function addPropertyDecorator() {
     return prop;
   };
 
-  function getShapeValueAtTime(frameNum) {
+  function getShapeValueAtTime(this: any, frameNum: any) {
     // For now this caching object is created only when needed instead of creating it when the shape is initialized.
     if (!this._cachingAtTime) {
       this._cachingAtTime = {
-        shapeValue: shapePool.clone(this.pv),
+        shapeValue: (shapePool as any).clone(this.pv),
         lastIndex: 0,
         lastTime: initialDefaultFrame,
       };
@@ -336,11 +336,11 @@ function addPropertyDecorator() {
     return this._cachingAtTime.shapeValue;
   }
 
-  const ShapePropertyConstructorFunction = ShapePropertyFactory.getConstructorFunction();
-  const KeyframedShapePropertyConstructorFunction = ShapePropertyFactory.getKeyframedConstructorFunction();
+  const ShapePropertyConstructorFunction = (ShapePropertyFactory as any).getConstructorFunction();
+  const KeyframedShapePropertyConstructorFunction = (ShapePropertyFactory as any).getKeyframedConstructorFunction();
 
   class ShapeExpressions {
-    vertices(prop, time) {
+    vertices(this: any, prop: any, time?: any) {
       if (this.k) {
         this.getValue();
       }
@@ -363,23 +363,23 @@ function addPropertyDecorator() {
       return arr;
     }
 
-    points(time) {
+    points(this: any, time?: any) {
       return this.vertices('v', time);
     }
 
-    inTangents(time) {
+    inTangents(this: any, time?: any) {
       return this.vertices('i', time);
     }
 
-    outTangents(time) {
+    outTangents(this: any, time?: any) {
       return this.vertices('o', time);
     }
 
-    isClosed() {
+    isClosed(this: any) {
       return this.v.c;
     }
 
-    pointOnPath(perc, time) {
+    pointOnPath(this: any, perc: any, time?: any) {
       let shapePath = this.v;
       if (time !== undefined) {
         shapePath = this.getValueAtTime(time, 0);
@@ -422,7 +422,7 @@ function addPropertyDecorator() {
       return pt;
     }
 
-    vectorOnPath(perc, time, vectorType) {
+    vectorOnPath(this: any, perc: any, time?: any, vectorType?: any) {
       // perc doesn't use triple equality because it can be a Number object as well as a primitive.
       if (perc == 1) {
         // eslint-disable-line eqeqeq
@@ -446,25 +446,27 @@ function addPropertyDecorator() {
       return unitVector;
     }
 
-    tangentOnPath(perc, time) {
+    tangentOnPath(this: any, perc: any, time?: any) {
       return this.vectorOnPath(perc, time, 'tangent');
     }
 
-    normalOnPath(perc, time) {
+    normalOnPath(this: any, perc: any, time?: any) {
       return this.vectorOnPath(perc, time, 'normal');
     }
   }
 
-  ShapeExpressions.prototype.setGroupProperty = expressionHelpers.setGroupProperty;
-  ShapeExpressions.prototype.getValueAtTime = expressionHelpers.getStaticValueAtTime;
+  (ShapeExpressions.prototype as any).setGroupProperty = expressionHelpers.setGroupProperty;
+  (ShapeExpressions.prototype as any).getValueAtTime = expressionHelpers.getStaticValueAtTime;
 
-  extendPrototype([ShapeExpressions], ShapePropertyConstructorFunction);
-  extendPrototype([ShapeExpressions], KeyframedShapePropertyConstructorFunction);
+  extendPrototype([ShapeExpressions], ShapePropertyConstructorFunction as any);
+  extendPrototype([ShapeExpressions], KeyframedShapePropertyConstructorFunction as any);
   KeyframedShapePropertyConstructorFunction.prototype.getValueAtTime = getShapeValueAtTime;
-  KeyframedShapePropertyConstructorFunction.prototype.initiateExpression = ExpressionManager.initiateExpression;
+  KeyframedShapePropertyConstructorFunction.prototype.initiateExpression = (
+    ExpressionManager as any
+  ).initiateExpression;
 
-  const propertyGetShapeProp = ShapePropertyFactory.getShapeProp;
-  ShapePropertyFactory.getShapeProp = function (elem, data, type, arr, trims) {
+  const propertyGetShapeProp = (ShapePropertyFactory as any).getShapeProp;
+  (ShapePropertyFactory as any).getShapeProp = function (elem: any, data: any, type: any, arr: any, trims: any) {
     const prop = propertyGetShapeProp(elem, data, type, arr, trims);
     prop.propertyIndex = data.ix;
     prop.lock = false;

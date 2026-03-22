@@ -1,6 +1,6 @@
-// @ts-nocheck
+/* eslint-disable @typescript-eslint/no-explicit-any -- bundle entry: template globals + loose lottie object */
 import { setLocationHref, setWebWorker } from '../main';
-import animationManager from '../animation/AnimationManager';
+import animationManagerImport from '../animation/AnimationManager';
 import {
   setDefaultCurveSegments,
   getDefaultCurveSegments,
@@ -13,39 +13,42 @@ import PropertyFactory from '../utils/PropertyFactory';
 import ShapePropertyFactory from '../utils/shapes/ShapeProperty';
 import Matrix from '../3rd_party/transformation-matrix';
 
-const lottie = {};
+const animationManager = animationManagerImport as Record<string, any>;
+
+const lottie: Record<string, any> = {};
 const standalone = '__[STANDALONE]__';
 const animationData = '__[ANIMATIONDATA]__';
 let renderer = '';
+let queryString = '';
 
-function setLocation(href) {
+function setLocation(href: string) {
   setLocationHref(href);
 }
 
 function searchAnimations() {
-  if (standalone === true) {
+  if ((standalone as any) === true) {
     animationManager.searchAnimations(animationData, standalone, renderer);
   } else {
     animationManager.searchAnimations();
   }
 }
 
-function setSubframeRendering(flag) {
+function setSubframeRendering(flag: boolean) {
   setSubframeEnabled(flag);
 }
 
-function setPrefix(prefix) {
+function setPrefix(prefix: string) {
   setIdPrefix(prefix);
 }
 
-function loadAnimation(params) {
-  if (standalone === true) {
+function loadAnimation(params: any) {
+  if ((standalone as any) === true) {
     params.animationData = JSON.parse(animationData);
   }
   return animationManager.loadAnimation(params);
 }
 
-function setQuality(value) {
+function setQuality(value: any) {
   if (typeof value === 'string') {
     switch (value) {
       case 'high':
@@ -73,13 +76,13 @@ function inBrowser() {
   return typeof navigator !== 'undefined';
 }
 
-function installPlugin(type, plugin) {
+function installPlugin(type: string, plugin: any) {
   if (type === 'expressions') {
     setExpressionsPlugin(plugin);
   }
 }
 
-function getFactory(name) {
+function getFactory(name: string) {
   switch (name) {
     case 'propertyFactory':
       return PropertyFactory;
@@ -128,7 +131,7 @@ function checkReady() {
   }
 }
 
-function getQueryVariable(variable) {
+function getQueryVariable(variable: string) {
   const vars = queryString.split('&');
   for (let i = 0; i < vars.length; i += 1) {
     const pair = vars[i].split('=');
@@ -139,7 +142,6 @@ function getQueryVariable(variable) {
   }
   return null;
 }
-let queryString = '';
 if (standalone) {
   const scripts = document.getElementsByTagName('script');
   const index = scripts.length - 1;
@@ -147,7 +149,7 @@ if (standalone) {
     src: '',
   };
   queryString = myScript.src ? myScript.src.replace(/^[^\?]+\??/, '') : ''; // eslint-disable-line no-useless-escape
-  renderer = getQueryVariable('renderer');
+  renderer = getQueryVariable('renderer') ?? '';
 }
 const readyStateCheckInterval = setInterval(checkReady, 100);
 
@@ -155,9 +157,9 @@ const readyStateCheckInterval = setInterval(checkReady, 100);
 try {
   if (
     !(typeof exports === 'object' && typeof module !== 'undefined') &&
-    !(typeof define === 'function' && define.amd) // eslint-disable-line no-undef
+    !(typeof (globalThis as any).define === 'function' && (globalThis as any).define.amd)
   ) {
-    window.bodymovin = lottie;
+    (window as any).bodymovin = lottie;
   }
 } catch {
   //

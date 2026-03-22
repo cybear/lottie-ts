@@ -1,29 +1,57 @@
-// @ts-nocheck
 import { getLocationHref } from '../../main';
 import { createElementID } from '../../utils/common';
 import filtersFactory from '../../utils/filters';
+import type { BaseInitLayerData, GlobalData, RenderableComponentEntry } from '../../types/lottieRuntime';
+import type EffectsManager from '../../EffectsManager';
 
-const registeredEffects = {};
+/** SVG filter instance registered via `registerEffect` (constructor varies per effect). */
+export interface SvgRegisteredEffectInstance {
+  renderFrame(_isFirstFrame: boolean): void;
+  type?: string | number;
+}
+
+type SvgEffectConstructor = new (
+  filter: SVGElement,
+  filterManager: unknown,
+  elem: SVGEffectsLayerHost,
+  id: string,
+  source: string,
+) => SvgRegisteredEffectInstance;
+
+const registeredEffects: Partial<Record<number, { effect: SvgEffectConstructor; countsAsEffect: boolean }>> = {};
 const idPrefix = 'filter_result_';
 
+/** Layer host for `SVGEffects` (SVG / hybrid SVG path). */
+export interface SVGEffectsLayerHost {
+  data: BaseInitLayerData;
+  globalData: GlobalData;
+  layerElement: SVGElement;
+  effectsManager: EffectsManager;
+  addRenderableComponent(c: RenderableComponentEntry): void;
+}
+
 class SVGEffects {
-  constructor(elem) {
-    let i;
+  filters: SvgRegisteredEffectInstance[];
+
+  constructor(elem: SVGEffectsLayerHost) {
+    let i: number;
     let source = 'SourceGraphic';
-    const len = elem.data.ef ? elem.data.ef.length : 0;
+    const ef = elem.data.ef;
+    const len = ef ? ef.length : 0;
     const filId = createElementID();
     const fil = filtersFactory.createFilter(filId, true);
     let count = 0;
     this.filters = [];
-    let filterManager;
+    let filterManager: SvgRegisteredEffectInstance | null;
     for (i = 0; i < len; i += 1) {
       filterManager = null;
-      const type = elem.data.ef[i].ty;
-      if (registeredEffects[type]) {
-        const Effect = registeredEffects[type].effect;
+      const type = ef![i].ty as number;
+      const reg = registeredEffects[type];
+      if (reg) {
+        const Effect = reg.effect;
         filterManager = new Effect(fil, elem.effectsManager.effectElements[i], elem, idPrefix + count, source);
         source = idPrefix + count;
-        if (registeredEffects[type].countsAsEffect) {
+        if (reg.countsAsEffect) {
           count += 1;
         }
       }
@@ -32,7 +60,7 @@ class SVGEffects {
       }
     }
     if (count) {
-      elem.globalData.defs.appendChild(fil);
+      (elem.globalData.defs as SVGDefsElement).appendChild(fil);
       elem.layerElement.setAttribute('filter', 'url(' + getLocationHref() + '#' + filId + ')');
     }
     if (this.filters.length) {
@@ -40,18 +68,18 @@ class SVGEffects {
     }
   }
 
-  renderFrame(_isFirstFrame) {
-    let i;
+  renderFrame(_isFirstFrame: boolean) {
+    let i: number;
     const len = this.filters.length;
     for (i = 0; i < len; i += 1) {
       this.filters[i].renderFrame(_isFirstFrame);
     }
   }
 
-  getEffects(type) {
-    let i;
+  getEffects(type: string | number) {
+    let i: number;
     const len = this.filters.length;
-    const effects = [];
+    const effects: SvgRegisteredEffectInstance[] = [];
     for (i = 0; i < len; i += 1) {
       if (this.filters[i].type === type) {
         effects.push(this.filters[i]);
@@ -61,7 +89,7 @@ class SVGEffects {
   }
 }
 
-export function registerEffect(id, effect, countsAsEffect) {
+export function registerEffect(id: number, effect: SvgEffectConstructor, countsAsEffect: boolean): void {
   registeredEffects[id] = {
     effect,
     countsAsEffect,

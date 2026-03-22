@@ -1,43 +1,52 @@
-// @ts-nocheck
 import PropertyFactory from '../utils/PropertyFactory';
+import type { EffectJsonEntry } from '../types/lottieRuntime';
 
 class SliderEffect {
-  constructor(data, elem, container) {
+  declare p: unknown;
+  constructor(data: EffectJsonEntry, elem: unknown, container: unknown) {
     this.p = PropertyFactory.getProp(elem, data.v, 0, 0, container);
   }
 }
 class AngleEffect {
-  constructor(data, elem, container) {
+  declare p: unknown;
+  constructor(data: EffectJsonEntry, elem: unknown, container: unknown) {
     this.p = PropertyFactory.getProp(elem, data.v, 0, 0, container);
   }
 }
 class ColorEffect {
-  constructor(data, elem, container) {
+  declare p: unknown;
+  constructor(data: EffectJsonEntry, elem: unknown, container: unknown) {
     this.p = PropertyFactory.getProp(elem, data.v, 1, 0, container);
   }
 }
 class PointEffect {
-  constructor(data, elem, container) {
+  declare p: unknown;
+  constructor(data: EffectJsonEntry, elem: unknown, container: unknown) {
     this.p = PropertyFactory.getProp(elem, data.v, 1, 0, container);
   }
 }
 class LayerIndexEffect {
-  constructor(data, elem, container) {
+  declare p: unknown;
+  constructor(data: EffectJsonEntry, elem: unknown, container: unknown) {
     this.p = PropertyFactory.getProp(elem, data.v, 0, 0, container);
   }
 }
 class MaskIndexEffect {
-  constructor(data, elem, container) {
+  declare p: unknown;
+  constructor(data: EffectJsonEntry, elem: unknown, container: unknown) {
     this.p = PropertyFactory.getProp(elem, data.v, 0, 0, container);
   }
 }
 class CheckboxEffect {
-  constructor(data, elem, container) {
+  declare p: unknown;
+  constructor(data: EffectJsonEntry, elem: unknown, container: unknown) {
     this.p = PropertyFactory.getProp(elem, data.v, 0, 0, container);
   }
 }
 class NoValueEffect {
-  constructor() {
+  declare p: Record<string, never>;
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  constructor(_data?: unknown, _elem?: unknown, _container?: unknown) {
     this.p = {};
   }
 }

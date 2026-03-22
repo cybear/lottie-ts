@@ -1,4 +1,3 @@
-// @ts-nocheck
 /**
  * @file
  * Handles element's layer frame update.
@@ -6,7 +5,15 @@
  *
  */
 
+import type { GlobalData, LayerDynamicProperty } from '../../types/lottieRuntime';
+
 class FrameElement {
+  _isFirstFrame!: boolean;
+  dynamicProperties!: LayerDynamicProperty[];
+  _mdf!: boolean;
+  globalData!: GlobalData;
+  _isParent?: boolean;
+
   /**
    * @function
    * Initializes frame related properties.
@@ -31,7 +38,7 @@ class FrameElement {
    * if layers is currently in range
    *
    */
-  prepareProperties(num, isVisible) {
+  prepareProperties(num: number, isVisible: boolean) {
     let i;
     const len = this.dynamicProperties.length;
     for (i = 0; i < len; i += 1) {
@@ -45,7 +52,7 @@ class FrameElement {
     }
   }
 
-  addDynamicProperty(prop) {
+  addDynamicProperty(prop: LayerDynamicProperty) {
     if (this.dynamicProperties.indexOf(prop) === -1) {
       this.dynamicProperties.push(prop);
     }

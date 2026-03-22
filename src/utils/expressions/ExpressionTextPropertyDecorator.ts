@@ -1,21 +1,21 @@
-// @ts-nocheck
+/* eslint-disable @typescript-eslint/no-explicit-any -- patches TextProperty prototype */
 import TextProperty from '../text/TextProperty';
 import ExpressionManager from './ExpressionManager';
 
 function addDecorator() {
-  function searchExpressions() {
+  function searchExpressions(this: any) {
     if (this.data.d.x) {
-      this.calculateExpression = ExpressionManager.initiateExpression.bind(this)(this.elem, this.data.d, this);
+      this.calculateExpression = (ExpressionManager as any).initiateExpression.bind(this)(this.elem, this.data.d, this);
       this.addEffect(this.getExpressionValue.bind(this));
       return true;
     }
     return null;
   }
 
-  TextProperty.prototype.getExpressionValue = function (currentValue, text) {
+  (TextProperty.prototype as any).getExpressionValue = function (this: any, currentValue: any, text: any) {
     const newValue = this.calculateExpression(text);
     if (currentValue.t !== newValue) {
-      const newData = {};
+      const newData: Record<string, unknown> = {};
       this.copyData(newData, currentValue);
       newData.t = newValue.toString();
       newData.__complete = false;
@@ -24,14 +24,14 @@ function addDecorator() {
     return currentValue;
   };
 
-  TextProperty.prototype.searchProperty = function () {
+  (TextProperty.prototype as any).searchProperty = function (this: any) {
     const isKeyframed = this.searchKeyframes();
     const hasExpressions = this.searchExpressions();
     this.kf = isKeyframed || hasExpressions;
     return this.kf;
   };
 
-  TextProperty.prototype.searchExpressions = searchExpressions;
+  (TextProperty.prototype as any).searchExpressions = searchExpressions;
 }
 
 function initialize() {

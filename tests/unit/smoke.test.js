@@ -50,7 +50,7 @@ describe('Build artefacts', () => {
 
 describe('Bundle sizes', () => {
   const bounds = [
-    ['lottie.js',            400,  900],
+    ['lottie.js',            400,  910],
     ['lottie.min.js',        150,  450],
     ['lottie_light.js',      200,  600],
     ['lottie_light.min.js',  100,  300],

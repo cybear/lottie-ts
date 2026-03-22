@@ -1,4 +1,4 @@
-// @ts-nocheck
+/* eslint-disable @typescript-eslint/no-explicit-any -- text animator path + bez math */
 import { addSaturationToRGB, addBrightnessToRGB, addHueToRGB } from '../common';
 import DynamicPropertyContainer from '../helpers/dynamicProperties';
 import { createSizedArray } from '../helpers/arrays';
@@ -10,9 +10,21 @@ import LetterProps from './LetterProps';
 
 class TextAnimatorProperty extends DynamicPropertyContainer {
   mHelper = new Matrix();
-  defaultPropsArray = [];
+  defaultPropsArray: any[] = [];
 
-  constructor(textData, renderType, elem) {
+  _isFirstFrame!: boolean;
+  _hasMaskedPath!: boolean;
+  _frameId!: number;
+  _textData!: any;
+  _renderType!: string;
+  _elem!: any;
+  _animatorsData!: any[];
+  _pathData!: any;
+  _moreOptions!: { alignment: any };
+  renderedLetters!: any[];
+  lettersChangedFlag!: boolean;
+
+  constructor(textData: any, renderType: string, elem: any) {
     super();
     this._isFirstFrame = true;
     this._hasMaskedPath = false;
@@ -55,7 +67,7 @@ class TextAnimatorProperty extends DynamicPropertyContainer {
     this._moreOptions.alignment = getProp(this._elem, this._textData.m.a, 1, 0, this);
   }
 
-  getMeasures(documentData, lettersChangedFlag) {
+  getMeasures(documentData: any, lettersChangedFlag: any) {
     this.lettersChangedFlag = lettersChangedFlag;
     if (!this._mdf && !this._isFirstFrame && !lettersChangedFlag && (!this._hasMaskedPath || !this._pathData.m._mdf)) {
       return;
@@ -67,23 +79,23 @@ class TextAnimatorProperty extends DynamicPropertyContainer {
     const matrixHelper = this.mHelper;
     const renderType = this._renderType;
     let renderedLettersCount = this.renderedLetters.length;
-    let xPos;
-    let yPos;
-    let i;
-    let len;
+    let xPos: any;
+    let yPos: any;
+    let i: any;
+    let len: any;
     const letters = documentData.l;
-    let pathInfo;
-    let currentLength;
-    let currentPoint;
-    let segmentLength;
-    let flag;
-    let pointInd;
-    let segmentInd;
-    let prevPoint;
-    let points;
-    let segments;
-    let partialLength;
-    let totalLength;
+    let pathInfo: any;
+    let currentLength: any = 0;
+    let currentPoint: any;
+    let segmentLength: any = 0;
+    let flag: any;
+    let pointInd: any = 1;
+    let segmentInd: any = 0;
+    let prevPoint: any;
+    let points: any;
+    let segments: any;
+    let partialLength: any;
+    let totalLength: any = 0;
     let perc;
     let tanAngle;
     let mask;
@@ -180,9 +192,9 @@ class TextAnimatorProperty extends DynamicPropertyContainer {
     const initPointInd = pointInd;
     let currentLine = -1;
     let elemOpacity;
-    let sc;
-    let sw;
-    let fc;
+    let sc: any;
+    let sw: any;
+    let fc: any;
     let k;
     let letterSw;
     let letterSc;
@@ -634,14 +646,14 @@ class TextAnimatorProperty extends DynamicPropertyContainer {
       }
 
       if (renderedLettersCount <= i) {
-        letterValue = new LetterProps(letterO, letterSw, letterSc, letterFc, letterM, letterP);
+        letterValue = new LetterProps(letterO as any, letterSw, letterSc, letterFc, letterM, letterP);
         this.renderedLetters.push(letterValue);
         renderedLettersCount += 1;
         this.lettersChangedFlag = true;
       } else {
         letterValue = this.renderedLetters[i];
         this.lettersChangedFlag =
-          letterValue.update(letterO, letterSw, letterSc, letterFc, letterM, letterP) || this.lettersChangedFlag;
+          letterValue.update(letterO as any, letterSw, letterSc, letterFc, letterM, letterP) || this.lettersChangedFlag;
       }
     }
   }

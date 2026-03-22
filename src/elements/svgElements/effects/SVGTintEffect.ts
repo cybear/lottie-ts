@@ -1,11 +1,22 @@
-// @ts-nocheck
 import createNS from '../../../utils/helpers/svg_elements';
 import SVGComposableEffect from './SVGComposableEffect';
+import type { GroupEffectLike } from '../../../types/lottieRuntime';
+import type { SVGEffectsLayerHost } from '../SVGEffects';
 
 const linearFilterValue = '0.3333 0.3333 0.3333 0 0 0.3333 0.3333 0.3333 0 0 0.3333 0.3333 0.3333 0 0 0 0 0';
 
 class SVGTintFilter extends SVGComposableEffect {
-  constructor(filter, filterManager, elem, id, source) {
+  declare filterManager: GroupEffectLike;
+  declare linearFilter: SVGElement;
+  declare matrixFilter: SVGElement;
+
+  constructor(
+    filter: SVGElement,
+    filterManager: GroupEffectLike,
+    _elem: SVGEffectsLayerHost,
+    id: string,
+    source: string,
+  ) {
     super();
     this.filterManager = filterManager;
     let feColorMatrix = createNS('feColorMatrix');
@@ -26,11 +37,11 @@ class SVGTintFilter extends SVGComposableEffect {
     filter.appendChild(feMerge);
   }
 
-  renderFrame(forceRender) {
+  renderFrame(forceRender: boolean) {
     if (forceRender || this.filterManager._mdf) {
-      const colorBlack = this.filterManager.effectElements[0].p.v;
-      const colorWhite = this.filterManager.effectElements[1].p.v;
-      const opacity = this.filterManager.effectElements[2].p.v / 100;
+      const colorBlack = this.filterManager.effectElements[0].p.v as number[];
+      const colorWhite = this.filterManager.effectElements[1].p.v as number[];
+      const opacity = (this.filterManager.effectElements[2].p.v as number) / 100;
       this.linearFilter.setAttribute('values', linearFilterValue + ' ' + opacity + ' 0');
       this.matrixFilter.setAttribute(
         'values',

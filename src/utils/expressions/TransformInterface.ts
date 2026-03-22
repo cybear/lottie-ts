@@ -1,9 +1,9 @@
-// @ts-nocheck
+/* eslint-disable @typescript-eslint/no-explicit-any -- transform property proxies for expressions */
 import ExpressionPropertyInterface from './ExpressionValueFactory';
 
 const TransformExpressionInterface = (function () {
-  return function (transform) {
-    function _thisFunction(name) {
+  return function (transform: any) {
+    const _thisFunction: any = function (name: string | number) {
       switch (name) {
         case 'scale':
         case 'Scale':
@@ -44,7 +44,7 @@ const TransformExpressionInterface = (function () {
         default:
           return null;
       }
-    }
+    };
     Object.defineProperty(_thisFunction, 'rotation', {
       get: ExpressionPropertyInterface(transform.r || transform.rz),
     });
@@ -63,10 +63,10 @@ const TransformExpressionInterface = (function () {
     Object.defineProperty(_thisFunction, 'scale', {
       get: ExpressionPropertyInterface(transform.s),
     });
-    let _px;
-    let _py;
-    let _pz;
-    let _transformFactory;
+    let _px: any;
+    let _py: any;
+    let _pz: any;
+    let _transformFactory: any;
     if (transform.p) {
       _transformFactory = ExpressionPropertyInterface(transform.p);
     } else {

@@ -1,19 +1,29 @@
-// @ts-nocheck
 import { createElementID } from '../utils/common';
 import createNS from '../utils/helpers/svg_elements';
+import type { AnimationItemRendererPartial, RenderConfig } from '../types/lottieRuntime';
 
 import SVGCompElement from '../elements/svgElements/SVGCompElement';
 import SVGRendererBase from './SVGRendererBase';
+import type { RendererElementInstance } from '../types/lottieRuntime';
+import type { RendererLayerData } from '../types/lottieRuntime';
+
+type SVGRendererConfig = Partial<RenderConfig> & {
+  preserveAspectRatio?: string;
+  title?: string;
+  description?: string;
+};
 
 class SVGRenderer extends SVGRendererBase {
-  constructor(animationItem, config) {
+  rendererType!: string;
+
+  constructor(animationItem: AnimationItemRendererPartial, config?: SVGRendererConfig) {
     super();
     this.animationItem = animationItem;
-    this.layers = null;
+    this.layers = null as unknown as RendererLayerData[];
     this.renderedFrame = -1;
-    this.svgElement = createNS('svg');
+    this.svgElement = createNS('svg') as SVGSVGElement;
     let ariaLabel = '';
-    if (config && config.title) {
+    if (config?.title) {
       const titleElement = createNS('title');
       const titleId = createElementID();
       titleElement.setAttribute('id', titleId);
@@ -21,7 +31,7 @@ class SVGRenderer extends SVGRendererBase {
       this.svgElement.appendChild(titleElement);
       ariaLabel += titleId;
     }
-    if (config && config.description) {
+    if (config?.description) {
       const descElement = createNS('desc');
       const descId = createElementID();
       descElement.setAttribute('id', descId);
@@ -30,13 +40,13 @@ class SVGRenderer extends SVGRendererBase {
       ariaLabel += ' ' + descId;
     }
     if (ariaLabel) {
-      this.svgElement.setAttribute('aria-labelledby', ariaLabel);
+      this.svgElement.setAttribute('aria-labelledby', ariaLabel.trim());
     }
     const defs = createNS('defs');
     this.svgElement.appendChild(defs);
     const maskElement = createNS('g');
     this.svgElement.appendChild(maskElement);
-    this.layerElement = maskElement;
+    this.layerElement = maskElement as SVGGElement;
     this.renderConfig = {
       preserveAspectRatio: (config && config.preserveAspectRatio) || 'xMidYMid meet',
       imagePreserveAspectRatio: (config && config.imagePreserveAspectRatio) || 'xMidYMid slice',
@@ -71,8 +81,8 @@ class SVGRenderer extends SVGRendererBase {
     this.rendererType = 'svg';
   }
 
-  createComp(data) {
-    return new SVGCompElement(data, this.globalData, this);
+  createComp(data: RendererLayerData): RendererElementInstance {
+    return new SVGCompElement(data, this.globalData, this) as unknown as RendererElementInstance;
   }
 }
 

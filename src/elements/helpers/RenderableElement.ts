@@ -1,5 +1,24 @@
-// @ts-nocheck
+import type {
+  FinalTransformOpacitySlice,
+  GlobalData,
+  LayerInOutData,
+  RenderableComponentEntry,
+} from '../../types/lottieRuntime';
+
 class RenderableElement {
+  isInRange!: boolean;
+  hidden!: boolean;
+  isTransparent!: boolean;
+  renderableComponents!: RenderableComponentEntry[];
+  finalTransform!: FinalTransformOpacitySlice;
+  globalData!: GlobalData;
+  data!: LayerInOutData;
+  _mdf!: boolean;
+  _isFirstFrame!: boolean;
+
+  declare hide: () => void;
+  declare show: () => void;
+
   initRenderable() {
     // layer's visibility related to inpoint and outpoint. Rename isVisible to isInRange
     this.isInRange = false;
@@ -11,25 +30,25 @@ class RenderableElement {
     this.renderableComponents = [];
   }
 
-  addRenderableComponent(component) {
+  addRenderableComponent(component: RenderableComponentEntry) {
     if (this.renderableComponents.indexOf(component) === -1) {
       this.renderableComponents.push(component);
     }
   }
 
-  removeRenderableComponent(component) {
+  removeRenderableComponent(component: RenderableComponentEntry) {
     if (this.renderableComponents.indexOf(component) !== -1) {
       this.renderableComponents.splice(this.renderableComponents.indexOf(component), 1);
     }
   }
 
-  prepareRenderableFrame(num) {
+  prepareRenderableFrame(num: number) {
     this.checkLayerLimits(num);
   }
 
   checkTransparency() {
     if (this.finalTransform.mProp.o.v <= 0) {
-      if (!this.isTransparent && this.globalData.renderConfig.hideOnTransparent) {
+      if (!this.isTransparent && this.globalData.renderConfig?.hideOnTransparent) {
         this.isTransparent = true;
         this.hide();
       }
@@ -47,7 +66,7 @@ class RenderableElement {
    * current frame number in Layer's time
    *
    */
-  checkLayerLimits(num) {
+  checkLayerLimits(num: number) {
     if (this.data.ip - this.data.st <= num && this.data.op - this.data.st > num) {
       if (this.isInRange !== true) {
         this.globalData._mdf = true;
@@ -83,9 +102,10 @@ class RenderableElement {
 
   getLayerSize() {
     if (this.data.ty === 5) {
-      return { w: this.data.textData.width, h: this.data.textData.height };
+      const td = this.data.textData;
+      return { w: td!.width, h: td!.height };
     }
-    return { w: this.data.width, h: this.data.height };
+    return { w: this.data.width as number, h: this.data.height as number };
   }
 }
 

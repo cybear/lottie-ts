@@ -1,20 +1,17 @@
-// @ts-nocheck
-const renderers = {};
+const renderers: Record<string, unknown> = {};
 
-const registerRenderer = (key, value) => {
+const registerRenderer = (key: string, value: unknown) => {
   renderers[key] = value;
 };
 
-function getRenderer(key) {
+function getRenderer(key: string): unknown {
   return renderers[key];
 }
 
-function getRegisteredRenderer() {
-  // Returns canvas by default for compatibility
+function getRegisteredRenderer(): string {
   if (renderers.canvas) {
     return 'canvas';
   }
-  // Returns any renderer that is registered
   for (const key in renderers) {
     if (renderers[key]) {
       return key;

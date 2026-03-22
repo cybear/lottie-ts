@@ -1,9 +1,34 @@
-// @ts-nocheck
 import ShapePropertyFactory from '../../../utils/shapes/ShapeProperty';
-import SVGShapeData from './SVGShapeData';
+import type { ShapePropertyFactoryApi } from '../../../utils/shapes/shapePropertyFactoryTypes';
+
+const shapePropFactory = ShapePropertyFactory as ShapePropertyFactoryApi;
+
+interface CVShapeJson {
+  ty: string;
+}
+
+interface CVStyleRow {
+  closed?: boolean;
+  transforms: unknown;
+  elements: Array<{
+    transforms: unknown;
+    trNodes: unknown[];
+  }>;
+}
+
+interface CVTransformsManagerLike {
+  addTransformSequence(transforms: unknown): unknown;
+}
+
+type StyledShapeEntry = { transforms: unknown; trNodes: unknown[] };
 
 class CVShapeData {
-  constructor(element, data, styles, transformsManager) {
+  styledShapes: StyledShapeEntry[];
+  tr: number[];
+  sh: unknown;
+  _isAnimated?: boolean;
+
+  constructor(element: unknown, data: CVShapeJson, styles: CVStyleRow[], transformsManager: CVTransformsManagerLike) {
     this.styledShapes = [];
     this.tr = [0, 0, 0, 0, 0, 0];
     let ty = 4;
@@ -14,10 +39,10 @@ class CVShapeData {
     } else if (data.ty === 'sr') {
       ty = 7;
     }
-    this.sh = ShapePropertyFactory.getShapeProp(element, data, ty, element);
-    let i;
+    this.sh = shapePropFactory.getShapeProp(element, data, ty);
+    let i: number;
     const len = styles.length;
-    let styledShape;
+    let styledShape: StyledShapeEntry;
     for (i = 0; i < len; i += 1) {
       if (!styles[i].closed) {
         styledShape = {
@@ -29,8 +54,10 @@ class CVShapeData {
       }
     }
   }
-}
 
-CVShapeData.prototype.setAsAnimated = SVGShapeData.prototype.setAsAnimated;
+  setAsAnimated() {
+    this._isAnimated = true;
+  }
+}
 
 export default CVShapeData;

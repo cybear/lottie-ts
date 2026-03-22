@@ -13,15 +13,24 @@ export interface LottieBezierInputPath {
   length(): number;
 }
 
-/** Output / working path from `shapePool.newElement()` (ShapePath). */
+/** Output / working path from `shapePool.newElement()` (ShapePath; points are pooled `Float32Array`). */
 export interface PooledShapePath {
   c: boolean;
   _length: number;
-  v: number[][];
-  o: number[][];
-  i: number[][];
+  v: (Float32Array | null)[];
+  o: (Float32Array | null)[];
+  i: (Float32Array | null)[];
   length(): number;
-  setTripleAt(vX: number, vY: number, oX: number, oY: number, iX: number, iY: number, index: number): void;
+  setTripleAt(
+    vX: number,
+    vY: number,
+    oX: number,
+    oY: number,
+    iX: number,
+    iY: number,
+    index: number,
+    replace?: boolean,
+  ): void;
 }
 
 /** Bezier segment from `PolynomialBezier.shapeSegment`. */

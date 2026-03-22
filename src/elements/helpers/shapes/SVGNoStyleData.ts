@@ -1,8 +1,10 @@
-// @ts-nocheck
-import DynamicPropertyContainer from '../../../utils/helpers/dynamicProperties';
+import DynamicPropertyContainer, { type DynamicPropertyContainerMixin } from '../../../utils/helpers/dynamicProperties';
 
 class SVGNoStyleData extends DynamicPropertyContainer {
-  constructor(elem, data, styleOb) {
+  declare getValue: () => void;
+  style: unknown;
+
+  constructor(elem: DynamicPropertyContainerMixin['container'], _data: unknown, styleOb: unknown) {
     super();
     this.initDynamicPropertyContainer(elem);
     this.getValue = this.iterateDynamicProperties;

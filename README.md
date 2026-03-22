@@ -3,7 +3,7 @@
 **lottie-ts** is a TypeScript rewrite of [lottie-web](https://github.com/airbnb/lottie-web) — the web player for animations exported from Adobe After Effects via the [Bodymovin](https://github.com/airbnb/lottie-web) plugin.
 
 Key improvements over the original:
-- Full **TypeScript** source with strict types
+- **TypeScript** source with **`strict`** compiler options; core player paths are typed without `@ts-nocheck`, and migration continues file-by-file across `src/`
 - **Tree-shakeable custom builds** — ship only the code your animations actually need
 - Modern toolchain: **Rollup**, **Vitest**, **ESLint + Prettier**, **Husky** pre-commit hooks
 - npm-managed dependencies (no vendored libraries)
@@ -342,6 +342,8 @@ Type-check:
 ```bash
 npm run typecheck
 ```
+
+Typed slices so far include renderer bases, composition elements, masking, the effects manager plus `SVGEffects` / `CVEffects`, effect value classes in `effects/SliderEffect.ts`, concrete SVG filter / transform effects (`TransformEffect`, composable filters, drop shadow, levels, blur, matte, stroke, etc.), canvas stack state in `CVContextData.ts`, canvas leaf layers (`CVImageElement`, `CVSolidElement`, `CVTextElement`, `CVShapeElement`), hybrid HTML camera/image layers (`HCameraElement`, `HImageElement`), shape pooling (`ShapePath`, `ShapeCollection`, `shape_pool`), `GradientProperty`, `DashProperty`, `renderersManager`, `PropertyFactory` (keyframes / value props), expression wiring (`Expressions.ts`, `expressionHelpers.ts`, `InterfacesProvider.ts`), and text selector / animator data helpers (`TextSelectorProperty`, `TextAnimatorDataProperty`). Remaining modules may still carry `@ts-nocheck` until they are migrated. For mixin order, `extendPrototype` inventory, and Track A/B notes, see [`docs/internal/prototype-modernization.md`](docs/internal/prototype-modernization.md).
 
 ### Custom / tree-shaken builds
 

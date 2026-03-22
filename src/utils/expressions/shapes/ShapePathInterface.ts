@@ -1,12 +1,12 @@
-// @ts-nocheck
+/* eslint-disable @typescript-eslint/no-explicit-any -- expression path proxy */
 import propertyGroupFactory from '../PropertyGroupFactory';
 import PropertyInterface from '../PropertyInterface';
 
 const ShapePathInterface = (function () {
-  return function pathInterfaceFactory(shape, view, propertyGroup) {
+  return function pathInterfaceFactory(shape: any, view: any, propertyGroup: any) {
     const prop = view.sh;
 
-    function interfaceFunction(val) {
+    const interfaceFunction: any = function (val: any) {
       if (
         val === 'Shape' ||
         val === 'shape' ||
@@ -18,7 +18,7 @@ const ShapePathInterface = (function () {
         return interfaceFunction.path;
       }
       return null;
-    }
+    };
 
     const _propertyGroup = propertyGroupFactory(interfaceFunction, propertyGroup);
     prop.setGroupProperty(PropertyInterface('Path', _propertyGroup));

@@ -1,70 +1,138 @@
-// @ts-nocheck
 import { createSizedArray } from '../utils/helpers/arrays';
 import createTag from '../utils/helpers/html_elements';
+import type {
+  AnimationItemRendererPartial,
+  AnimationRootData,
+  ElementData,
+  GlobalData,
+  GlobalDataCanvasImage,
+  GlobalDataCanvasLayer,
+  GlobalDataCanvasText,
+  RefIdLayerData,
+  RendererElementInstance,
+  RendererElementSlot,
+  RendererLayerData,
+  RenderConfig,
+  SolidColorLayerData,
+  TextLayerData,
+  ShapeJsonNode,
+} from '../types/lottieRuntime';
 import SVGRendererBase from './SVGRendererBase';
 import BaseRenderer from './BaseRenderer';
 import CVShapeElement from '../elements/canvasElements/CVShapeElement';
 import CVTextElement from '../elements/canvasElements/CVTextElement';
 import CVImageElement from '../elements/canvasElements/CVImageElement';
 import CVSolidElement from '../elements/canvasElements/CVSolidElement';
+import CVContextData from '../elements/canvasElements/CVContextData';
 
-class CanvasRendererBase extends BaseRenderer {
-  createShape(data) {
-    return new CVShapeElement(data, this.globalData, this);
+export interface CanvasTransformCanvas {
+  w: number;
+  h: number;
+  sx: number;
+  sy: number;
+  tx: number;
+  ty: number;
+  props?: number[];
+}
+
+export type CanvasRendererConfig = RenderConfig & {
+  clearCanvas: boolean;
+  dpr: number;
+  preserveAspectRatio: string;
+  context: CanvasRenderingContext2D | null;
+};
+
+abstract class CanvasRendererBase extends BaseRenderer {
+  declare animationItem: AnimationItemRendererPartial;
+  canvasContext!: CanvasRenderingContext2D;
+  contextData!: CVContextData;
+  transformCanvas!: CanvasTransformCanvas;
+  data!: AnimationRootData;
+  destroyed!: boolean;
+  renderedFrame!: number;
+  renderConfig!: CanvasRendererConfig;
+  declare globalData: GlobalData;
+  declare layers: RendererLayerData[];
+  declare elements: RendererElementSlot[];
+
+  abstract createComp(data: RendererLayerData): RendererElementInstance;
+
+  createShape(data: RendererLayerData): RendererElementInstance {
+    return new CVShapeElement(
+      data as unknown as ElementData & { shapes: ShapeJsonNode[] },
+      this.globalData as unknown as GlobalDataCanvasLayer,
+      this,
+    ) as unknown as RendererElementInstance;
   }
 
-  createText(data) {
-    return new CVTextElement(data, this.globalData, this);
+  createText(data: RendererLayerData): RendererElementInstance {
+    return new CVTextElement(
+      data as unknown as TextLayerData,
+      this.globalData as unknown as GlobalDataCanvasText,
+      this,
+    ) as unknown as RendererElementInstance;
   }
 
-  createImage(data) {
-    return new CVImageElement(data, this.globalData, this);
+  createImage(data: RendererLayerData): RendererElementInstance {
+    return new CVImageElement(
+      data as unknown as RefIdLayerData,
+      this.globalData as unknown as GlobalDataCanvasImage,
+      this,
+    ) as unknown as RendererElementInstance;
   }
 
-  createSolid(data) {
-    return new CVSolidElement(data, this.globalData, this);
+  createSolid(data: RendererLayerData): RendererElementInstance {
+    return new CVSolidElement(
+      data as unknown as SolidColorLayerData,
+      this.globalData as unknown as GlobalDataCanvasLayer,
+      this,
+    ) as unknown as RendererElementInstance;
   }
 
-  ctxTransform(props) {
+  createNull(data: RendererLayerData): RendererElementInstance {
+    return SVGRendererBase.prototype.createNull.call(this, data) as RendererElementInstance;
+  }
+
+  ctxTransform(props: number[]) {
     if (props[0] === 1 && props[1] === 0 && props[4] === 0 && props[5] === 1 && props[12] === 0 && props[13] === 0) {
       return;
     }
     this.canvasContext.transform(props[0], props[1], props[4], props[5], props[12], props[13]);
   }
 
-  ctxOpacity(op) {
+  ctxOpacity(op: number) {
     this.canvasContext.globalAlpha *= op < 0 ? 0 : op;
   }
 
-  ctxFillStyle(value) {
+  ctxFillStyle(value: string | CanvasGradient | CanvasPattern) {
     this.canvasContext.fillStyle = value;
   }
 
-  ctxStrokeStyle(value) {
+  ctxStrokeStyle(value: string | CanvasGradient | CanvasPattern) {
     this.canvasContext.strokeStyle = value;
   }
 
-  ctxLineWidth(value) {
+  ctxLineWidth(value: number) {
     this.canvasContext.lineWidth = value;
   }
 
-  ctxLineCap(value) {
+  ctxLineCap(value: CanvasLineCap) {
     this.canvasContext.lineCap = value;
   }
 
-  ctxLineJoin(value) {
+  ctxLineJoin(value: CanvasLineJoin) {
     this.canvasContext.lineJoin = value;
   }
 
-  ctxMiterLimit(value) {
+  ctxMiterLimit(value: number) {
     this.canvasContext.miterLimit = value;
   }
 
-  ctxFill(rule) {
+  ctxFill(rule: CanvasFillRule) {
     this.canvasContext.fill(rule);
   }
 
-  ctxFillRect(x, y, w, h) {
+  ctxFillRect(x: number, y: number, w: number, h: number) {
     this.canvasContext.fillRect(x, y, w, h);
   }
 
@@ -80,11 +148,11 @@ class CanvasRendererBase extends BaseRenderer {
     this.contextData.reset();
   }
 
-  save() {
+  save(_saveOnNativeFlag?: boolean) {
     this.canvasContext.save();
   }
 
-  restore(actionFlag) {
+  restore(actionFlag?: boolean) {
     if (!this.renderConfig.clearCanvas) {
       this.canvasContext.restore();
       return;
@@ -95,10 +163,14 @@ class CanvasRendererBase extends BaseRenderer {
     this.contextData.restore(actionFlag);
   }
 
-  configAnimation(animData) {
+  configAnimation(animData: AnimationRootData) {
     if (this.animationItem.wrapper) {
-      this.animationItem.container = createTag('canvas');
-      const containerStyle = this.animationItem.container.style;
+      this.animationItem.container = createTag('canvas') as HTMLCanvasElement;
+      const containerStyle = this.animationItem.container.style as CSSStyleDeclaration & {
+        mozTransformOrigin?: string;
+        webkitTransformOrigin?: string;
+        ['-webkit-transform']?: string;
+      };
       containerStyle.width = '100%';
       containerStyle.height = '100%';
       const origin = '0px 0px 0px';
@@ -106,17 +178,18 @@ class CanvasRendererBase extends BaseRenderer {
       containerStyle.mozTransformOrigin = origin;
       containerStyle.webkitTransformOrigin = origin;
       containerStyle['-webkit-transform'] = origin;
-      containerStyle.contentVisibility = this.renderConfig.contentVisibility;
+      containerStyle.contentVisibility = this.renderConfig.contentVisibility ?? 'visible';
       this.animationItem.wrapper.appendChild(this.animationItem.container);
-      this.canvasContext = this.animationItem.container.getContext('2d');
+      const canvasEl = this.animationItem.container as HTMLCanvasElement;
+      this.canvasContext = canvasEl.getContext('2d')!;
       if (this.renderConfig.className) {
-        this.animationItem.container.setAttribute('class', this.renderConfig.className);
+        canvasEl.setAttribute('class', this.renderConfig.className);
       }
       if (this.renderConfig.id) {
-        this.animationItem.container.setAttribute('id', this.renderConfig.id);
+        canvasEl.setAttribute('id', String(this.renderConfig.id));
       }
     } else {
-      this.canvasContext = this.renderConfig.context;
+      this.canvasContext = this.renderConfig.context!;
     }
     this.contextData.setContext(this.canvasContext);
     this.data = animData;
@@ -135,18 +208,18 @@ class CanvasRendererBase extends BaseRenderer {
     this.globalData.isDashed = false;
     this.globalData.progressiveLoad = this.renderConfig.progressiveLoad;
     this.globalData.transformCanvas = this.transformCanvas;
-    this.elements = createSizedArray(animData.layers.length);
+    this.elements = createSizedArray(animData.layers.length) as RendererElementSlot[];
 
     this.updateContainerSize();
   }
 
-  updateContainerSize(width, height) {
+  updateContainerSize(width?: number, height?: number) {
     this.reset();
-    let elementWidth;
-    let elementHeight;
+    let elementWidth: number;
+    let elementHeight: number;
     if (width) {
       elementWidth = width;
-      elementHeight = height;
+      elementHeight = height ?? width;
       this.canvasContext.canvas.width = elementWidth;
       this.canvasContext.canvas.height = elementHeight;
     } else {
@@ -249,7 +322,7 @@ class CanvasRendererBase extends BaseRenderer {
             this.elements[i].resize(this.globalData.transformCanvas);
         }
     } */
-    this.ctxTransform(this.transformCanvas.props);
+    this.ctxTransform(this.transformCanvas.props!);
     this.canvasContext.beginPath();
     this.canvasContext.rect(0, 0, this.transformCanvas.w, this.transformCanvas.h);
     this.canvasContext.closePath();
@@ -265,8 +338,9 @@ class CanvasRendererBase extends BaseRenderer {
     let i;
     const len = this.layers ? this.layers.length : 0;
     for (i = len - 1; i >= 0; i -= 1) {
-      if (this.elements[i] && this.elements[i].destroy) {
-        this.elements[i].destroy();
+      const slot = this.elements[i];
+      if (slot && slot !== true) {
+        (slot as RendererElementInstance).destroy();
       }
     }
     this.elements.length = 0;
@@ -275,7 +349,7 @@ class CanvasRendererBase extends BaseRenderer {
     this.destroyed = true;
   }
 
-  renderFrame(num, forceRender) {
+  renderFrame(num: number, forceRender?: boolean) {
     if (
       (this.renderedFrame === num && this.renderConfig.clearCanvas === true && !forceRender) ||
       this.destroyed ||
@@ -284,10 +358,10 @@ class CanvasRendererBase extends BaseRenderer {
       return;
     }
     this.renderedFrame = num;
-    this.globalData.frameNum = num - this.animationItem._isFirstFrame;
-    this.globalData.frameId += 1;
-    this.globalData._mdf = !this.renderConfig.clearCanvas || forceRender;
-    this.globalData.projectInterface.currentFrame = num;
+    this.globalData.frameNum = num - (this.animationItem._isFirstFrame ?? 0);
+    this.globalData.frameId = (this.globalData.frameId ?? 0) + 1;
+    this.globalData._mdf = !this.renderConfig.clearCanvas || !!forceRender;
+    (this.globalData.projectInterface as { currentFrame: number }).currentFrame = num;
 
     // console.log('--------');
     // console.log('NEW: ',num);
@@ -299,7 +373,7 @@ class CanvasRendererBase extends BaseRenderer {
 
     for (i = len - 1; i >= 0; i -= 1) {
       if (this.completeLayers || this.elements[i]) {
-        this.elements[i].prepareFrame(num - this.layers[i].st);
+        (this.elements[i] as RendererElementInstance).prepareFrame(num - this.layers[i].st);
       }
     }
     if (this.globalData._mdf) {
@@ -310,7 +384,7 @@ class CanvasRendererBase extends BaseRenderer {
       }
       for (i = len - 1; i >= 0; i -= 1) {
         if (this.completeLayers || this.elements[i]) {
-          this.elements[i].renderFrame();
+          (this.elements[i] as RendererElementInstance).renderFrame();
         }
       }
       if (this.renderConfig.clearCanvas !== true) {
@@ -319,12 +393,12 @@ class CanvasRendererBase extends BaseRenderer {
     }
   }
 
-  buildItem(pos) {
+  buildItem(pos: number) {
     const elements = this.elements;
     if (elements[pos] || this.layers[pos].ty === 99) {
       return;
     }
-    const element = this.createItem(this.layers[pos], this, this.globalData);
+    const element = this.createItem(this.layers[pos], this, this.globalData) as RendererElementInstance;
     elements[pos] = element;
     element.initExpressions();
     /* if(this.layers[pos].ty === 0){
@@ -334,20 +408,18 @@ class CanvasRendererBase extends BaseRenderer {
 
   checkPendingElements() {
     while (this.pendingElements.length) {
-      const element = this.pendingElements.pop();
+      const element = this.pendingElements.pop()!;
       element.checkParenting();
     }
   }
 
   hide() {
-    this.animationItem.container.style.display = 'none';
+    this.animationItem.container!.style.display = 'none';
   }
 
   show() {
-    this.animationItem.container.style.display = 'block';
+    this.animationItem.container!.style.display = 'block';
   }
 }
-
-CanvasRendererBase.prototype.createNull = SVGRendererBase.prototype.createNull;
 
 export default CanvasRendererBase;

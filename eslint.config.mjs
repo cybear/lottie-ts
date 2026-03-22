@@ -57,6 +57,7 @@ export default tseslint.config(
       'src/utils/PropertyFactory.ts',
       'src/utils/FontManager.ts',
       'src/utils/TransformProperty.ts',
+      'src/worker_wrapper.ts',
     ],
     rules: {
       // Legacy Lottie JSON / prototype mixins are intentionally untyped.

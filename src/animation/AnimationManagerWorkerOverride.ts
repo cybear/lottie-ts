@@ -1,16 +1,16 @@
-// @ts-nocheck
+/* eslint-disable @typescript-eslint/no-explicit-any -- worker animation manager registry */
 import AnimationItem from './AnimationItem';
 
 const animationManager = (function () {
-  const moduleOb = {};
-  const registeredAnimations = [];
+  const moduleOb: Record<string, any> = {};
+  const registeredAnimations: any[] = [];
   let initTime = 0;
   let len = 0;
   let playingAnimationsNum = 0;
   let _stopped = true;
   let _isFrozen = false;
 
-  function removeElement(ev) {
+  function removeElement(ev: any) {
     let i = 0;
     const animItem = ev.target;
     while (i < len) {
@@ -26,7 +26,7 @@ const animationManager = (function () {
     }
   }
 
-  function registerAnimation(element, animationData) {
+  function registerAnimation(element: any, animationData: any) {
     if (!element) {
       return null;
     }
@@ -62,7 +62,7 @@ const animationManager = (function () {
     playingAnimationsNum -= 1;
   }
 
-  function setupAnimation(animItem, element) {
+  function setupAnimation(animItem: any, element: any) {
     animItem.addEventListener('destroy', removeElement);
     animItem.addEventListener('_active', addPlayingCount);
     animItem.addEventListener('_idle', subtractPlayingCount);
@@ -70,34 +70,34 @@ const animationManager = (function () {
     len += 1;
   }
 
-  function loadAnimation(params) {
+  function loadAnimation(params: any) {
     const animItem = new AnimationItem();
     setupAnimation(animItem, null);
     animItem.setParams(params);
     return animItem;
   }
 
-  function setSpeed(val, animation) {
+  function setSpeed(val: any, animation: any) {
     let i;
     for (i = 0; i < len; i += 1) {
       registeredAnimations[i].animation.setSpeed(val, animation);
     }
   }
 
-  function setDirection(val, animation) {
+  function setDirection(val: any, animation: any) {
     let i;
     for (i = 0; i < len; i += 1) {
       registeredAnimations[i].animation.setDirection(val, animation);
     }
   }
 
-  function play(animation) {
+  function play(animation: any) {
     let i;
     for (i = 0; i < len; i += 1) {
       registeredAnimations[i].animation.play(animation);
     }
   }
-  function resume(nowTime) {
+  function resume(nowTime: number) {
     const elapsedTime = nowTime - initTime;
     let i;
     for (i = 0; i < len; i += 1) {
@@ -111,40 +111,40 @@ const animationManager = (function () {
     }
   }
 
-  function first(nowTime) {
+  function first(nowTime: number) {
     initTime = nowTime;
     requestAnimationFrame(resume);
   }
 
-  function pause(animation) {
+  function pause(animation: any) {
     let i;
     for (i = 0; i < len; i += 1) {
       registeredAnimations[i].animation.pause(animation);
     }
   }
 
-  function goToAndStop(value, isFrame, animation) {
+  function goToAndStop(value: any, isFrame: any, animation: any) {
     let i;
     for (i = 0; i < len; i += 1) {
       registeredAnimations[i].animation.goToAndStop(value, isFrame, animation);
     }
   }
 
-  function stop(animation) {
+  function stop(animation: any) {
     let i;
     for (i = 0; i < len; i += 1) {
       registeredAnimations[i].animation.stop(animation);
     }
   }
 
-  function togglePause(animation) {
+  function togglePause(animation: any) {
     let i;
     for (i = 0; i < len; i += 1) {
       registeredAnimations[i].animation.togglePause(animation);
     }
   }
 
-  function destroy(animation) {
+  function destroy(animation: any) {
     let i;
     for (i = len - 1; i >= 0; i -= 1) {
       registeredAnimations[i].animation.destroy(animation);

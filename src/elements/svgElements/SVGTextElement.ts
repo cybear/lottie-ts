@@ -1,4 +1,4 @@
-// @ts-nocheck
+/* eslint-disable @typescript-eslint/no-explicit-any -- text spans, glyph comps, matrix layout */
 import { extendPrototype } from '../../utils/functionExtensions';
 import { createSizedArray } from '../../utils/helpers/arrays';
 import createNS from '../../utils/helpers/svg_elements';
@@ -11,13 +11,62 @@ import RenderableDOMElement from '../helpers/RenderableDOMElement';
 import ITextElement from '../TextElement';
 import { getSVGCompElement } from './svgElementRefs';
 import SVGShapeElement from './SVGShapeElement';
+import Matrix from '../../3rd_party/transformation-matrix';
+import type {
+  ElementData,
+  GlobalDataDomText,
+  GlobalDataSvgShape,
+  RendererLayerData,
+  ShapeJsonNode,
+  TextLayerData,
+} from '../../types/lottieRuntime';
+import type TextProperty from '../../utils/text/TextProperty';
+import type TextAnimatorProperty from '../../utils/text/TextAnimatorProperty';
 
-const emptyShapeData = {
+const emptyShapeData: ElementData & { shapes: ShapeJsonNode[] } = {
   shapes: [],
 };
 
+type MatrixInstance = InstanceType<typeof Matrix>;
+
+type SvgGlyphInstance = InstanceType<typeof SVGShapeElement> & {
+  prepareFrame(n: number): void;
+  renderFrame(): void;
+  destroy(): void;
+  layerElement: SVGGElement;
+  _debug?: boolean;
+  _mdf?: boolean;
+};
+
 class SVGTextLottieElement {
-  constructor(data, globalData, comp) {
+  declare initElement: (data: TextLayerData, globalData: GlobalDataDomText, comp: unknown) => void;
+  declare layerElement: SVGGElement;
+  declare globalData: GlobalDataDomText;
+  declare data: TextLayerData;
+  declare comp: { renderedFrame: number };
+  declare mHelper: MatrixInstance;
+  declare textProperty: TextProperty;
+  declare textAnimator: TextAnimatorProperty;
+  declare validateText: () => void;
+  declare applyTextPropertiesToMatrix: ITextElement['applyTextPropertiesToMatrix'];
+  declare buildColor: ITextElement['buildColor'];
+  declare prepareFrame: (num: number) => void;
+  declare renderFrame: () => void;
+  declare renderedFrame: number;
+  declare _mdf: boolean;
+  declare hidden: boolean;
+  declare _isFirstFrame: boolean;
+  declare addDynamicProperty: (p: unknown) => void;
+
+  textSpans: any[];
+  renderType: string;
+  textContainer!: SVGTextElement;
+  renderedLetters!: unknown[];
+  lettersChangedFlag!: boolean;
+  _sizeChanged!: boolean;
+  bbox!: { top: number; left: number; width: number; height: number };
+
+  constructor(data: TextLayerData, globalData: GlobalDataDomText, comp: unknown) {
     this.textSpans = [];
     this.renderType = 'svg';
     this.initElement(data, globalData, comp);
@@ -25,11 +74,11 @@ class SVGTextLottieElement {
 
   createContent() {
     if (this.data.singleShape && !this.globalData.fontManager.chars) {
-      this.textContainer = createNS('text');
+      this.textContainer = createNS('text') as SVGTextElement;
     }
   }
 
-  buildTextContents(textArray) {
+  buildTextContents(textArray: string[]) {
     let i = 0;
     const len = textArray.length;
     const textContents = [];
@@ -47,7 +96,7 @@ class SVGTextLottieElement {
     return textContents;
   }
 
-  buildShapeData(data, scale) {
+  buildShapeData(data: { shapes?: ShapeJsonNode[] }, scale: number) {
     // data should probably be cloned to apply scale separately to each instance of a text on different layers
     // but since text internal content gets only rendered once and then it's never rerendered,
     // it's probably safe not to clone data and reuse always the same instance even if the object is mutated.
@@ -55,7 +104,7 @@ class SVGTextLottieElement {
     if (data.shapes && data.shapes.length) {
       const shape = data.shapes[0];
       if (shape.it) {
-        const shapeItem = shape.it[shape.it.length - 1];
+        const shapeItem = shape.it[shape.it.length - 1] as ShapeJsonNode & { s?: { k: number[] } };
         if (shapeItem.s) {
           shapeItem.s.k[0] = scale;
           shapeItem.s.k[1] = scale;
@@ -79,9 +128,9 @@ class SVGTextLottieElement {
     }
     if (documentData.sc) {
       this.layerElement.setAttribute('stroke', this.buildColor(documentData.sc));
-      this.layerElement.setAttribute('stroke-width', documentData.sw);
+      this.layerElement.setAttribute('stroke-width', String(documentData.sw));
     }
-    this.layerElement.setAttribute('font-size', documentData.finalSize);
+    this.layerElement.setAttribute('font-size', String(documentData.finalSize));
     const fontData = this.globalData.fontManager.getFontByName(documentData.f);
     if (fontData.fClass) {
       this.layerElement.setAttribute('class', fontData.fClass);
@@ -92,7 +141,7 @@ class SVGTextLottieElement {
       this.layerElement.setAttribute('font-style', fStyle);
       this.layerElement.setAttribute('font-weight', fWeight);
     }
-    this.layerElement.setAttribute('aria-label', documentData.t);
+    this.layerElement.setAttribute('aria-label', String(documentData.t));
 
     const letters = documentData.l || [];
     const usesGlyphs = !!this.globalData.fontManager.chars;
@@ -121,7 +170,7 @@ class SVGTextLottieElement {
           break;
       }
       tElement.setAttribute('text-anchor', justify);
-      tElement.setAttribute('letter-spacing', trackingOffset);
+      tElement.setAttribute('letter-spacing', String(trackingOffset));
       const textContent = this.buildTextContents(documentData.finalText);
       len = textContent.length;
       yPos = documentData.ps ? documentData.ps[1] + documentData.ascent : 0;
@@ -155,7 +204,7 @@ class SVGTextLottieElement {
           };
         }
         if (!usesGlyphs || !singleShape || i === 0) {
-          tSpan = cachedSpansLength > i ? this.textSpans[i].span : createNS(usesGlyphs ? 'g' : 'text');
+          tSpan = cachedSpansLength > i ? this.textSpans[i].span : (createNS(usesGlyphs ? 'g' : 'text') as SVGElement);
           if (cachedSpansLength <= i) {
             tSpan.setAttribute('stroke-linecap', 'butt');
             tSpan.setAttribute('stroke-linejoin', 'round');
@@ -191,41 +240,56 @@ class SVGTextLottieElement {
             fontData.fStyle,
             this.globalData.fontManager.getFontByName(documentData.f).fFamily,
           );
-          let glyphElement;
+          if (!charData) {
+            continue;
+          }
+          let glyphElement: SvgGlyphInstance;
           // t === 1 means the character has been replaced with an animated shaped
           if (charData.t === 1) {
-            glyphElement = new (getSVGCompElement())(charData.data, this.globalData, this);
+            glyphElement = new (getSVGCompElement())(
+              charData.data as RendererLayerData,
+              this.globalData,
+              this,
+            ) as SvgGlyphInstance;
           } else {
-            let data = emptyShapeData;
+            let data: ElementData & { shapes: ShapeJsonNode[] } = emptyShapeData;
             if (charData.data && charData.data.shapes) {
-              data = this.buildShapeData(charData.data, documentData.finalSize);
+              data = this.buildShapeData(charData.data as any, documentData.finalSize) as ElementData & {
+                shapes: ShapeJsonNode[];
+              };
             }
-            glyphElement = new SVGShapeElement(data, this.globalData, this);
+            glyphElement = new SVGShapeElement(
+              data,
+              this.globalData as unknown as GlobalDataSvgShape,
+              this,
+            ) as SvgGlyphInstance;
           }
           if (this.textSpans[i].glyph) {
             const glyph = this.textSpans[i].glyph;
-            this.textSpans[i].childSpan.removeChild(glyph.layerElement);
+            this.textSpans[i].childSpan!.removeChild(glyph.layerElement);
             glyph.destroy();
           }
           this.textSpans[i].glyph = glyphElement;
           glyphElement._debug = true;
           glyphElement.prepareFrame(0);
           glyphElement.renderFrame();
-          this.textSpans[i].childSpan.appendChild(glyphElement.layerElement);
+          this.textSpans[i].childSpan!.appendChild(glyphElement.layerElement);
           // when using animated shapes, the layer will be scaled instead of replacing the internal scale
           // this might have issues with strokes and might need a different solution
           if (charData.t === 1) {
-            this.textSpans[i].childSpan.setAttribute(
+            this.textSpans[i].childSpan!.setAttribute(
               'transform',
               'scale(' + documentData.finalSize / 100 + ',' + documentData.finalSize / 100 + ')',
             );
           }
         } else {
-          if (singleShape) {
+          if (singleShape && tSpan) {
             tSpan.setAttribute('transform', 'translate(' + matrixHelper.props[12] + ',' + matrixHelper.props[13] + ')');
           }
-          tSpan.textContent = letters[i].val;
-          tSpan.setAttributeNS('http://www.w3.org/XML/1998/namespace', 'xml:space', 'preserve');
+          if (tSpan) {
+            tSpan.textContent = letters[i].val;
+            tSpan.setAttributeNS('http://www.w3.org/XML/1998/namespace', 'xml:space', 'preserve');
+          }
         }
         //
       }

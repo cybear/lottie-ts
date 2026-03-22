@@ -1,4 +1,3 @@
-// @ts-nocheck
-const BaseTextElement = function () {};
+class BaseTextElement {}
 
 export default BaseTextElement;

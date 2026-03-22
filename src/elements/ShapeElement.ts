@@ -1,22 +1,31 @@
-// @ts-nocheck
+import type { ShapeModifierLike } from '../types/lottieRuntime';
 import ProcessedElement from './helpers/shapes/ProcessedElement';
 
 class IShapeElement {
-  addShapeToModifiers(data) {
-    let i;
+  declare shapeModifiers: ShapeModifierLike[];
+  declare shapes: Array<{ sh: { reset(): void } }>;
+  declare processedElements: ProcessedElement[];
+  declare _isFirstFrame: boolean;
+  declare prepareRenderableFrame: (num: number) => void;
+  declare prepareProperties: (num: number, isVisible: boolean) => void;
+  declare isInRange: boolean;
+
+  addShapeToModifiers(data: unknown) {
+    let i: number;
     const len = this.shapeModifiers.length;
     for (i = 0; i < len; i += 1) {
       this.shapeModifiers[i].addShape(data);
     }
   }
 
-  isShapeInAnimatedModifiers(data) {
-    const i = 0;
+  isShapeInAnimatedModifiers(data: unknown) {
+    let i = 0;
     const len = this.shapeModifiers.length;
     while (i < len) {
       if (this.shapeModifiers[i].isAnimatedWithShape(data)) {
         return true;
       }
+      i += 1;
     }
     return false;
   }
@@ -25,14 +34,14 @@ class IShapeElement {
     if (!this.shapeModifiers.length) {
       return;
     }
-    let i;
+    let i: number;
     let len = this.shapes.length;
     for (i = 0; i < len; i += 1) {
       this.shapes[i].sh.reset();
     }
 
     len = this.shapeModifiers.length;
-    let shouldBreakProcess;
+    let shouldBreakProcess: boolean;
     for (i = len - 1; i >= 0; i -= 1) {
       shouldBreakProcess = this.shapeModifiers[i].processShapes(this._isFirstFrame);
       // workaround to fix cases where a repeater resets the shape so the following processes get called twice
@@ -43,7 +52,7 @@ class IShapeElement {
     }
   }
 
-  searchProcessedElement(elem) {
+  searchProcessedElement(elem: unknown) {
     const elements = this.processedElements;
     let i = 0;
     const len = elements.length;
@@ -56,7 +65,7 @@ class IShapeElement {
     return 0;
   }
 
-  addProcessedElement(elem, pos) {
+  addProcessedElement(elem: unknown, pos: number) {
     const elements = this.processedElements;
     let i = elements.length;
     while (i) {
@@ -69,7 +78,7 @@ class IShapeElement {
     elements.push(new ProcessedElement(elem, pos));
   }
 
-  prepareFrame(num) {
+  prepareFrame(num: number) {
     this.prepareRenderableFrame(num);
     this.prepareProperties(num, this.isInRange);
   }

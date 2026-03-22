@@ -1,11 +1,31 @@
-// @ts-nocheck
+/* eslint-disable @typescript-eslint/no-explicit-any -- repeater copies / matrix stack */
 import PropertyFactory from '../PropertyFactory';
 import Matrix from '../../3rd_party/transformation-matrix';
 import TransformPropertyFactory from '../TransformProperty';
 import { ShapeModifier } from './ShapeModifiers';
 
+type MatrixInstance = InstanceType<typeof Matrix>;
+
 class RepeaterModifier extends ShapeModifier {
-  initModifierProperties(elem, data) {
+  c!: { v: number; effectsSequence?: unknown[] };
+  o!: { v: number; effectsSequence?: unknown[] };
+  so!: { v: number };
+  eo!: { v: number };
+  tr!: any;
+  data!: { m: number };
+  pMatrix!: MatrixInstance;
+  rMatrix!: MatrixInstance;
+  sMatrix!: MatrixInstance;
+  tMatrix!: MatrixInstance;
+  matrix!: MatrixInstance;
+  arr!: any[];
+  pos!: number;
+  elemsData!: any[];
+  _currentCopies!: number;
+  _elements!: any[];
+  _groups!: any[];
+
+  initModifierProperties(elem: unknown, data: any) {
     this.getValue = this.processKeys;
     this.c = PropertyFactory.getProp(elem, data.c, 0, null, this);
     this.o = PropertyFactory.getProp(elem, data.o, 0, null, this);
@@ -24,7 +44,14 @@ class RepeaterModifier extends ShapeModifier {
     this.matrix = new Matrix();
   }
 
-  applyTransforms(pMatrix, rMatrix, sMatrix, transform, perc, inv) {
+  applyTransforms(
+    pMatrix: MatrixInstance,
+    rMatrix: MatrixInstance,
+    sMatrix: MatrixInstance,
+    transform: any,
+    perc: number,
+    inv: boolean,
+  ) {
     const dir = inv ? -1 : 1;
     const scaleX = transform.s.v[0] + (1 - transform.s.v[0]) * (1 - perc);
     const scaleY = transform.s.v[1] + (1 - transform.s.v[1]) * (1 - perc);
@@ -37,7 +64,7 @@ class RepeaterModifier extends ShapeModifier {
     sMatrix.translate(transform.a.v[0], transform.a.v[1], transform.a.v[2]);
   }
 
-  init(elem, arr, pos, elemsData) {
+  init(elem: unknown, arr: any[], pos: number, elemsData: any[]) {
     this.elem = elem;
     this.arr = arr;
     this.pos = pos;
@@ -60,7 +87,7 @@ class RepeaterModifier extends ShapeModifier {
     }
   }
 
-  resetElements(elements) {
+  resetElements(elements: any[]) {
     let i;
     const len = elements.length;
     for (i = 0; i < len; i += 1) {
@@ -71,13 +98,13 @@ class RepeaterModifier extends ShapeModifier {
     }
   }
 
-  cloneElements(elements) {
+  cloneElements(elements: any[]) {
     const newElements = JSON.parse(JSON.stringify(elements));
     this.resetElements(newElements);
     return newElements;
   }
 
-  changeGroupRender(elements, renderFlag) {
+  changeGroupRender(elements: any[], renderFlag: boolean) {
     let i;
     const len = elements.length;
     for (i = 0; i < len; i += 1) {
@@ -88,7 +115,7 @@ class RepeaterModifier extends ShapeModifier {
     }
   }
 
-  processShapes(_isFirstFrame) {
+  processShapes(_isFirstFrame: boolean): boolean {
     let items;
     let itemsTransform;
     let i;

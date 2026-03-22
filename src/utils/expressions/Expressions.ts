@@ -1,15 +1,34 @@
-// @ts-nocheck
 import CompExpressionInterface from './CompInterface';
-import ExpressionManager from './ExpressionManager';
+import ExpressionManagerImport from './ExpressionManager';
+
+/** Narrow surface for `ExpressionManager` for callers that only need `resetFrame` / `initiateExpression`. */
+type ExpressionManagerApi = {
+  resetFrame: () => void;
+  initiateExpression: (elem: unknown, data: unknown, prop: unknown) => () => void;
+};
+
+const ExpressionManager = ExpressionManagerImport as ExpressionManagerApi;
+
+interface ExpressionRegistrant {
+  release(): void;
+}
+
+interface AnimationWithRenderer {
+  renderer: {
+    compInterface?: unknown;
+    globalData: {
+      projectInterface: { registerComposition(renderer: unknown): void };
+      pushExpression?: () => void;
+      popExpression?: () => void;
+      registerExpressionProperty?: (expression: ExpressionRegistrant) => void;
+    };
+  };
+}
 
 const Expressions = (function () {
-  const ob = {};
-  ob.initExpressions = initExpressions;
-  ob.resetFrame = ExpressionManager.resetFrame;
-
-  function initExpressions(animation) {
+  function initExpressions(animation: AnimationWithRenderer) {
     let stackCount = 0;
-    const registers = [];
+    const registers: ExpressionRegistrant[] = [];
 
     function pushExpression() {
       stackCount += 1;
@@ -22,14 +41,14 @@ const Expressions = (function () {
       }
     }
 
-    function registerExpressionProperty(expression) {
+    function registerExpressionProperty(expression: ExpressionRegistrant) {
       if (registers.indexOf(expression) === -1) {
         registers.push(expression);
       }
     }
 
     function releaseInstances() {
-      let i;
+      let i: number;
       const len = registers.length;
       for (i = 0; i < len; i += 1) {
         registers[i].release();
@@ -43,7 +62,11 @@ const Expressions = (function () {
     animation.renderer.globalData.popExpression = popExpression;
     animation.renderer.globalData.registerExpressionProperty = registerExpressionProperty;
   }
-  return ob;
+
+  return {
+    initExpressions,
+    resetFrame: ExpressionManager.resetFrame,
+  };
 })();
 
 export default Expressions;

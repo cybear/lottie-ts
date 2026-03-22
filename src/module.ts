@@ -1,7 +1,6 @@
-// @ts-nocheck
+/* eslint-disable @typescript-eslint/no-explicit-any -- generated bundle entry: template globals + loose lottie object */
 /* <%= contents %> */
 import { setLocationHref, setWebWorker } from './main';
-import animationManager from './animation/AnimationManager';
 import {
   setDefaultCurveSegments,
   getDefaultCurveSegments,
@@ -13,37 +12,45 @@ import {
 import PropertyFactory from './utils/PropertyFactory';
 import ShapePropertyFactory from './utils/shapes/ShapeProperty';
 import Matrix from './3rd_party/transformation-matrix';
+import animationManagerImport from './animation/AnimationManager';
 
-const lottie = {};
+const animationManager = animationManagerImport as Record<string, any>;
 
-function setLocation(href) {
+const lottie: Record<string, any> = {};
+
+function setLocation(href: string) {
   setLocationHref(href);
 }
 
+const standalone = '__[STANDALONE]__';
+const animationData = '__[ANIMATIONDATA]__';
+let renderer = '';
+let queryString = '';
+
 function searchAnimations() {
-  if (standalone === true) {
+  if ((standalone as any) === true) {
     animationManager.searchAnimations(animationData, standalone, renderer);
   } else {
     animationManager.searchAnimations();
   }
 }
 
-function setSubframeRendering(flag) {
+function setSubframeRendering(flag: boolean) {
   setSubframeEnabled(flag);
 }
 
-function setPrefix(prefix) {
+function setPrefix(prefix: string) {
   setIdPrefix(prefix);
 }
 
-function loadAnimation(params) {
-  if (standalone === true) {
+function loadAnimation(params: any) {
+  if ((standalone as any) === true) {
     params.animationData = JSON.parse(animationData);
   }
   return animationManager.loadAnimation(params);
 }
 
-function setQuality(value) {
+function setQuality(value: string | number) {
   if (typeof value === 'string') {
     switch (value) {
       case 'high':
@@ -57,8 +64,8 @@ function setQuality(value) {
         setDefaultCurveSegments(10);
         break;
     }
-  } else if (!isNaN(value) && value > 1) {
-    setDefaultCurveSegments(value);
+  } else if (!isNaN(value as number) && (value as number) > 1) {
+    setDefaultCurveSegments(value as number);
   }
   if (getDefaultCurveSegments() >= 50) {
     roundValues(false);
@@ -71,13 +78,13 @@ function inBrowser() {
   return typeof navigator !== 'undefined';
 }
 
-function installPlugin(type, plugin) {
+function installPlugin(type: string, plugin: unknown) {
   if (type === 'expressions') {
     setExpressionsPlugin(plugin);
   }
 }
 
-function getFactory(name) {
+function getFactory(name: string) {
   switch (name) {
     case 'propertyFactory':
       return PropertyFactory;
@@ -126,7 +133,7 @@ function checkReady() {
   }
 }
 
-function getQueryVariable(variable) {
+function getQueryVariable(variable: string) {
   const vars = queryString.split('&');
   for (let i = 0; i < vars.length; i += 1) {
     const pair = vars[i].split('=');
@@ -137,10 +144,7 @@ function getQueryVariable(variable) {
   }
   return null;
 }
-const standalone = '__[STANDALONE]__';
-const animationData = '__[ANIMATIONDATA]__';
-let renderer = '';
-let queryString;
+
 if (standalone) {
   const scripts = document.getElementsByTagName('script');
   const index = scripts.length - 1;
@@ -148,7 +152,7 @@ if (standalone) {
     src: '',
   };
   queryString = myScript.src ? myScript.src.replace(/^[^\?]+\??/, '') : ''; // eslint-disable-line no-useless-escape
-  renderer = getQueryVariable('renderer');
+  renderer = getQueryVariable('renderer') ?? '';
 }
 const readyStateCheckInterval = setInterval(checkReady, 100);
 

@@ -1,8 +1,21 @@
-// @ts-nocheck
+/* eslint-disable @typescript-eslint/no-explicit-any -- mouse offset path graph */
 import { ShapeModifiers, ShapeModifier } from './ShapeModifiers';
 
+type MousePositionBucket = {
+  v: number[][];
+  o: number[][];
+  i: number[][];
+  distV: number[];
+  distO: number[];
+  distI: number[];
+};
+
 class MouseModifier extends ShapeModifier {
-  processKeys(forceRender) {
+  data!: { dc: number; maxDist: number; ss?: number; mx?: number };
+  /** Per-shape, per-path smoothing state */
+  positions!: MousePositionBucket[][];
+
+  processKeys(forceRender?: boolean) {
     if (this.elem.globalData.frameId === this.frameId && !forceRender) {
       return;
     }
@@ -13,7 +26,7 @@ class MouseModifier extends ShapeModifier {
     this.positions.push([]);
   }
 
-  processPath(path, mouseCoords, positions) {
+  processPath(path: any, mouseCoords: number[], positions: MousePositionBucket) {
     let i;
     const len = path.v.length;
     const vValues = [];
@@ -86,8 +99,8 @@ class MouseModifier extends ShapeModifier {
     /// / OPTION B
     /* for(i=0;i<len;i+=1){
         if(!positions.v[i]){
-            positions.v[i] = [path.v[i][0],path.v[i][1]];
-            positions.o[i] = [path.o[i][0],path.o[i][1]];
+            positions.v[i] = [path.v[i][0], path.v[i][1]];
+            positions.o[i] = [path.o[i][0], path.o[i][1]];
             positions.i[i] = [path.i[i][0],path.i[i][1]];
             positions.distV[i] = 0;
 
@@ -170,11 +183,13 @@ class MouseModifier extends ShapeModifier {
       const newPaths = [];
       for (i = 0; i < len; i += 1) {
         shapeData = this.shapes[i];
-        if (!shapeData.shape._mdf && !this._mdf) {
-          shapeData.shape.paths = shapeData.last;
+        const sh = shapeData.shape as any;
+        const entry = shapeData as typeof shapeData & { last?: unknown[] };
+        if (!sh._mdf && !this._mdf) {
+          sh.paths = entry.last;
         } else {
-          shapeData.shape._mdf = true;
-          shapePaths = shapeData.shape.paths;
+          sh._mdf = true;
+          shapePaths = sh.paths;
           jLen = shapePaths.length;
           for (j = 0; j < jLen; j += 1) {
             if (!this.positions[i][j]) {
@@ -187,16 +202,16 @@ class MouseModifier extends ShapeModifier {
                 distI: [],
               };
             }
-            newPaths.push(this.processPath(shapePaths[j], localMouseCoords, this.positions[i][j]));
+            newPaths.push(this.processPath(shapePaths[j], localMouseCoords, this.positions[i][j]!));
           }
-          shapeData.shape.paths = newPaths;
-          shapeData.last = newPaths;
+          sh.paths = newPaths;
+          entry.last = newPaths;
         }
       }
     }
   }
 
-  initModifierProperties(elem, data) {
+  initModifierProperties(elem: unknown, data: MouseModifier['data']) {
     this.getValue = this.processKeys;
     this.data = data;
     this.positions = [];

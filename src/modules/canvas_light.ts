@@ -1,4 +1,3 @@
-// @ts-nocheck
 import lottie from './main';
 import { ShapeModifiers } from '../utils/shapes/ShapeModifiers';
 import TrimModifier from '../utils/shapes/TrimModifier';

@@ -1,13 +1,39 @@
-// @ts-nocheck
 import { extendPrototype } from '../utils/functionExtensions';
+import type { CompChildElement, CompLayerData, GlobalData } from '../types/lottieRuntime';
 import BaseElement from './BaseElement';
 import TransformElement from './helpers/TransformElement';
 import HierarchyElement from './helpers/HierarchyElement';
 import FrameElement from './helpers/FrameElement';
 import RenderableDOMElement from './helpers/RenderableDOMElement';
 
+/** Time remap property on comps (`PropertyFactory` or placeholder). */
+type CompTimeRemapProp = { _placeholder: true } | { _placeholder?: false; v: number };
+
 class ICompElement {
-  setElements(elems) {
+  declare initFrame: () => void;
+  declare initBaseData: (data: CompLayerData, globalData: GlobalData, comp: unknown) => void;
+  declare initTransform: (data: CompLayerData, globalData: GlobalData, comp: unknown) => void;
+  declare initRenderable: () => void;
+  declare initHierarchy: () => void;
+  declare initRendererElement: () => void;
+  declare createContainerElements: () => void;
+  declare createRenderableComponents: () => void;
+  declare hide: () => void;
+  declare prepareRenderableFrame: (num: number) => void;
+  declare prepareProperties: (num: number, isVisible: boolean) => void;
+  declare isInRange: boolean;
+  declare destroyBaseElement: () => void;
+  declare buildAllItems: () => void;
+  declare checkLayers: (frame: number) => void;
+  declare elements: Array<CompChildElement | null | undefined>;
+  declare layers: CompLayerData['layers'];
+  declare completeLayers: boolean;
+  declare renderedFrame: number;
+  declare _mdf: boolean;
+  declare data: CompLayerData;
+  declare tm: CompTimeRemapProp;
+
+  setElements(elems: Array<CompChildElement | null | undefined>) {
     this.elements = elems;
   }
 
@@ -16,16 +42,16 @@ class ICompElement {
   }
 
   destroyElements() {
-    let i;
+    let i: number;
     const len = this.layers.length;
     for (i = 0; i < len; i += 1) {
       if (this.elements[i]) {
-        this.elements[i].destroy();
+        this.elements[i]!.destroy();
       }
     }
   }
 
-  initElement(data, globalData, comp) {
+  initElement(data: CompLayerData, globalData: GlobalData, comp: unknown) {
     this.initFrame();
     this.initBaseData(data, globalData, comp);
     this.initTransform(data, globalData, comp);
@@ -40,7 +66,7 @@ class ICompElement {
     this.hide();
   }
 
-  prepareFrame(num) {
+  prepareFrame(num: number) {
     this._mdf = false;
     this.prepareRenderableFrame(num);
     this.prepareProperties(num, this.isInRange);
@@ -48,8 +74,8 @@ class ICompElement {
       return;
     }
 
-    if (!this.tm._placeholder) {
-      let timeRemapped = this.tm.v;
+    if (!('_placeholder' in this.tm) || !this.tm._placeholder) {
+      let timeRemapped = (this.tm as { v: number }).v;
       if (timeRemapped === this.data.op) {
         timeRemapped = this.data.op - 1;
       }
@@ -57,15 +83,15 @@ class ICompElement {
     } else {
       this.renderedFrame = num / this.data.sr;
     }
-    let i;
+    let i: number;
     const len = this.elements.length;
     if (!this.completeLayers) {
       this.checkLayers(this.renderedFrame);
     }
     for (i = len - 1; i >= 0; i -= 1) {
       if (this.completeLayers || this.elements[i]) {
-        this.elements[i].prepareFrame(this.renderedFrame - this.layers[i].st);
-        if (this.elements[i]._mdf) {
+        this.elements[i]!.prepareFrame(this.renderedFrame - this.layers[i].st);
+        if (this.elements[i]!._mdf) {
           this._mdf = true;
         }
       }
@@ -73,11 +99,11 @@ class ICompElement {
   }
 
   renderInnerContent() {
-    let i;
+    let i: number;
     const len = this.layers.length;
     for (i = 0; i < len; i += 1) {
       if (this.completeLayers || this.elements[i]) {
-        this.elements[i].renderFrame();
+        this.elements[i]!.renderFrame();
       }
     }
   }

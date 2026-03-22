@@ -1,4 +1,3 @@
-// @ts-nocheck
 import createNS from '../utils/helpers/svg_elements';
 import createTag from '../utils/helpers/html_elements';
 import SVGRendererBase from './SVGRendererBase';
@@ -13,12 +12,63 @@ import HCameraElement from '../elements/htmlElements/HCameraElement';
 import HImageElement from '../elements/htmlElements/HImageElement';
 import ISolidElement from '../elements/SolidElement';
 import SVGTextLottieElement from '../elements/svgElements/SVGTextElement';
+import type {
+  AnimationItemRendererPartial,
+  AnimationRootData,
+  CameraLayerData,
+  ElementData,
+  GlobalData,
+  GlobalDataDomText,
+  GlobalDataImageHost,
+  GlobalDataSvgShape,
+  ProjectInterfaceLike,
+  RefIdLayerData,
+  RendererElementInstance,
+  RendererElementSlot,
+  RendererLayerData,
+  RenderConfig,
+  ShapeJsonNode,
+  SolidColorLayerData,
+  TextLayerData,
+} from '../types/lottieRuntime';
 
-class HybridRendererBase extends BaseRenderer {
-  constructor(animationItem, config) {
+export interface HybridThreeDContainer {
+  container: HTMLDivElement;
+  perspectiveElem: HTMLDivElement;
+  startPos: number;
+  endPos: number;
+  type: string;
+}
+
+/** Camera layer instance (`HCameraElement`) used by hybrid init. */
+export interface HybridCameraInstance extends RendererElementInstance {
+  setup(): void;
+}
+
+abstract class HybridRendererBase extends BaseRenderer {
+  declare animationItem: AnimationItemRendererPartial;
+  renderConfig!: RenderConfig;
+  globalData!: GlobalData;
+  data!: AnimationRootData;
+  layers!: RendererLayerData[];
+  elements!: RendererElementSlot[];
+  pendingElements!: RendererElementInstance[];
+  completeLayers!: boolean;
+  renderedFrame!: number;
+  destroyed!: boolean;
+  resizerElem!: HTMLDivElement;
+  layerElement!: HTMLDivElement;
+  threeDElements!: HybridThreeDContainer[];
+  camera: HybridCameraInstance | null;
+  supports3d: boolean;
+  rendererType: string;
+
+  abstract createComp(data: RendererLayerData, ...args: unknown[]): RendererElementInstance;
+
+  constructor(animationItem: AnimationItemRendererPartial, config?: Partial<RenderConfig>) {
     super();
     this.animationItem = animationItem;
-    this.layers = null;
+    this.layers = null as unknown as RendererLayerData[];
     this.renderedFrame = -1;
     this.renderConfig = {
       className: (config && config.className) || '',
@@ -47,12 +97,12 @@ class HybridRendererBase extends BaseRenderer {
 
   checkPendingElements() {
     while (this.pendingElements.length) {
-      const element = this.pendingElements.pop();
+      const element = this.pendingElements.pop()!;
       element.checkParenting();
     }
   }
 
-  appendElementInPos(element, pos) {
+  appendElementInPos(element: RendererElementInstance, pos: number) {
     const newDOMElement = element.getBaseElement();
     if (!newDOMElement) {
       return;
@@ -63,13 +113,16 @@ class HybridRendererBase extends BaseRenderer {
         this.addTo3dContainer(newDOMElement, pos);
       } else {
         let i = 0;
-        let nextDOMElement;
-        let nextLayer;
-        let tmpDOMElement;
+        let nextDOMElement: Element | undefined;
+        let nextLayer: RendererElementInstance;
+        let tmpDOMElement: Element | null;
         while (i < pos) {
-          if (this.elements[i] && this.elements[i] !== true && this.elements[i].getBaseElement) {
-            nextLayer = this.elements[i];
-            tmpDOMElement = this.layers[i].ddd ? this.getThreeDContainerByPos(i) : nextLayer.getBaseElement();
+          const slot = this.elements[i];
+          if (slot && slot !== true && (slot as RendererElementInstance).getBaseElement) {
+            nextLayer = slot as RendererElementInstance;
+            tmpDOMElement = this.layers[i].ddd
+              ? (this.getThreeDContainerByPos(i) as Element | null)
+              : nextLayer.getBaseElement();
             nextDOMElement = tmpDOMElement || nextDOMElement;
           }
           i += 1;
@@ -87,40 +140,83 @@ class HybridRendererBase extends BaseRenderer {
     }
   }
 
-  createShape(data) {
+  createShape(data: RendererLayerData): RendererElementInstance {
+    const shapeData = data as unknown as ElementData & { shapes: ShapeJsonNode[] };
     if (!this.supports3d) {
-      return new SVGShapeElement(data, this.globalData, this);
+      return new SVGShapeElement(
+        shapeData,
+        this.globalData as unknown as GlobalDataSvgShape,
+        this,
+      ) as unknown as RendererElementInstance;
     }
-    return new HShapeElement(data, this.globalData, this);
+    return new HShapeElement(
+      shapeData,
+      this.globalData as unknown as GlobalDataSvgShape,
+      this,
+    ) as unknown as RendererElementInstance;
   }
 
-  createText(data) {
+  createText(data: RendererLayerData): RendererElementInstance {
+    const textData = data as unknown as TextLayerData;
+    const gText = this.globalData as unknown as GlobalDataDomText;
     if (!this.supports3d) {
-      return new SVGTextLottieElement(data, this.globalData, this);
+      return new SVGTextLottieElement(textData, gText, this) as unknown as RendererElementInstance;
     }
-    return new HTextElement(data, this.globalData, this);
+    return new HTextElement(textData, gText, this) as unknown as RendererElementInstance;
   }
 
-  createCamera(data) {
-    this.camera = new HCameraElement(data, this.globalData, this);
+  createCamera(data: RendererLayerData): RendererElementInstance {
+    this.camera = new HCameraElement(
+      data as unknown as CameraLayerData,
+      this.globalData,
+      this,
+    ) as unknown as HybridCameraInstance;
     return this.camera;
   }
 
-  createImage(data) {
+  createImage(data: RendererLayerData): RendererElementInstance {
     if (!this.supports3d) {
-      return new IImageElement(data, this.globalData, this);
+      return new IImageElement(
+        data as unknown as RefIdLayerData,
+        this.globalData,
+        this,
+      ) as unknown as RendererElementInstance;
     }
-    return new HImageElement(data, this.globalData, this);
+    return new HImageElement(
+      data as unknown as RefIdLayerData & { hasMask?: boolean; ln?: string },
+      this.globalData as unknown as GlobalDataImageHost,
+      this,
+    ) as unknown as RendererElementInstance;
   }
 
-  createSolid(data) {
+  createSolid(data: RendererLayerData): RendererElementInstance {
     if (!this.supports3d) {
-      return new ISolidElement(data, this.globalData, this);
+      return new ISolidElement(
+        data as unknown as SolidColorLayerData,
+        this.globalData,
+        this,
+      ) as unknown as RendererElementInstance;
     }
-    return new HSolidElement(data, this.globalData, this);
+    return new HSolidElement(
+      data as unknown as SolidColorLayerData,
+      this.globalData,
+      this,
+    ) as unknown as RendererElementInstance;
   }
 
-  getThreeDContainerByPos(pos) {
+  createNull(data: RendererLayerData): RendererElementInstance {
+    return SVGRendererBase.prototype.createNull.call(this, data) as RendererElementInstance;
+  }
+
+  buildItem(pos: number) {
+    return SVGRendererBase.prototype.buildItem.call(this, pos);
+  }
+
+  renderFrame(num: number | null) {
+    return SVGRendererBase.prototype.renderFrame.call(this, num);
+  }
+
+  getThreeDContainerByPos(pos: number): HTMLDivElement | null {
     let i = 0;
     const len = this.threeDElements.length;
     while (i < len) {
@@ -132,30 +228,33 @@ class HybridRendererBase extends BaseRenderer {
     return null;
   }
 
-  createThreeDContainer(pos, type) {
-    const perspectiveElem = createTag('div');
-    let style;
-    let containerStyle;
+  createThreeDContainer(pos: number, type: string): HybridThreeDContainer {
+    const perspectiveElem = createTag('div') as HTMLDivElement;
+    let style: CSSStyleDeclaration & {
+      webkitTransformOrigin?: string;
+      mozTransformOrigin?: string;
+    };
+    let containerStyle: CSSStyleDeclaration & { webkitTransform?: string };
     styleDiv(perspectiveElem);
-    const container = createTag('div');
+    const container = createTag('div') as HTMLDivElement;
     styleDiv(container);
     if (type === '3d') {
-      style = perspectiveElem.style;
-      style.width = this.globalData.compSize.w + 'px';
-      style.height = this.globalData.compSize.h + 'px';
+      style = perspectiveElem.style as typeof style;
+      const cs = this.globalData.compSize!;
+      style.width = cs.w + 'px';
+      style.height = cs.h + 'px';
       const center = '50% 50%';
       style.webkitTransformOrigin = center;
       style.mozTransformOrigin = center;
       style.transformOrigin = center;
-      containerStyle = container.style;
+      containerStyle = container.style as typeof containerStyle;
       const matrix = 'matrix3d(1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1)';
       containerStyle.transform = matrix;
       containerStyle.webkitTransform = matrix;
     }
 
     perspectiveElem.appendChild(container);
-    // this.resizerElem.appendChild(perspectiveElem);
-    const threeDContainerData = {
+    const threeDContainerData: HybridThreeDContainer = {
       container: container,
       perspectiveElem: perspectiveElem,
       startPos: pos,
@@ -167,9 +266,9 @@ class HybridRendererBase extends BaseRenderer {
   }
 
   build3dContainers() {
-    let i;
+    let i: number;
     let len = this.layers.length;
-    let lastThreeDContainerData;
+    let lastThreeDContainerData!: HybridThreeDContainer;
     let currentContainer = '';
     for (i = 0; i < len; i += 1) {
       if (this.layers[i].ddd && this.layers[i].ty !== 3) {
@@ -192,16 +291,17 @@ class HybridRendererBase extends BaseRenderer {
     }
   }
 
-  addTo3dContainer(elem, pos) {
+  addTo3dContainer(elem: Element, pos: number) {
     let i = 0;
     const len = this.threeDElements.length;
     while (i < len) {
       if (pos <= this.threeDElements[i].endPos) {
         let j = this.threeDElements[i].startPos;
-        let nextElement;
+        let nextElement: Element | undefined;
         while (j < pos) {
-          if (this.elements[j] && this.elements[j].getBaseElement) {
-            nextElement = this.elements[j].getBaseElement();
+          const slot = this.elements[j];
+          if (slot && slot !== true && (slot as RendererElementInstance).getBaseElement) {
+            nextElement = (slot as RendererElementInstance).getBaseElement()!;
           }
           j += 1;
         }
@@ -216,10 +316,13 @@ class HybridRendererBase extends BaseRenderer {
     }
   }
 
-  configAnimation(animData) {
-    const resizerElem = createTag('div');
+  configAnimation(animData: AnimationRootData) {
+    const resizerElem = createTag('div') as HTMLDivElement;
     const wrapper = this.animationItem.wrapper;
-    const style = resizerElem.style;
+    const style = resizerElem.style as CSSStyleDeclaration & {
+      mozTransformStyle?: string;
+      webkitTransformStyle?: string;
+    };
     style.width = animData.w + 'px';
     style.height = animData.h + 'px';
     this.resizerElem = resizerElem;
@@ -236,12 +339,11 @@ class HybridRendererBase extends BaseRenderer {
     const svg = createNS('svg');
     svg.setAttribute('width', '1');
     svg.setAttribute('height', '1');
-    styleDiv(svg);
+    styleDiv(svg as unknown as HTMLElement);
     this.resizerElem.appendChild(svg);
     const defs = createNS('defs');
     svg.appendChild(defs);
     this.data = animData;
-    // Mask animation
     this.setupGlobalData(animData, svg);
     this.globalData.defs = defs;
     this.layers = animData.layers;
@@ -256,39 +358,41 @@ class HybridRendererBase extends BaseRenderer {
     }
     this.animationItem.container = null;
     this.globalData.defs = null;
-    let i;
+    let i: number;
     const len = this.layers ? this.layers.length : 0;
     for (i = 0; i < len; i += 1) {
-      if (this.elements[i] && this.elements[i].destroy) {
-        this.elements[i].destroy();
+      const slot = this.elements[i];
+      if (slot && slot !== true && (slot as RendererElementInstance).destroy) {
+        (slot as RendererElementInstance).destroy();
       }
     }
     this.elements.length = 0;
     this.destroyed = true;
-    this.animationItem = null;
+    this.animationItem = null as unknown as AnimationItemRendererPartial;
   }
 
   updateContainerSize() {
     const elementWidth = this.animationItem.wrapper.offsetWidth;
     const elementHeight = this.animationItem.wrapper.offsetHeight;
     const elementRel = elementWidth / elementHeight;
-    const animationRel = this.globalData.compSize.w / this.globalData.compSize.h;
-    let sx;
-    let sy;
-    let tx;
-    let ty;
+    const cs = this.globalData.compSize!;
+    const animationRel = cs.w / cs.h;
+    let sx: number;
+    let sy: number;
+    let tx: number;
+    let ty: number;
     if (animationRel > elementRel) {
-      sx = elementWidth / this.globalData.compSize.w;
-      sy = elementWidth / this.globalData.compSize.w;
+      sx = elementWidth / cs.w;
+      sy = elementWidth / cs.w;
       tx = 0;
-      ty = (elementHeight - this.globalData.compSize.h * (elementWidth / this.globalData.compSize.w)) / 2;
+      ty = (elementHeight - cs.h * (elementWidth / cs.w)) / 2;
     } else {
-      sx = elementHeight / this.globalData.compSize.h;
-      sy = elementHeight / this.globalData.compSize.h;
-      tx = (elementWidth - this.globalData.compSize.w * (elementHeight / this.globalData.compSize.h)) / 2;
+      sx = elementHeight / cs.h;
+      sy = elementHeight / cs.h;
+      tx = (elementWidth - cs.w * (elementHeight / cs.h)) / 2;
       ty = 0;
     }
-    const style = this.resizerElem.style;
+    const style = this.resizerElem.style as CSSStyleDeclaration & { webkitTransform?: string };
     style.webkitTransform = 'matrix3d(' + sx + ',0,0,0,0,' + sy + ',0,0,0,0,1,0,' + tx + ',' + ty + ',0,1)';
     style.transform = style.webkitTransform;
   }
@@ -306,34 +410,33 @@ class HybridRendererBase extends BaseRenderer {
     if (this.camera) {
       this.camera.setup();
     } else {
-      const cWidth = this.globalData.compSize.w;
-      const cHeight = this.globalData.compSize.h;
-      let i;
+      const cWidth = this.globalData.compSize!.w;
+      const cHeight = this.globalData.compSize!.h;
+      let i: number;
       const len = this.threeDElements.length;
       for (i = 0; i < len; i += 1) {
-        const style = this.threeDElements[i].perspectiveElem.style;
-        style.webkitPerspective = Math.sqrt(Math.pow(cWidth, 2) + Math.pow(cHeight, 2)) + 'px';
-        style.perspective = style.webkitPerspective;
+        const elStyle = this.threeDElements[i].perspectiveElem.style as CSSStyleDeclaration & {
+          webkitPerspective?: string;
+        };
+        elStyle.webkitPerspective = Math.sqrt(Math.pow(cWidth, 2) + Math.pow(cHeight, 2)) + 'px';
+        elStyle.perspective = elStyle.webkitPerspective;
       }
     }
   }
 
-  searchExtraCompositions(assets) {
-    let i;
+  searchExtraCompositions(assets: Array<ElementData & { xt?: boolean }>) {
+    let i: number;
     const len = assets.length;
-    const floatingContainer = createTag('div');
+    const floatingContainer = createTag('div') as HTMLDivElement;
+    const pi = this.globalData.projectInterface as ProjectInterfaceLike;
     for (i = 0; i < len; i += 1) {
       if (assets[i].xt) {
-        const comp = this.createComp(assets[i], floatingContainer, this.globalData.comp, null);
+        const comp = this.createComp(assets[i] as RendererLayerData, floatingContainer, this.globalData.comp, null);
         comp.initExpressions();
-        this.globalData.projectInterface.registerComposition(comp);
+        pi.registerComposition(comp);
       }
     }
   }
 }
-
-HybridRendererBase.prototype.buildItem = SVGRendererBase.prototype.buildItem;
-HybridRendererBase.prototype.renderFrame = SVGRendererBase.prototype.renderFrame;
-HybridRendererBase.prototype.createNull = SVGRendererBase.prototype.createNull;
 
 export default HybridRendererBase;

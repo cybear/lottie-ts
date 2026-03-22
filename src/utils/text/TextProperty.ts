@@ -1,17 +1,44 @@
-// @ts-nocheck
+/* eslint-disable @typescript-eslint/no-explicit-any -- Lottie text document + keyframe payloads */
 import { initialDefaultFrame } from '../../main';
 import getFontProperties from '../getFontProperties';
 import FontManager from '../FontManager';
+import type { FontManagerLike, GlobalData, SlotManagerLike } from '../../types/lottieRuntime';
+
+const FontStatics = FontManager as any;
+
+export interface TextPropertyHostElement {
+  globalData: GlobalData & { fontManager: FontManagerLike; slotManager?: SlotManagerLike };
+  comp: { renderedFrame: number };
+  addDynamicProperty: (prop: unknown) => void;
+}
 
 class TextProperty {
-  constructor(elem, data) {
+  _frameId!: number;
+  frameId!: number;
+  pv!: any;
+  v!: any;
+  kf!: boolean;
+  _isFirstFrame!: boolean;
+  _mdf!: boolean;
+  data!: any;
+  elem!: TextPropertyHostElement;
+  comp!: TextPropertyHostElement['comp'];
+  keysIndex!: number;
+  canResize!: boolean;
+  minimumFontSize!: number;
+  effectsSequence!: Array<(cur: any, t: any) => any>;
+  currentData!: any;
+  lock!: boolean;
+  defaultBoxWidth: [number, number] = [0, 0];
+
+  constructor(elem: TextPropertyHostElement, data: any) {
     this._frameId = initialDefaultFrame;
     this.pv = '';
     this.v = '';
     this.kf = false;
     this._isFirstFrame = true;
     this._mdf = false;
-    if (data.d && data.d.sid) {
+    if (data.d && data.d.sid && elem.globalData.slotManager) {
       data.d = elem.globalData.slotManager.getProp(data.d);
     }
     this.data = data;
@@ -58,7 +85,7 @@ class TextProperty {
     }
   }
 
-  copyData(obj, data) {
+  copyData(obj: Record<string, unknown>, data: Record<string, unknown>) {
     for (const s in data) {
       if (Object.prototype.hasOwnProperty.call(data, s)) {
         obj[s] = data[s];
@@ -67,7 +94,7 @@ class TextProperty {
     return obj;
   }
 
-  setCurrentData(data) {
+  setCurrentData(data: any) {
     if (!data.__complete) {
       this.completeTextData(data);
     }
@@ -88,12 +115,12 @@ class TextProperty {
     return this.kf;
   }
 
-  addEffect(effectFunction) {
+  addEffect(effectFunction: (cur: any, t: any) => any) {
     this.effectsSequence.push(effectFunction);
     this.elem.addDynamicProperty(this);
   }
 
-  getValue(_finalValue) {
+  getValue(_finalValue?: any) {
     if ((this.elem.globalData.frameId === this.frameId || !this.effectsSequence.length) && !_finalValue) {
       return;
     }
@@ -123,7 +150,7 @@ class TextProperty {
     this.v = this.currentData;
     this.pv = this.v;
     this.lock = false;
-    this.frameId = this.elem.globalData.frameId;
+    this.frameId = this.elem.globalData.frameId as number;
   }
 
   getKeyframeValue() {
@@ -143,7 +170,7 @@ class TextProperty {
     return this.data.d.k[this.keysIndex].s;
   }
 
-  buildFinalText(text) {
+  buildFinalText(text: string) {
     const charactersArray = [];
     let i = 0;
     const len = text.length;
@@ -157,20 +184,20 @@ class TextProperty {
       shouldCombineNext = false;
       charCode = text.charCodeAt(i);
       currentChars = text.charAt(i);
-      if (FontManager.isCombinedCharacter(charCode)) {
+      if (FontStatics.isCombinedCharacter(charCode)) {
         shouldCombine = true;
         // It's a potential surrogate pair (this is the High surrogate)
       } else if (charCode >= 0xd800 && charCode <= 0xdbff) {
-        if (FontManager.isRegionalFlag(text, i)) {
+        if (FontStatics.isRegionalFlag(text, i)) {
           currentChars = text.substr(i, 14);
         } else {
           secondCharCode = text.charCodeAt(i + 1);
           // It's a surrogate pair (this is the Low surrogate)
           if (secondCharCode >= 0xdc00 && secondCharCode <= 0xdfff) {
-            if (FontManager.isModifier(charCode, secondCharCode)) {
+            if (FontStatics.isModifier(charCode, secondCharCode)) {
               currentChars = text.substr(i, 2);
               shouldCombine = true;
-            } else if (FontManager.isFlagEmoji(text.substr(i, 4))) {
+            } else if (FontStatics.isFlagEmoji(text.substr(i, 4))) {
               currentChars = text.substr(i, 4);
             } else {
               currentChars = text.substr(i, 2);
@@ -179,10 +206,10 @@ class TextProperty {
         }
       } else if (charCode > 0xdbff) {
         secondCharCode = text.charCodeAt(i + 1);
-        if (FontManager.isVariationSelector(charCode)) {
+        if (FontStatics.isVariationSelector(charCode)) {
           shouldCombine = true;
         }
-      } else if (FontManager.isZeroWidthJoiner(charCode)) {
+      } else if (FontStatics.isZeroWidthJoiner(charCode)) {
         shouldCombine = true;
         shouldCombineNext = true;
       }
@@ -197,11 +224,11 @@ class TextProperty {
     return charactersArray;
   }
 
-  completeTextData(documentData) {
+  completeTextData(documentData: any) {
     documentData.__complete = true;
     const fontManager = this.elem.globalData.fontManager;
     const data = this.data;
-    const letters = [];
+    const letters: any[] = [];
     let i;
     let len;
     let newLineFlag;
@@ -253,10 +280,10 @@ class TextProperty {
           }
           if (fontManager.chars) {
             charData = fontManager.getCharData(finalText[i], fontData.fStyle, fontData.fFamily);
-            cLength = newLineFlag ? 0 : (charData.w * documentData.finalSize) / 100;
+            cLength = newLineFlag ? 0 : ((charData!.w ?? 0) * documentData.finalSize) / 100;
           } else {
             // tCanvasHelper.font = documentData.s + 'px '+ fontData.fFamily;
-            cLength = fontManager.measureText(finalText[i], documentData.f, documentData.finalSize);
+            cLength = fontManager.measureText!(finalText[i], documentData.f, documentData.finalSize);
           }
           if (lineWidth + cLength > boxWidth && finalText[i] !== ' ') {
             if (lastSpaceIndex === -1) {
@@ -274,7 +301,7 @@ class TextProperty {
             lineWidth += trackingOffset;
           }
         }
-        currentHeight += (fontData.ascent * documentData.finalSize) / 100;
+        currentHeight += ((fontData.ascent ?? 0) * documentData.finalSize) / 100;
         if (this.canResize && documentData.finalSize > this.minimumFontSize && boxHeight < currentHeight) {
           documentData.finalSize -= 1;
           documentData.finalLineHeight = (documentData.finalSize * documentData.lh) / documentData.s;
@@ -310,11 +337,11 @@ class TextProperty {
           fontData.fStyle,
           fontManager.getFontByName(documentData.f).fFamily,
         );
-        cLength = newLineFlag ? 0 : (charData.w * documentData.finalSize) / 100;
+        cLength = newLineFlag ? 0 : ((charData!.w ?? 0) * documentData.finalSize) / 100;
       } else {
         // var charWidth = fontManager.measureText(val, documentData.f, documentData.finalSize);
         // tCanvasHelper.font = documentData.finalSize + 'px '+ fontManager.getFontByName(documentData.f).fFamily;
-        cLength = fontManager.measureText(val, documentData.f, documentData.finalSize);
+        cLength = fontManager.measureText!(val, documentData.f, documentData.finalSize);
       }
 
       //
@@ -399,7 +426,7 @@ class TextProperty {
     const jLen = animators.length;
     let based;
     let ind;
-    const indexes = [];
+    const indexes: number[] = [];
     for (j = 0; j < jLen; j += 1) {
       animatorData = animators[j];
       if (animatorData.a.sc) {
@@ -446,10 +473,10 @@ class TextProperty {
     }
     documentData.yOffset = documentData.finalLineHeight || documentData.finalSize * 1.2;
     documentData.ls = documentData.ls || 0;
-    documentData.ascent = (fontData.ascent * documentData.finalSize) / 100;
+    documentData.ascent = ((fontData.ascent ?? 0) * documentData.finalSize) / 100;
   }
 
-  updateDocumentData(newData, index) {
+  updateDocumentData(newData: Record<string, unknown>, index?: number) {
     index = index === undefined ? this.keysIndex : index;
     let dData = this.copyData({}, this.data.d.k[index].s);
     dData = this.copyData(dData, newData);
@@ -459,7 +486,7 @@ class TextProperty {
     this.elem.addDynamicProperty(this);
   }
 
-  recalculate(index) {
+  recalculate(index: number) {
     const dData = this.data.d.k[index].s;
     dData.__complete = false;
     this.keysIndex = 0;
@@ -467,19 +494,17 @@ class TextProperty {
     this.getValue(dData);
   }
 
-  canResizeFont(_canResize) {
+  canResizeFont(_canResize: boolean) {
     this.canResize = _canResize;
     this.recalculate(this.keysIndex);
     this.elem.addDynamicProperty(this);
   }
 
-  setMinimumFontSize(_fontValue) {
+  setMinimumFontSize(_fontValue: number) {
     this.minimumFontSize = Math.floor(_fontValue) || 1;
     this.recalculate(this.keysIndex);
     this.elem.addDynamicProperty(this);
   }
 }
-
-TextProperty.prototype.defaultBoxWidth = [0, 0];
 
 export default TextProperty;

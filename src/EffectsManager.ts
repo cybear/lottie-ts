@@ -1,4 +1,3 @@
-// @ts-nocheck
 import {
   SliderEffect,
   AngleEffect,
@@ -10,36 +9,29 @@ import {
   NoValueEffect,
 } from './effects/SliderEffect';
 import DynamicPropertyContainer from './utils/helpers/dynamicProperties';
+import type { BaseInitLayerData, EffectJsonEntry } from './types/lottieRuntime';
 
-class EffectsManager {
-  constructor(data, element) {
-    const effects = data.ef || [];
-    this.effectElements = [];
-    let i;
-    const len = effects.length;
-    let effectItem;
-    for (i = 0; i < len; i += 1) {
-      effectItem = new GroupEffect(effects[i], element);
-      this.effectElements.push(effectItem);
-    }
-  }
-}
+type EffectHostElement = unknown;
 
 class GroupEffect extends DynamicPropertyContainer {
-  constructor(data, element) {
+  declare data: EffectJsonEntry;
+  declare effectElements: unknown[];
+  declare getValue: () => void;
+
+  constructor(data: EffectJsonEntry, element: EffectHostElement) {
     super();
     this.getValue = this.iterateDynamicProperties;
     this.init(data, element);
   }
 
-  init(data, element) {
+  init(data: EffectJsonEntry, element: EffectHostElement) {
     this.data = data;
     this.effectElements = [];
     this.initDynamicPropertyContainer(element);
-    let i;
-    const len = this.data.ef.length;
-    let eff;
-    const effects = this.data.ef;
+    const effects = this.data.ef!;
+    let i: number;
+    const len = effects.length;
+    let eff: unknown;
     for (i = 0; i < len; i += 1) {
       eff = null;
       switch (effects[i].ty) {
@@ -75,6 +67,22 @@ class GroupEffect extends DynamicPropertyContainer {
       if (eff) {
         this.effectElements.push(eff);
       }
+    }
+  }
+}
+
+class EffectsManager {
+  effectElements: GroupEffect[];
+
+  constructor(data: BaseInitLayerData | EffectJsonEntry, element: EffectHostElement, _dynamicProperties?: unknown) {
+    const effects = data.ef || [];
+    this.effectElements = [];
+    let i: number;
+    const len = effects.length;
+    let effectItem: GroupEffect;
+    for (i = 0; i < len; i += 1) {
+      effectItem = new GroupEffect(effects[i], element);
+      this.effectElements.push(effectItem);
     }
   }
 }

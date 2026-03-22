@@ -1,12 +1,18 @@
-// @ts-nocheck
 import { extendPrototype } from '../utils/functionExtensions';
+import type { ElementData, GlobalData } from '../types/lottieRuntime';
 import BaseElement from './BaseElement';
 import TransformElement from './helpers/TransformElement';
 import HierarchyElement from './helpers/HierarchyElement';
 import FrameElement from './helpers/FrameElement';
 
 class NullElement {
-  constructor(data, globalData, comp) {
+  declare initFrame: () => void;
+  declare initBaseData: (data: ElementData, globalData: GlobalData, comp: unknown) => void;
+  declare initTransform: (data: ElementData, globalData: GlobalData, comp: unknown) => void;
+  declare initHierarchy: () => void;
+  declare prepareProperties: (num: number, isVisible: boolean) => void;
+
+  constructor(data: ElementData, globalData: GlobalData, comp: unknown) {
     this.initFrame();
     this.initBaseData(data, globalData, comp);
     this.initFrame();
@@ -14,13 +20,13 @@ class NullElement {
     this.initHierarchy();
   }
 
-  prepareFrame(num) {
+  prepareFrame(num: number) {
     this.prepareProperties(num, true);
   }
 
   renderFrame() {}
 
-  getBaseElement() {
+  getBaseElement(): null {
     return null;
   }
 

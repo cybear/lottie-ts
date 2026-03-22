@@ -1,6 +1,8 @@
-// @ts-nocheck
 class ProcessedElement {
-  constructor(element, position) {
+  elem: unknown;
+  pos: number;
+
+  constructor(element: unknown, position: number) {
     this.elem = element;
     this.pos = position;
   }

@@ -1,4 +1,4 @@
-// @ts-nocheck
+/* eslint-disable @typescript-eslint/no-explicit-any -- bundle entry: effect ctor variance at registration boundary */
 import lottie from './main';
 import { setExpressionsPlugin, setExpressionInterfaces } from '../utils/common';
 import { ShapeModifiers } from '../utils/shapes/ShapeModifiers';
@@ -30,6 +30,9 @@ import SVGTransformEffect from '../elements/svgElements/effects/SVGTransformEffe
 import CVTransformEffect from '../elements/canvasElements/effects/CVTransformEffect';
 import { registerEffect as canvasRegisterEffect } from '../elements/canvasElements/CVEffects';
 
+const registerSvgEffect = registerEffect as (id: number, effect: any, countsAsEffect?: boolean) => void;
+const registerCvEffect = canvasRegisterEffect as (id: number, effect: any) => void;
+
 // Registering renderers
 registerRenderer('canvas', CanvasRenderer);
 registerRenderer('html', HybridRenderer);
@@ -50,15 +53,15 @@ expressionPropertyDecorator();
 expressionTextPropertyDecorator();
 
 // Registering svg effects
-registerEffect(20, SVGTintFilter, true);
-registerEffect(21, SVGFillFilter, true);
-registerEffect(22, SVGStrokeEffect, false);
-registerEffect(23, SVGTritoneFilter, true);
-registerEffect(24, SVGProLevelsFilter, true);
-registerEffect(25, SVGDropShadowEffect, true);
-registerEffect(28, SVGMatte3Effect, false);
-registerEffect(29, SVGGaussianBlurEffect, true);
-registerEffect(35, SVGTransformEffect, false);
-canvasRegisterEffect(35, CVTransformEffect);
+registerSvgEffect(20, SVGTintFilter, true);
+registerSvgEffect(21, SVGFillFilter, true);
+registerSvgEffect(22, SVGStrokeEffect, false);
+registerSvgEffect(23, SVGTritoneFilter, true);
+registerSvgEffect(24, SVGProLevelsFilter, true);
+registerSvgEffect(25, SVGDropShadowEffect, true);
+registerSvgEffect(28, SVGMatte3Effect, false);
+registerSvgEffect(29, SVGGaussianBlurEffect, true);
+registerSvgEffect(35, SVGTransformEffect, false);
+registerCvEffect(35, CVTransformEffect);
 
 export default lottie;

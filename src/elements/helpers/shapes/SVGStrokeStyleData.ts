@@ -1,10 +1,21 @@
-// @ts-nocheck
-import DynamicPropertyContainer from '../../../utils/helpers/dynamicProperties';
+import DynamicPropertyContainer, { type DynamicPropertyContainerMixin } from '../../../utils/helpers/dynamicProperties';
 import PropertyFactory from '../../../utils/PropertyFactory';
 import DashProperty from '../../../utils/shapes/DashProperty';
+import type { ElementData } from '../../../types/lottieRuntime';
 
 class SVGStrokeStyleData extends DynamicPropertyContainer {
-  constructor(elem, data, styleOb) {
+  declare getValue: () => void;
+  o: unknown;
+  w: unknown;
+  d: DashProperty;
+  c: unknown;
+  style: unknown;
+
+  constructor(
+    elem: DynamicPropertyContainerMixin['container'],
+    data: ElementData & { o: unknown; w: unknown; c: unknown; d?: unknown },
+    styleOb: unknown,
+  ) {
     super();
     this.initDynamicPropertyContainer(elem);
     this.getValue = this.iterateDynamicProperties;

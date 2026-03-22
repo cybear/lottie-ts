@@ -1,61 +1,119 @@
-// @ts-nocheck
 import assetManager from '../../utils/helpers/assetManager';
 import getBlendMode from '../../utils/helpers/blendModes';
 import Matrix from '../../3rd_party/transformation-matrix';
 import CVEffects from './CVEffects';
 import CVMaskElement from './CVMaskElement';
+import type { CVMaskLayerHost } from './CVMaskElement';
 import effectTypes from '../../utils/helpers/effectTypes';
+import type { GlobalData, RenderableComponentEntry } from '../../types/lottieRuntime';
+import type EffectsManager from '../../EffectsManager';
+import type { CanvasTransformCanvas } from '../../renderers/CanvasRendererBase';
 
-const operationsMap = {
-  1: 'source-in',
-  2: 'source-out',
-  3: 'source-in',
-  4: 'source-out',
+const operationsMap: Record<number, GlobalCompositeOperation> = {
+  1: 'source-in' as GlobalCompositeOperation,
+  2: 'source-out' as GlobalCompositeOperation,
+  3: 'source-in' as GlobalCompositeOperation,
+  4: 'source-out' as GlobalCompositeOperation,
 };
 
+interface CanvasRendererHost {
+  save(force?: boolean): void;
+  restore(force?: boolean): void;
+  ctxTransform(props: number[]): void;
+  ctxOpacity(op: number): void;
+}
+
+type LayerDataCv = {
+  tt?: number;
+  bm?: number;
+  ty?: number;
+  td?: number;
+  tp?: number;
+  ind?: number;
+  hd?: boolean;
+};
+
+interface CompWithLookup {
+  getElementById(id: number): { renderFrame(force?: boolean): void };
+}
+
+type DocumentWithProxy = Document & { _isProxy?: boolean };
+
 class CVBaseElement {
+  declare data: LayerDataCv;
+  declare globalData: GlobalData & { renderer: CanvasRendererHost };
+  declare buffers: HTMLCanvasElement[];
+  declare canvasContext: CanvasRenderingContext2D;
+  declare transformCanvas: CanvasTransformCanvas;
+  declare effectsManager: EffectsManager;
+  declare renderableEffectsManager: CVEffects;
+  declare maskManager: CVMaskElement & { _isFirstFrame: boolean; hasMasks?: boolean };
+  declare transformEffects: unknown[];
+  declare hidden: boolean;
+  declare isInRange: boolean;
+  declare isTransparent: boolean;
+  declare _isFirstFrame: boolean;
+  declare finalTransform: { localMat: { props: number[] }; localOpacity: number };
+  declare comp: CompWithLookup;
+  declare addRenderableComponent: (c: RenderableComponentEntry) => void;
+  declare renderTransform: () => void;
+  declare renderRenderable: () => void;
+  declare renderLocalTransform: () => void;
+  declare renderInnerContent: () => void;
+  currentTransform!: DOMMatrix;
+
   createElements() {}
+
   initRendererElement() {}
+
   createContainerElements() {
-    // If the layer is masked we will use two buffers to store each different states of the drawing
-    // This solution is not ideal for several reason. But unfortunately, because of the recursive
-    // nature of the render tree, it's the only simple way to make sure one inner mask doesn't override an outer mask.
-    // TODO: try to reduce the size of these buffers to the size of the composition contaning the layer
-    // It might be challenging because the layer most likely is transformed in some way
-    if (this.data.tt >= 1) {
+    if ((this.data.tt ?? 0) >= 1) {
       this.buffers = [];
-      const canvasContext = this.globalData.canvasContext;
-      const bufferCanvas = assetManager.createCanvas(canvasContext.canvas.width, canvasContext.canvas.height);
+      const canvasContext = this.globalData.canvasContext!;
+      const bufferCanvas = assetManager.createCanvas(
+        canvasContext.canvas.width,
+        canvasContext.canvas.height,
+      ) as HTMLCanvasElement;
       this.buffers.push(bufferCanvas);
-      const bufferCanvas2 = assetManager.createCanvas(canvasContext.canvas.width, canvasContext.canvas.height);
+      const bufferCanvas2 = assetManager.createCanvas(
+        canvasContext.canvas.width,
+        canvasContext.canvas.height,
+      ) as HTMLCanvasElement;
       this.buffers.push(bufferCanvas2);
-      if (this.data.tt >= 3 && !document._isProxy) {
-        assetManager.loadLumaCanvas();
+      if ((this.data.tt ?? 0) >= 3 && !(document as DocumentWithProxy)._isProxy) {
+        assetManager.loadLumaCanvas?.();
       }
     }
-    this.canvasContext = this.globalData.canvasContext;
-    this.transformCanvas = this.globalData.transformCanvas;
+    this.canvasContext = this.globalData.canvasContext!;
+    this.transformCanvas = this.globalData.transformCanvas as CanvasTransformCanvas;
     this.renderableEffectsManager = new CVEffects(this);
     this.searchEffectTransforms();
   }
+
+  declare searchEffectTransforms: () => void;
+
   createContent() {}
+
   setBlendMode() {
     const globalData = this.globalData;
     if (globalData.blendMode !== this.data.bm) {
       globalData.blendMode = this.data.bm;
-      const blendModeValue = getBlendMode(this.data.bm);
-      globalData.canvasContext.globalCompositeOperation = blendModeValue;
+      const blendModeValue = getBlendMode(this.data.bm as number);
+      globalData.canvasContext!.globalCompositeOperation = blendModeValue as GlobalCompositeOperation;
     }
   }
+
   createRenderableComponents() {
-    this.maskManager = new CVMaskElement(this.data, this);
+    this.maskManager = new CVMaskElement(this.data, this as unknown as CVMaskLayerHost) as CVBaseElement['maskManager'];
     this.transformEffects = this.renderableEffectsManager.getEffects(effectTypes.TRANSFORM_EFFECT);
   }
+
   hideElement() {
     if (!this.hidden && (!this.isInRange || this.isTransparent)) {
       this.hidden = true;
     }
   }
+
   showElement() {
     if (this.isInRange && !this.isTransparent) {
       this.hidden = false;
@@ -63,7 +121,16 @@ class CVBaseElement {
       this.maskManager._isFirstFrame = true;
     }
   }
-  clearCanvas(canvasContext) {
+
+  hide() {
+    return this.hideElement();
+  }
+
+  show() {
+    return this.showElement();
+  }
+
+  clearCanvas(canvasContext: CanvasRenderingContext2D) {
     canvasContext.clearRect(
       this.transformCanvas.tx,
       this.transformCanvas.ty,
@@ -71,64 +138,51 @@ class CVBaseElement {
       this.transformCanvas.h * this.transformCanvas.sy,
     );
   }
+
   prepareLayer() {
-    if (this.data.tt >= 1) {
+    if ((this.data.tt ?? 0) >= 1) {
       const buffer = this.buffers[0];
-      const bufferCtx = buffer.getContext('2d');
+      const bufferCtx = buffer.getContext('2d')!;
       this.clearCanvas(bufferCtx);
-      // on the first buffer we store the current state of the global drawing
       bufferCtx.drawImage(this.canvasContext.canvas, 0, 0);
-      // The next four lines are to clear the canvas
-      // TODO: Check if there is a way to clear the canvas without resetting the transform
       this.currentTransform = this.canvasContext.getTransform();
       this.canvasContext.setTransform(1, 0, 0, 1, 0, 0);
       this.clearCanvas(this.canvasContext);
       this.canvasContext.setTransform(this.currentTransform);
     }
   }
+
   exitLayer() {
-    if (this.data.tt >= 1) {
+    if ((this.data.tt ?? 0) >= 1) {
       const buffer = this.buffers[1];
-      // On the second buffer we store the current state of the global drawing
-      // that only contains the content of this layer
-      // (if it is a composition, it also includes the nested layers)
-      const bufferCtx = buffer.getContext('2d');
+      const bufferCtx = buffer.getContext('2d')!;
       this.clearCanvas(bufferCtx);
       bufferCtx.drawImage(this.canvasContext.canvas, 0, 0);
-      // We clear the canvas again
       this.canvasContext.setTransform(1, 0, 0, 1, 0, 0);
       this.clearCanvas(this.canvasContext);
       this.canvasContext.setTransform(this.currentTransform);
-      // We draw the mask
-      const mask = this.comp.getElementById('tp' in this.data ? this.data.tp : this.data.ind - 1);
+      const maskId = 'tp' in this.data ? (this.data as { tp: number }).tp : (this.data.ind as number) - 1;
+      const mask = this.comp.getElementById(maskId);
       mask.renderFrame(true);
-      // We draw the second buffer (that contains the content of this layer)
       this.canvasContext.setTransform(1, 0, 0, 1, 0, 0);
 
-      // If the mask is a Luma matte, we need to do two extra painting operations
-      // the _isProxy check is to avoid drawing a fake canvas in workers that will throw an error
-      if (this.data.tt >= 3 && !document._isProxy) {
-        // We copy the painted mask to a buffer that has a color matrix filter applied to it
-        // that applies the rgb values to the alpha channel
-        const lumaBuffer = assetManager.getLumaCanvas(this.canvasContext.canvas);
-        const lumaBufferCtx = lumaBuffer.getContext('2d');
+      if ((this.data.tt ?? 0) >= 3 && !(document as DocumentWithProxy)._isProxy) {
+        const lumaBuffer = assetManager.getLumaCanvas!(this.canvasContext.canvas);
+        const lumaBufferCtx = lumaBuffer.getContext('2d')!;
         lumaBufferCtx.drawImage(this.canvasContext.canvas, 0, 0);
         this.clearCanvas(this.canvasContext);
-        // we repaint the context with the mask applied to it
         this.canvasContext.drawImage(lumaBuffer, 0, 0);
       }
-      this.canvasContext.globalCompositeOperation = operationsMap[this.data.tt];
+      this.canvasContext.globalCompositeOperation = operationsMap[this.data.tt as number]!;
       this.canvasContext.drawImage(buffer, 0, 0);
-      // We finally draw the first buffer (that contains the content of the global drawing)
-      // We use destination-over to draw the global drawing below the current layer
       this.canvasContext.globalCompositeOperation = 'destination-over';
       this.canvasContext.drawImage(this.buffers[0], 0, 0);
       this.canvasContext.setTransform(this.currentTransform);
-      // We reset the globalCompositeOperation to source-over, the standard type of operation
       this.canvasContext.globalCompositeOperation = 'source-over';
     }
   }
-  renderFrame(forceRender) {
+
+  renderFrame(forceRender?: boolean) {
     if (this.hidden || this.data.hd) {
       return;
     }
@@ -154,16 +208,15 @@ class CVBaseElement {
       this._isFirstFrame = false;
     }
   }
+
   destroy() {
-    this.canvasContext = null;
-    this.data = null;
-    this.globalData = null;
+    this.canvasContext = null as unknown as CanvasRenderingContext2D;
+    this.data = null as unknown as LayerDataCv;
+    this.globalData = null as unknown as GlobalData & { renderer: CanvasRendererHost };
     this.maskManager.destroy();
   }
 }
 
-CVBaseElement.prototype.mHelper = new Matrix();
-CVBaseElement.prototype.hide = CVBaseElement.prototype.hideElement;
-CVBaseElement.prototype.show = CVBaseElement.prototype.showElement;
+(CVBaseElement.prototype as unknown as { mHelper: InstanceType<typeof Matrix> }).mHelper = new Matrix();
 
 export default CVBaseElement;

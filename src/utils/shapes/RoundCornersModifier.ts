@@ -1,17 +1,19 @@
-// @ts-nocheck
+/* eslint-disable @typescript-eslint/no-explicit-any -- path pool / shape vertex graph */
 import { roundCorner } from '../common';
 import PropertyFactory from '../PropertyFactory';
 import shapePool from '../pooling/shape_pool';
 import { ShapeModifier } from './ShapeModifiers';
 
 class RoundCornersModifier extends ShapeModifier {
-  initModifierProperties(elem, data) {
+  rd!: { v: number; effectsSequence: unknown[] };
+
+  initModifierProperties(elem: unknown, data: { r: unknown }) {
     this.getValue = this.processKeys;
-    this.rd = PropertyFactory.getProp(elem, data.r, 0, null, this);
+    this.rd = PropertyFactory.getProp(elem, data.r, 0, null, this) as RoundCornersModifier['rd'];
     this._isAnimated = !!this.rd.effectsSequence.length;
   }
 
-  processPath(path, round) {
+  processPath(path: any, round: number) {
     const clonedPath = shapePool.newElement();
     clonedPath.c = path.c;
     let i;
@@ -40,7 +42,16 @@ class RoundCornersModifier extends ShapeModifier {
         currentV[1] === currentI[1]
       ) {
         if ((i === 0 || i === len - 1) && !path.c) {
-          clonedPath.setTripleAt(currentV[0], currentV[1], currentO[0], currentO[1], currentI[0], currentI[1], index);
+          clonedPath.setTripleAt(
+            currentV[0],
+            currentV[1],
+            currentO[0],
+            currentO[1],
+            currentI[0],
+            currentI[1],
+            index,
+            false,
+          );
           index += 1;
         } else {
           if (i === 0) {
@@ -56,7 +67,7 @@ class RoundCornersModifier extends ShapeModifier {
           vY = iY;
           oX = vX - (vX - currentV[0]) * roundCorner;
           oY = vY - (vY - currentV[1]) * roundCorner;
-          clonedPath.setTripleAt(vX, vY, oX, oY, iX, iY, index);
+          clonedPath.setTripleAt(vX, vY, oX, oY, iX, iY, index, false);
           index += 1;
 
           if (i === len - 1) {
@@ -72,7 +83,7 @@ class RoundCornersModifier extends ShapeModifier {
           vY = oY;
           iX = vX - (vX - currentV[0]) * roundCorner;
           iY = vY - (vY - currentV[1]) * roundCorner;
-          clonedPath.setTripleAt(vX, vY, oX, oY, iX, iY, index);
+          clonedPath.setTripleAt(vX, vY, oX, oY, iX, iY, index, false);
           index += 1;
         }
       } else {
@@ -84,6 +95,7 @@ class RoundCornersModifier extends ShapeModifier {
           path.i[i][0],
           path.i[i][1],
           index,
+          false,
         );
         index += 1;
       }
@@ -91,7 +103,7 @@ class RoundCornersModifier extends ShapeModifier {
     return clonedPath;
   }
 
-  processShapes(_isFirstFrame) {
+  processShapes(_isFirstFrame: boolean) {
     let shapePaths;
     let i;
     const len = this.shapes.length;
@@ -105,16 +117,17 @@ class RoundCornersModifier extends ShapeModifier {
       for (i = 0; i < len; i += 1) {
         shapeData = this.shapes[i];
         localShapeCollection = shapeData.localShapeCollection;
-        if (!(!shapeData.shape._mdf && !this._mdf && !_isFirstFrame)) {
+        const sh = shapeData.shape as any;
+        if (!(!sh._mdf && !this._mdf && !_isFirstFrame)) {
           localShapeCollection.releaseShapes();
-          shapeData.shape._mdf = true;
-          shapePaths = shapeData.shape.paths.shapes;
-          jLen = shapeData.shape.paths._length;
+          sh._mdf = true;
+          shapePaths = sh.paths.shapes;
+          jLen = sh.paths._length;
           for (j = 0; j < jLen; j += 1) {
             localShapeCollection.addShape(this.processPath(shapePaths[j], rd));
           }
         }
-        shapeData.shape.paths = shapeData.localShapeCollection;
+        sh.paths = shapeData.localShapeCollection;
       }
     }
     if (!this.dynamicProperties.length) {

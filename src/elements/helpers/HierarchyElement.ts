@@ -1,11 +1,17 @@
-// @ts-nocheck
 /**
  * @file
  * Handles AE's layer parenting property.
  *
  */
 
+import type { LayerParentData, ParentingHost } from '../../types/lottieRuntime';
+
 class HierarchyElement {
+  hierarchy!: unknown[];
+  _isParent!: boolean;
+  data!: LayerParentData;
+  comp!: ParentingHost;
+
   /**
    * @function
    * Initializes hierarchy properties
@@ -26,7 +32,7 @@ class HierarchyElement {
    * layer's parent list
    *
    */
-  setHierarchy(hierarchy) {
+  setHierarchy(hierarchy: unknown[]) {
     this.hierarchy = hierarchy;
   }
 

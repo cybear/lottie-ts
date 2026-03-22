@@ -1,4 +1,6 @@
-type SVGCompElementConstructor = new (data: unknown, globalData: unknown, comp: unknown) => unknown;
+import type { GlobalData, RendererLayerData } from '../../types/lottieRuntime';
+
+type SVGCompElementConstructor = new (data: RendererLayerData, globalData: GlobalData, comp: unknown) => unknown;
 
 let svgCompElementCtor: SVGCompElementConstructor | null = null;
 

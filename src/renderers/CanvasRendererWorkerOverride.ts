@@ -1,9 +1,9 @@
-// @ts-nocheck
+/* eslint-disable @typescript-eslint/no-explicit-any -- worker canvas: patches CanvasRenderer.prototype */
 import { createSizedArray } from '../utils/helpers/arrays';
 import CanvasRenderer from './CanvasRenderer';
 import createTag from '../utils/helpers/html_elements';
 
-CanvasRenderer.prototype.configAnimation = function (animData) {
+(CanvasRenderer.prototype as any).configAnimation = function (this: any, animData: any) {
   if (this.animationItem.wrapper) {
     this.animationItem.container = createTag('canvas');
     const containerStyle = this.animationItem.container.style;

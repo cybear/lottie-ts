@@ -1,11 +1,21 @@
-// @ts-nocheck
 import Matrix from '../3rd_party/transformation-matrix';
-import CanvasRendererBase from './CanvasRendererBase';
+import type { AnimationItemRendererPartial, RendererElementInstance, RendererLayerData } from '../types/lottieRuntime';
+import CanvasRendererBase, { type CanvasRendererConfig } from './CanvasRendererBase';
 import CVContextData from '../elements/canvasElements/CVContextData';
 import CVCompElement from '../elements/canvasElements/CVCompElement';
 
+type CanvasPlayerConfig = Partial<CanvasRendererConfig> & {
+  clearCanvas?: boolean;
+  context?: CanvasRenderingContext2D | null;
+  dpr?: number;
+};
+
 class CanvasRenderer extends CanvasRendererBase {
-  constructor(animationItem, config) {
+  contextData!: CVContextData;
+  transformMat!: InstanceType<typeof Matrix>;
+  rendererType!: string;
+
+  constructor(animationItem: AnimationItemRendererPartial, config?: CanvasPlayerConfig) {
     super();
     this.animationItem = animationItem;
     this.renderConfig = {
@@ -18,10 +28,11 @@ class CanvasRenderer extends CanvasRendererBase {
       className: (config && config.className) || '',
       id: (config && config.id) || '',
       runExpressions: !config || config.runExpressions === undefined || config.runExpressions,
+      dpr: (config && config.dpr) || 1,
     };
-    this.renderConfig.dpr = (config && config.dpr) || 1;
     if (this.animationItem.wrapper) {
-      this.renderConfig.dpr = (config && config.dpr) || window.devicePixelRatio || 1;
+      this.renderConfig.dpr =
+        (config && config.dpr) || (typeof window !== 'undefined' ? window.devicePixelRatio : 1) || 1;
     }
     this.renderedFrame = -1;
     this.globalData = {
@@ -29,7 +40,7 @@ class CanvasRenderer extends CanvasRendererBase {
       _mdf: false,
       renderConfig: this.renderConfig,
       currentGlobalAlpha: -1,
-    };
+    } as typeof this.globalData;
     this.contextData = new CVContextData();
     this.elements = [];
     this.pendingElements = [];
@@ -52,8 +63,8 @@ class CanvasRenderer extends CanvasRendererBase {
     }
   }
 
-  createComp(data) {
-    return new CVCompElement(data, this.globalData, this);
+  createComp(data: RendererLayerData): RendererElementInstance {
+    return new CVCompElement(data, this.globalData, this) as unknown as RendererElementInstance;
   }
 }
 

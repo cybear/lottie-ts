@@ -1,24 +1,24 @@
 import poolFactory from './pool_factory';
 import pointPool from './point_pool';
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
 import ShapePath from '../shapes/ShapePath';
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-type ShapePathInstance = any;
+type ShapePathInstance = ShapePath;
 
 const shapePool = (function () {
   function create(): ShapePathInstance {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    return new (ShapePath as any)();
+    return new ShapePath();
   }
 
   function release(shapePath: ShapePathInstance): void {
     const len = shapePath._length;
     let i: number;
     for (i = 0; i < len; i += 1) {
-      pointPool.release(shapePath.v[i]);
-      pointPool.release(shapePath.i[i]);
-      pointPool.release(shapePath.o[i]);
+      const pv = shapePath.v[i];
+      const pi = shapePath.i[i];
+      const po = shapePath.o[i];
+      if (pv) pointPool.release(pv);
+      if (pi) pointPool.release(pi);
+      if (po) pointPool.release(po);
       shapePath.v[i] = null;
       shapePath.i[i] = null;
       shapePath.o[i] = null;
@@ -35,14 +35,18 @@ const shapePool = (function () {
     cloned.c = shape.c;
 
     for (i = 0; i < len; i += 1) {
-      cloned.setTripleAt(shape.v[i][0], shape.v[i][1], shape.o[i][0], shape.o[i][1], shape.i[i][0], shape.i[i][1], i);
+      const v = shape.v[i];
+      const inn = shape.i[i];
+      const out = shape.o[i];
+      if (v && inn && out) {
+        cloned.setTripleAt(v[0], v[1], out[0], out[1], inn[0], inn[1], i, false);
+      }
     }
     return cloned;
   }
 
   const factory = poolFactory(4, create, release);
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  (factory as any).clone = clone;
+  (factory as typeof factory & { clone: typeof clone }).clone = clone;
 
   return factory;
 })();

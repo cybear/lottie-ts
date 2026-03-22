@@ -1,8 +1,14 @@
-// @ts-nocheck
 import createNS from '../../../utils/helpers/svg_elements';
+import type { GroupEffectLike } from '../../../types/lottieRuntime';
 
 class SVGTritoneFilter {
-  constructor(filter, filterManager, elem, id) {
+  declare filterManager: GroupEffectLike;
+  declare matrixFilter: SVGElement;
+  declare feFuncR: SVGElement;
+  declare feFuncG: SVGElement;
+  declare feFuncB: SVGElement;
+
+  constructor(filter: SVGElement, filterManager: GroupEffectLike, _elem: unknown, id: string, _source?: string) {
     this.filterManager = filterManager;
     const feColorMatrix = createNS('feColorMatrix');
     feColorMatrix.setAttribute('type', 'matrix');
@@ -31,11 +37,11 @@ class SVGTritoneFilter {
     filter.appendChild(feComponentTransfer);
   }
 
-  renderFrame(forceRender) {
+  renderFrame(forceRender: boolean) {
     if (forceRender || this.filterManager._mdf) {
-      const color1 = this.filterManager.effectElements[0].p.v;
-      const color2 = this.filterManager.effectElements[1].p.v;
-      const color3 = this.filterManager.effectElements[2].p.v;
+      const color1 = this.filterManager.effectElements[0].p.v as number[];
+      const color2 = this.filterManager.effectElements[1].p.v as number[];
+      const color3 = this.filterManager.effectElements[2].p.v as number[];
       const tableR = color3[0] + ' ' + color2[0] + ' ' + color1[0];
       const tableG = color3[1] + ' ' + color2[1] + ' ' + color1[1];
       const tableB = color3[2] + ' ' + color2[2] + ' ' + color1[2];
