@@ -9,6 +9,12 @@ export interface ShapePathMatrixHelper {
   applyToPointStringified(x: number, y: number): string;
 }
 
+/** Path segment as stored on shape collections (`_length`, `c` = closed). */
+export type BezierPathNodesWithMeta = BezierPathNodes & {
+  _length: number;
+  c: boolean;
+};
+
 const buildShapeString = function (
   pathNodes: BezierPathNodes,
   length: number,

@@ -38,9 +38,11 @@ export interface GlobalData {
   canvasContext?: CanvasRenderingContext2D | null;
   renderer?: unknown;
   transformCanvas?: unknown;
+  /** Composition host reference on some render paths (e.g. hybrid `createComp`). */
+  comp?: unknown;
   /** Subset of player `renderConfig` read by layers (e.g. `hideOnTransparent`). */
   renderConfig?: RenderConfig;
-  blendMode?: number;
+  blendMode?: number | string;
   [key: string]: unknown;
 }
 
@@ -50,10 +52,62 @@ export interface GlobalData {
  */
 export type ElementData = Record<string, unknown>;
 
-/** Options on `globalData.renderConfig` used by `RenderableElement`. */
+/** Options on `globalData.renderConfig` used by `RenderableElement` and renderer constructors. */
 export interface RenderConfig {
   hideOnTransparent?: boolean;
   imagePreserveAspectRatio?: string;
+  preserveAspectRatio?: string;
+  progressiveLoad?: boolean;
+  contentVisibility?: string;
+  className?: string;
+  id?: string;
+  viewBoxOnly?: boolean;
+  viewBoxSize?: string | false;
+  width?: string | number;
+  height?: string | number;
+  focusable?: string;
+  title?: string;
+  description?: string;
+  runExpressions?: boolean;
+  clearCanvas?: boolean;
+  context?: CanvasRenderingContext2D | null;
+  dpr?: number;
+  filterSize?: { width: string; height: string; x: string; y: string };
+}
+
+/** `globalData.projectInterface` subset used by renderers. */
+export interface ProjectInterfaceLike {
+  registerComposition(comp: unknown): void;
+  currentFrame?: number;
+}
+
+/** Built layer instance stored in `renderer.elements[i]` (or `true` while building). */
+export interface RendererElementInstance {
+  destroy(): void;
+  prepareFrame(num: number): void;
+  renderFrame(): void;
+  initExpressions(): void;
+  getBaseElement(): Element | null;
+  data: ElementData;
+  checkParenting(): void;
+  setMatte?(m: unknown): void;
+  getMatte?(tt: unknown): unknown;
+  setAsParent?(): void;
+  setHierarchy?(h: unknown[]): void;
+  getElementByPath?(path: unknown[]): unknown;
+}
+
+export type RendererElementSlot = RendererElementInstance | true | null | undefined;
+
+/** `AnimationItem` fields renderers rely on (avoid importing the full class). */
+export interface AnimationItemRendererPartial {
+  wrapper: HTMLElement;
+  container?: HTMLCanvasElement | HTMLElement | null;
+  getAssetData: (refId: string) => unknown;
+  getAssetsPath: (asset: unknown) => string;
+  imagePreloader: unknown;
+  audioController: unknown;
+  _isFirstFrame?: number;
 }
 
 /** HTML solid / rect layer subset (`sw` / `sh` / `sc`). */
@@ -96,6 +150,30 @@ export interface LayerInOutData extends ElementData {
   textData?: { width: number; height: number };
   width?: number;
   height?: number;
+}
+
+/** Layer row from animation JSON as used by renderers (`layers[]`). */
+export type RendererLayerData = LayerInOutData & {
+  ind: number;
+  ty: number;
+  id?: number | string;
+  parent?: number;
+  nm?: string;
+  tt?: unknown;
+  tp?: number;
+  ddd?: boolean;
+  xt?: boolean;
+};
+
+/** Root animation JSON fields read in `BaseRenderer.setupGlobalData` / `configAnimation`. */
+export interface AnimationRootData {
+  w: number;
+  h: number;
+  nm?: string;
+  fr: number;
+  layers: RendererLayerData[];
+  chars?: unknown;
+  fonts?: unknown;
 }
 
 /** Text layer JSON (`t` holds text document + animators). */

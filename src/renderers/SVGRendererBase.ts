@@ -1,8 +1,19 @@
-// @ts-nocheck
 import { getLocationHref } from '../main';
 import { createElementID, getExpressionsPlugin } from '../utils/common';
 import { createSizedArray } from '../utils/helpers/arrays';
 import createNS from '../utils/helpers/svg_elements';
+import type {
+  AnimationItemRendererPartial,
+  AnimationRootData,
+  ElementData,
+  GlobalData,
+  RefIdLayerData,
+  RendererElementInstance,
+  RendererElementSlot,
+  RendererLayerData,
+  RenderConfig,
+  SolidColorLayerData,
+} from '../types/lottieRuntime';
 import BaseRenderer from './BaseRenderer';
 import IImageElement from '../elements/ImageElement';
 import SVGShapeElement from '../elements/svgElements/SVGShapeElement';
@@ -10,65 +21,83 @@ import SVGTextLottieElement from '../elements/svgElements/SVGTextElement';
 import ISolidElement from '../elements/SolidElement';
 import NullElement from '../elements/NullElement';
 
-class SVGRendererBase extends BaseRenderer {
-  createNull(data) {
-    return new NullElement(data, this.globalData, this);
+abstract class SVGRendererBase extends BaseRenderer {
+  declare animationItem: AnimationItemRendererPartial;
+  svgElement!: SVGSVGElement;
+  layerElement!: SVGGElement;
+  renderConfig!: RenderConfig;
+  data!: AnimationRootData;
+  destroyed!: boolean;
+  renderedFrame!: number;
+  declare globalData: GlobalData;
+  declare layers: RendererLayerData[];
+  declare elements: RendererElementSlot[];
+
+  abstract createComp(data: RendererLayerData): RendererElementInstance;
+
+  createNull(data: RendererLayerData): RendererElementInstance {
+    return new NullElement(data as ElementData, this.globalData, this) as unknown as RendererElementInstance;
   }
 
-  createShape(data) {
-    return new SVGShapeElement(data, this.globalData, this);
+  createShape(data: RendererLayerData): RendererElementInstance {
+    return new SVGShapeElement(data, this.globalData, this) as unknown as RendererElementInstance;
   }
 
-  createText(data) {
-    return new SVGTextLottieElement(data, this.globalData, this);
+  createText(data: RendererLayerData): RendererElementInstance {
+    return new SVGTextLottieElement(data, this.globalData, this) as unknown as RendererElementInstance;
   }
 
-  createImage(data) {
-    return new IImageElement(data, this.globalData, this);
+  createImage(data: RendererLayerData): RendererElementInstance {
+    return new IImageElement(
+      data as unknown as RefIdLayerData,
+      this.globalData,
+      this,
+    ) as unknown as RendererElementInstance;
   }
 
-  createSolid(data) {
-    return new ISolidElement(data, this.globalData, this);
+  createSolid(data: RendererLayerData): RendererElementInstance {
+    return new ISolidElement(
+      data as unknown as SolidColorLayerData,
+      this.globalData,
+      this,
+    ) as unknown as RendererElementInstance;
   }
 
-  configAnimation(animData) {
+  configAnimation(animData: AnimationRootData) {
     this.svgElement.setAttribute('xmlns', 'http://www.w3.org/2000/svg');
     this.svgElement.setAttribute('xmlns:xlink', 'http://www.w3.org/1999/xlink');
     if (this.renderConfig.viewBoxSize) {
-      this.svgElement.setAttribute('viewBox', this.renderConfig.viewBoxSize);
+      this.svgElement.setAttribute('viewBox', this.renderConfig.viewBoxSize as string);
     } else {
       this.svgElement.setAttribute('viewBox', '0 0 ' + animData.w + ' ' + animData.h);
     }
 
     if (!this.renderConfig.viewBoxOnly) {
-      this.svgElement.setAttribute('width', animData.w);
-      this.svgElement.setAttribute('height', animData.h);
+      this.svgElement.setAttribute('width', String(animData.w));
+      this.svgElement.setAttribute('height', String(animData.h));
       this.svgElement.style.width = '100%';
       this.svgElement.style.height = '100%';
       this.svgElement.style.transform = 'translate3d(0,0,0)';
-      this.svgElement.style.contentVisibility = this.renderConfig.contentVisibility;
+      this.svgElement.style.contentVisibility = this.renderConfig.contentVisibility as string;
     }
     if (this.renderConfig.width) {
-      this.svgElement.setAttribute('width', this.renderConfig.width);
+      this.svgElement.setAttribute('width', String(this.renderConfig.width));
     }
     if (this.renderConfig.height) {
-      this.svgElement.setAttribute('height', this.renderConfig.height);
+      this.svgElement.setAttribute('height', String(this.renderConfig.height));
     }
     if (this.renderConfig.className) {
       this.svgElement.setAttribute('class', this.renderConfig.className);
     }
     if (this.renderConfig.id) {
-      this.svgElement.setAttribute('id', this.renderConfig.id);
+      this.svgElement.setAttribute('id', String(this.renderConfig.id));
     }
     if (this.renderConfig.focusable !== undefined) {
       this.svgElement.setAttribute('focusable', this.renderConfig.focusable);
     }
-    this.svgElement.setAttribute('preserveAspectRatio', this.renderConfig.preserveAspectRatio);
-    // this.layerElement.style.transform = 'translate3d(0,0,0)';
-    // this.layerElement.style.transformOrigin = this.layerElement.style.mozTransformOrigin = this.layerElement.style.webkitTransformOrigin = this.layerElement.style['-webkit-transform'] = "0px 0px 0px";
+    this.svgElement.setAttribute('preserveAspectRatio', this.renderConfig.preserveAspectRatio as string);
     this.animationItem.wrapper.appendChild(this.svgElement);
-    // Mask animation
-    const defs = this.globalData.defs;
+    const defs = this.globalData.defs as SVGDefsElement;
 
     this.setupGlobalData(animData, defs);
     this.globalData.progressiveLoad = this.renderConfig.progressiveLoad;
@@ -76,10 +105,10 @@ class SVGRendererBase extends BaseRenderer {
 
     const maskElement = createNS('clipPath');
     const rect = createNS('rect');
-    rect.setAttribute('width', animData.w);
-    rect.setAttribute('height', animData.h);
-    rect.setAttribute('x', 0);
-    rect.setAttribute('y', 0);
+    rect.setAttribute('width', String(animData.w));
+    rect.setAttribute('height', String(animData.h));
+    rect.setAttribute('x', '0');
+    rect.setAttribute('y', '0');
     const maskId = createElementID();
     maskElement.setAttribute('id', maskId);
     maskElement.appendChild(rect);
@@ -87,30 +116,31 @@ class SVGRendererBase extends BaseRenderer {
 
     defs.appendChild(maskElement);
     this.layers = animData.layers;
-    this.elements = createSizedArray(animData.layers.length);
+    this.elements = createSizedArray(animData.layers.length) as RendererElementSlot[];
   }
 
   destroy() {
     if (this.animationItem.wrapper) {
       this.animationItem.wrapper.innerText = '';
     }
-    this.layerElement = null;
+    this.layerElement = null as unknown as SVGGElement;
     this.globalData.defs = null;
-    let i;
+    let i: number;
     const len = this.layers ? this.layers.length : 0;
     for (i = 0; i < len; i += 1) {
-      if (this.elements[i] && this.elements[i].destroy) {
-        this.elements[i].destroy();
+      const slot = this.elements[i];
+      if (slot && slot !== true) {
+        (slot as RendererElementInstance).destroy();
       }
     }
     this.elements.length = 0;
     this.destroyed = true;
-    this.animationItem = null;
+    this.animationItem = null as unknown as AnimationItemRendererPartial;
   }
 
   updateContainerSize() {}
 
-  findIndexByInd(ind) {
+  findIndexByInd(ind: number) {
     let i = 0;
     const len = this.layers.length;
     for (i = 0; i < len; i += 1) {
@@ -121,24 +151,25 @@ class SVGRendererBase extends BaseRenderer {
     return -1;
   }
 
-  buildItem(pos) {
+  buildItem(pos: number) {
     const elements = this.elements;
     if (elements[pos] || this.layers[pos].ty === 99) {
       return;
     }
     elements[pos] = true;
-    const element = this.createItem(this.layers[pos]);
+    const element = this.createItem(this.layers[pos]) as RendererElementInstance;
 
     elements[pos] = element;
     if (getExpressionsPlugin()) {
       if (this.layers[pos].ty === 0) {
-        this.globalData.projectInterface.registerComposition(element);
+        (this.globalData.projectInterface as { registerComposition(c: unknown): void }).registerComposition(element);
       }
       element.initExpressions();
     }
     this.appendElementInPos(element, pos);
     if (this.layers[pos].tt) {
-      const elementIndex = 'tp' in this.layers[pos] ? this.findIndexByInd(this.layers[pos].tp) : pos - 1;
+      const layer = this.layers[pos] as RendererLayerData & { tp?: number };
+      const elementIndex = 'tp' in layer ? this.findIndexByInd(layer.tp!) : pos - 1;
       if (elementIndex === -1) {
         return;
       }
@@ -146,26 +177,27 @@ class SVGRendererBase extends BaseRenderer {
         this.buildItem(elementIndex);
         this.addPendingElement(element);
       } else {
-        const matteElement = elements[elementIndex];
-        const matteMask = matteElement.getMatte(this.layers[pos].tt);
-        element.setMatte(matteMask);
+        const matteElement = elements[elementIndex] as RendererElementInstance;
+        const matteMask = matteElement.getMatte!(this.layers[pos].tt);
+        element.setMatte!(matteMask);
       }
     }
   }
 
   checkPendingElements() {
     while (this.pendingElements.length) {
-      const element = this.pendingElements.pop();
+      const element = this.pendingElements.pop()!;
       element.checkParenting();
       if (element.data.tt) {
         let i = 0;
         const len = this.elements.length;
         while (i < len) {
           if (this.elements[i] === element) {
-            const elementIndex = 'tp' in element.data ? this.findIndexByInd(element.data.tp) : i - 1;
-            const matteElement = this.elements[elementIndex];
-            const matteMask = matteElement.getMatte(this.layers[i].tt);
-            element.setMatte(matteMask);
+            const ed = element.data as { tp?: number };
+            const elementIndex = 'tp' in ed ? this.findIndexByInd(ed.tp!) : i - 1;
+            const matteElement = this.elements[elementIndex] as RendererElementInstance;
+            const matteMask = matteElement.getMatte!(this.layers[i].tt);
+            element.setMatte!(matteMask);
             break;
           }
           i += 1;
@@ -174,7 +206,7 @@ class SVGRendererBase extends BaseRenderer {
     }
   }
 
-  renderFrame(num) {
+  renderFrame(num: number | null) {
     if (this.renderedFrame === num || this.destroyed) {
       return;
     }
@@ -183,41 +215,40 @@ class SVGRendererBase extends BaseRenderer {
     } else {
       this.renderedFrame = num;
     }
-    // console.log('-------');
-    // console.log('FRAME ',num);
     this.globalData.frameNum = num;
-    this.globalData.frameId += 1;
-    this.globalData.projectInterface.currentFrame = num;
+    this.globalData.frameId = (this.globalData.frameId ?? 0) + 1;
+    (this.globalData.projectInterface as { currentFrame: number }).currentFrame = num;
     this.globalData._mdf = false;
-    let i;
+    let i: number;
     const len = this.layers.length;
     if (!this.completeLayers) {
       this.checkLayers(num);
     }
     for (i = len - 1; i >= 0; i -= 1) {
       if (this.completeLayers || this.elements[i]) {
-        this.elements[i].prepareFrame(num - this.layers[i].st);
+        (this.elements[i] as RendererElementInstance).prepareFrame(num - this.layers[i].st);
       }
     }
     if (this.globalData._mdf) {
       for (i = 0; i < len; i += 1) {
         if (this.completeLayers || this.elements[i]) {
-          this.elements[i].renderFrame();
+          (this.elements[i] as RendererElementInstance).renderFrame();
         }
       }
     }
   }
 
-  appendElementInPos(element, pos) {
+  appendElementInPos(element: RendererElementInstance, pos: number) {
     const newElement = element.getBaseElement();
     if (!newElement) {
       return;
     }
     let i = 0;
-    let nextElement;
+    let nextElement: Element | undefined;
     while (i < pos) {
-      if (this.elements[i] && this.elements[i] !== true && this.elements[i].getBaseElement()) {
-        nextElement = this.elements[i].getBaseElement();
+      const slot = this.elements[i];
+      if (slot && slot !== true && slot.getBaseElement()) {
+        nextElement = slot.getBaseElement()!;
       }
       i += 1;
     }

@@ -1,9 +1,14 @@
-// @ts-nocheck
-import DynamicPropertyContainer from '../../../utils/helpers/dynamicProperties';
+import DynamicPropertyContainer, { type DynamicPropertyContainerMixin } from '../../../utils/helpers/dynamicProperties';
 import PropertyFactory from '../../../utils/PropertyFactory';
+import type { ElementData } from '../../../types/lottieRuntime';
 
 class SVGFillStyleData extends DynamicPropertyContainer {
-  constructor(elem, data, styleOb) {
+  declare getValue: () => void;
+  o: unknown;
+  c: unknown;
+  style: unknown;
+
+  constructor(elem: DynamicPropertyContainerMixin['container'], data: ElementData, styleOb: unknown) {
     super();
     this.initDynamicPropertyContainer(elem);
     this.getValue = this.iterateDynamicProperties;

@@ -1,14 +1,46 @@
-// @ts-nocheck
 import FontManager from '../utils/FontManager';
 import slotFactory from '../utils/SlotManager';
+import type {
+  AnimationItemRendererPartial,
+  AnimationRootData,
+  AudioLayerData,
+  ElementData,
+  GlobalData,
+  ProjectInterfaceLike,
+  RefIdLayerData,
+  RendererElementInstance,
+  RendererElementSlot,
+  RendererLayerData,
+} from '../types/lottieRuntime';
 import FootageElement from '../elements/FootageElement';
 import AudioElement from '../elements/AudioElement';
 
-class BaseRenderer {
-  checkLayers(num) {
-    let i;
+type FontManagerInstance = {
+  addChars(chars: unknown): void;
+  addFonts(fonts: unknown, container: unknown): void;
+};
+
+abstract class BaseRenderer {
+  declare animationItem: AnimationItemRendererPartial;
+  declare layers: RendererLayerData[];
+  declare elements: RendererElementSlot[];
+  declare completeLayers: boolean;
+  declare globalData: GlobalData;
+  pendingElements!: RendererElementInstance[];
+
+  abstract buildItem(pos: number): void;
+  abstract checkPendingElements(): void;
+  abstract createImage(data: RendererLayerData): RendererElementInstance;
+  abstract createComp(data: RendererLayerData, ...args: unknown[]): RendererElementInstance;
+  abstract createSolid(data: RendererLayerData): RendererElementInstance;
+  abstract createNull(data: RendererLayerData): RendererElementInstance;
+  abstract createShape(data: RendererLayerData): RendererElementInstance;
+  abstract createText(data: RendererLayerData): RendererElementInstance;
+
+  checkLayers(num: number) {
+    let i: number;
     const len = this.layers.length;
-    let data;
+    let data: RendererLayerData;
     this.completeLayers = true;
     for (i = len - 1; i >= 0; i -= 1) {
       if (!this.elements[i]) {
@@ -22,7 +54,7 @@ class BaseRenderer {
     this.checkPendingElements();
   }
 
-  createItem(layer) {
+  createItem(layer: RendererLayerData, ..._extra: unknown[]) {
     switch (layer.ty) {
       case 2:
         return this.createImage(layer);
@@ -37,30 +69,30 @@ class BaseRenderer {
       case 5:
         return this.createText(layer);
       case 6:
-        return this.createAudio(layer);
+        return new AudioElement(
+          layer as unknown as AudioLayerData,
+          this.globalData,
+          this,
+        ) as unknown as RendererElementInstance;
       case 13:
         return this.createCamera(layer);
       case 15:
-        return this.createFootage(layer);
+        return new FootageElement(
+          layer as unknown as RefIdLayerData,
+          this.globalData,
+          this,
+        ) as unknown as RendererElementInstance;
       default:
         return this.createNull(layer);
     }
   }
 
-  createCamera() {
+  createCamera(_data: RendererLayerData): RendererElementInstance {
     throw new Error("You're using a 3d camera. Try the html renderer.");
   }
 
-  createAudio(data) {
-    return new AudioElement(data, this.globalData, this);
-  }
-
-  createFootage(data) {
-    return new FootageElement(data, this.globalData, this);
-  }
-
   buildAllItems() {
-    let i;
+    let i: number;
     const len = this.layers.length;
     for (i = 0; i < len; i += 1) {
       this.buildItem(i);
@@ -68,11 +100,11 @@ class BaseRenderer {
     this.checkPendingElements();
   }
 
-  includeLayers(newLayers) {
+  includeLayers(newLayers: RendererLayerData[]) {
     this.completeLayers = false;
-    let i;
+    let i: number;
     const len = newLayers.length;
-    let j;
+    let j: number;
     const jLen = this.layers.length;
     for (i = 0; i < len; i += 1) {
       j = 0;
@@ -86,7 +118,7 @@ class BaseRenderer {
     }
   }
 
-  setProjectInterface(pInterface) {
+  setProjectInterface(pInterface: ProjectInterfaceLike) {
     this.globalData.projectInterface = pInterface;
   }
 
@@ -96,7 +128,7 @@ class BaseRenderer {
     }
   }
 
-  buildElementParenting(element, parentName, hierarchy) {
+  buildElementParenting(element: RendererElementInstance, parentName: number, hierarchy: unknown[]) {
     const elements = this.elements;
     const layers = this.layers;
     let i = 0;
@@ -108,12 +140,13 @@ class BaseRenderer {
           this.buildItem(i);
           this.addPendingElement(element);
         } else {
-          hierarchy.push(elements[i]);
-          elements[i].setAsParent();
+          const built = elements[i] as RendererElementInstance;
+          hierarchy.push(built);
+          built.setAsParent!();
           if (layers[i].parent !== undefined) {
-            this.buildElementParenting(element, layers[i].parent, hierarchy);
+            this.buildElementParenting(element, layers[i].parent as number, hierarchy);
           } else {
-            element.setHierarchy(hierarchy);
+            element.setHierarchy!(hierarchy);
           }
         }
       }
@@ -121,44 +154,49 @@ class BaseRenderer {
     }
   }
 
-  addPendingElement(element) {
+  addPendingElement(element: RendererElementInstance) {
     this.pendingElements.push(element);
   }
 
-  searchExtraCompositions(assets) {
-    let i;
+  searchExtraCompositions(assets: Array<ElementData & { xt?: boolean }>) {
+    let i: number;
     const len = assets.length;
+    const pi = this.globalData.projectInterface as ProjectInterfaceLike;
     for (i = 0; i < len; i += 1) {
       if (assets[i].xt) {
-        const comp = this.createComp(assets[i]);
+        const comp = this.createComp(assets[i] as RendererLayerData);
         comp.initExpressions();
-        this.globalData.projectInterface.registerComposition(comp);
+        pi.registerComposition(comp);
       }
     }
   }
 
-  getElementById(ind) {
-    let i;
+  getElementById(ind: number): RendererElementInstance | null {
+    let i: number;
     const len = this.elements.length;
     for (i = 0; i < len; i += 1) {
-      if (this.elements[i].data.ind === ind) {
-        return this.elements[i];
+      const slot = this.elements[i];
+      if (slot && slot !== true) {
+        const el = slot as RendererElementInstance;
+        if (el.data.ind === ind) {
+          return el;
+        }
       }
     }
     return null;
   }
 
-  getElementByPath(path) {
+  getElementByPath(path: unknown[]): unknown {
     const pathValue = path.shift();
-    let element;
+    let element: RendererElementInstance | undefined;
     if (typeof pathValue === 'number') {
-      element = this.elements[pathValue];
+      element = this.elements[pathValue] as RendererElementInstance;
     } else {
-      let i;
+      let i: number;
       const len = this.elements.length;
       for (i = 0; i < len; i += 1) {
-        if (this.elements[i].data.nm === pathValue) {
-          element = this.elements[i];
+        if ((this.elements[i] as RendererElementInstance).data.nm === pathValue) {
+          element = this.elements[i] as RendererElementInstance;
           break;
         }
       }
@@ -166,14 +204,16 @@ class BaseRenderer {
     if (path.length === 0) {
       return element;
     }
-    return element.getElementByPath(path);
+    return element!.getElementByPath!(path);
   }
 
-  setupGlobalData(animData, fontsContainer) {
-    this.globalData.fontManager = new FontManager();
+  setupGlobalData(animData: AnimationRootData, fontsContainer: unknown) {
+    const FontCtor = FontManager as unknown as new () => FontManagerInstance;
+    this.globalData.fontManager = new FontCtor();
     this.globalData.slotManager = slotFactory(animData);
-    this.globalData.fontManager.addChars(animData.chars);
-    this.globalData.fontManager.addFonts(animData.fonts, fontsContainer);
+    const fm = this.globalData.fontManager as FontManagerInstance;
+    fm.addChars(animData.chars);
+    fm.addFonts(animData.fonts, fontsContainer);
     this.globalData.getAssetData = this.animationItem.getAssetData.bind(this.animationItem);
     this.globalData.getAssetsPath = this.animationItem.getAssetsPath.bind(this.animationItem);
     this.globalData.imageLoader = this.animationItem.imagePreloader;

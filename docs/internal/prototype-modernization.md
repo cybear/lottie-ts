@@ -296,3 +296,6 @@ After each slice, run `npm test`, `npm run test:e2e`, and compare baselines wher
 - **`ShapeElementData` (`helpers/shapes/ShapeElement.ts`):** `@ts-nocheck` removed; empty marker class.
 - **`SVGTransformData`:** `@ts-nocheck` removed; typed `mProps` / `op` / `_isAnimated` (numeric truthiness preserved).
 - **`TransformElement`:** `@ts-nocheck` removed; `Matrix` / hierarchy / local-transform / comp-walk typing; `mHelper` stays on `prototype`.
+- **SVG shape pipeline:** `shapePathBuilder` exports `BezierPathNodesWithMeta`; `SVGElementsRenderer`, `SVGStyleData`, `SVGFillStyleData`, `SVGStrokeStyleData`, `SVGGradientFillStyleData` (exports `GradientStyleData`), `SVGGradientStrokeStyleData`, `ShapeTransformManager` — `@ts-nocheck` removed.
+- **Renderers:** `BaseRenderer` is `abstract` with abstract factory/build hooks; `SVGRendererBase` is `abstract` (`createComp` on leaf); `CanvasRendererBase` + config/transform types; `SVGRenderer`, `CanvasRenderer`, `HybridRenderer` typed. **`HybridRendererBase`** still `@ts-nocheck` (next slice).
+- **`lottieRuntime`:** `RenderConfig` expanded for player options; `ProjectInterfaceLike`, `RendererLayerData`, `AnimationRootData`, `RendererElementInstance` / `RendererElementSlot`, `AnimationItemRendererPartial`; `GlobalData.comp`, `blendMode` widened for canvas.

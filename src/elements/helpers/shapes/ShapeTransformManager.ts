@@ -1,15 +1,33 @@
-// @ts-nocheck
 import Matrix from '../../../3rd_party/transformation-matrix';
 
+type MatrixInstance = InstanceType<typeof Matrix>;
+
+interface TransformFrameEntry {
+  transform: {
+    key: string;
+    mProps: { _mdf?: boolean; v: MatrixInstance };
+  };
+}
+
+interface TransformSequence {
+  transforms: TransformFrameEntry[];
+  finalTransform: MatrixInstance;
+  _mdf: boolean;
+}
+
 class ShapeTransformManager {
+  sequences: Record<string, TransformSequence>;
+  sequenceList: TransformSequence[];
+  transform_key_count: number;
+
   constructor() {
     this.sequences = {};
     this.sequenceList = [];
     this.transform_key_count = 0;
   }
 
-  addTransformSequence(transforms) {
-    let i;
+  addTransformSequence(transforms: TransformFrameEntry[]) {
+    let i: number;
     const len = transforms.length;
     let key = '_';
     for (i = 0; i < len; i += 1) {
@@ -18,7 +36,7 @@ class ShapeTransformManager {
     let sequence = this.sequences[key];
     if (!sequence) {
       sequence = {
-        transforms: [].concat(transforms),
+        transforms: transforms.slice(),
         finalTransform: new Matrix(),
         _mdf: false,
       };
@@ -28,7 +46,7 @@ class ShapeTransformManager {
     return sequence;
   }
 
-  processSequence(sequence, isFirstFrame) {
+  processSequence(sequence: TransformSequence, isFirstFrame: boolean) {
     let i = 0;
     const len = sequence.transforms.length;
     let _mdf = isFirstFrame;
@@ -48,8 +66,8 @@ class ShapeTransformManager {
     sequence._mdf = _mdf;
   }
 
-  processSequences(isFirstFrame) {
-    let i;
+  processSequences(isFirstFrame: boolean) {
+    let i: number;
     const len = this.sequenceList.length;
     for (i = 0; i < len; i += 1) {
       this.processSequence(this.sequenceList[i], isFirstFrame);
