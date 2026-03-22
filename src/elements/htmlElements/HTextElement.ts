@@ -13,18 +13,20 @@ import HBaseElement from './HBaseElement';
 import { lineCapEnum, lineJoinEnum } from '../../utils/helpers/shapeEnums';
 import { styleDiv } from '../../utils/common';
 
-function HTextElement(data, globalData, comp) {
-  this.textSpans = [];
-  this.textPaths = [];
-  this.currentBBox = {
-    x: 999999,
-    y: -999999,
-    h: 0,
-    w: 0,
-  };
-  this.renderType = 'svg';
-  this.isMasked = false;
-  this.initElement(data, globalData, comp);
+class HTextElement {
+  constructor(data, globalData, comp) {
+    this.textSpans = [];
+    this.textPaths = [];
+    this.currentBBox = {
+      x: 999999,
+      y: -999999,
+      h: 0,
+      w: 0,
+    };
+    this.renderType = 'svg';
+    this.isMasked = false;
+    this.initElement(data, globalData, comp);
+  }
 }
 extendPrototype(
   [BaseElement, TransformElement, HBaseElement, HierarchyElement, FrameElement, RenderableDOMElement, ITextElement],

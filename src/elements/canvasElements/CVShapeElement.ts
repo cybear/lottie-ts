@@ -19,16 +19,18 @@ import CVShapeData from '../helpers/shapes/CVShapeData';
 import { ShapeModifiers } from '../../utils/shapes/ShapeModifiers';
 import { lineCapEnum, lineJoinEnum } from '../../utils/helpers/shapeEnums';
 
-function CVShapeElement(data, globalData, comp) {
-  this.shapes = [];
-  this.shapesData = data.shapes;
-  this.stylesList = [];
-  this.itemsData = [];
-  this.prevViewData = [];
-  this.shapeModifiers = [];
-  this.processedElements = [];
-  this.transformsManager = new ShapeTransformManager();
-  this.initElement(data, globalData, comp);
+class CVShapeElement {
+  constructor(data, globalData, comp) {
+    this.shapes = [];
+    this.shapesData = data.shapes;
+    this.stylesList = [];
+    this.itemsData = [];
+    this.prevViewData = [];
+    this.shapeModifiers = [];
+    this.processedElements = [];
+    this.transformsManager = new ShapeTransformManager();
+    this.initElement(data, globalData, comp);
+  }
 }
 
 extendPrototype(

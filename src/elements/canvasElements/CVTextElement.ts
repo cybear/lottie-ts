@@ -10,24 +10,26 @@ import FrameElement from '../helpers/FrameElement';
 import ITextElement from '../TextElement';
 import CVBaseElement from './CVBaseElement';
 
-function CVTextElement(data, globalData, comp) {
-  this.textSpans = [];
-  this.yOffset = 0;
-  this.fillColorAnim = false;
-  this.strokeColorAnim = false;
-  this.strokeWidthAnim = false;
-  this.stroke = false;
-  this.fill = false;
-  this.justifyOffset = 0;
-  this.currentRender = null;
-  this.renderType = 'canvas';
-  this.values = {
-    fill: 'rgba(0,0,0,0)',
-    stroke: 'rgba(0,0,0,0)',
-    sWidth: 0,
-    fValue: '',
-  };
-  this.initElement(data, globalData, comp);
+class CVTextElement {
+  constructor(data, globalData, comp) {
+    this.textSpans = [];
+    this.yOffset = 0;
+    this.fillColorAnim = false;
+    this.strokeColorAnim = false;
+    this.strokeWidthAnim = false;
+    this.stroke = false;
+    this.fill = false;
+    this.justifyOffset = 0;
+    this.currentRender = null;
+    this.renderType = 'canvas';
+    this.values = {
+      fill: 'rgba(0,0,0,0)',
+      stroke: 'rgba(0,0,0,0)',
+      sWidth: 0,
+      fValue: '',
+    };
+    this.initElement(data, globalData, comp);
+  }
 }
 extendPrototype(
   [BaseElement, TransformElement, CVBaseElement, HierarchyElement, FrameElement, RenderableElement, ITextElement],

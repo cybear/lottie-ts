@@ -16,10 +16,12 @@ const emptyShapeData = {
   shapes: [],
 };
 
-function SVGTextLottieElement(data, globalData, comp) {
-  this.textSpans = [];
-  this.renderType = 'svg';
-  this.initElement(data, globalData, comp);
+class SVGTextLottieElement {
+  constructor(data, globalData, comp) {
+    this.textSpans = [];
+    this.renderType = 'svg';
+    this.initElement(data, globalData, comp);
+  }
 }
 
 extendPrototype(

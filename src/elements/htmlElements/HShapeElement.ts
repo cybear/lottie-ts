@@ -11,32 +11,34 @@ import HBaseElement from './HBaseElement';
 import HSolidElement from './HSolidElement';
 import SVGShapeElement from '../svgElements/SVGShapeElement';
 
-function HShapeElement(data, globalData, comp) {
-  // List of drawable elements
-  this.shapes = [];
-  // Full shape data
-  this.shapesData = data.shapes;
-  // List of styles that will be applied to shapes
-  this.stylesList = [];
-  // List of modifiers that will be applied to shapes
-  this.shapeModifiers = [];
-  // List of items in shape tree
-  this.itemsData = [];
-  // List of items in previous shape tree
-  this.processedElements = [];
-  // List of animated components
-  this.animatedContents = [];
-  this.shapesContainer = createNS('g');
-  this.initElement(data, globalData, comp);
-  // Moving any property that doesn't get too much access after initialization because of v8 way of handling more than 10 properties.
-  // List of elements that have been created
-  this.prevViewData = [];
-  this.currentBBox = {
-    x: 999999,
-    y: -999999,
-    h: 0,
-    w: 0,
-  };
+class HShapeElement {
+  constructor(data, globalData, comp) {
+    // List of drawable elements
+    this.shapes = [];
+    // Full shape data
+    this.shapesData = data.shapes;
+    // List of styles that will be applied to shapes
+    this.stylesList = [];
+    // List of modifiers that will be applied to shapes
+    this.shapeModifiers = [];
+    // List of items in shape tree
+    this.itemsData = [];
+    // List of items in previous shape tree
+    this.processedElements = [];
+    // List of animated components
+    this.animatedContents = [];
+    this.shapesContainer = createNS('g');
+    this.initElement(data, globalData, comp);
+    // Moving any property that doesn't get too much access after initialization because of v8 way of handling more than 10 properties.
+    // List of elements that have been created
+    this.prevViewData = [];
+    this.currentBBox = {
+      x: 999999,
+      y: -999999,
+      h: 0,
+      w: 0,
+    };
+  }
 }
 extendPrototype(
   [
