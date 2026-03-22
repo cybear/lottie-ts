@@ -16,6 +16,10 @@ class CVImageElement {
     this.img = globalData.imageLoader.getAsset(this.assetData);
     this.initElement(data, globalData, comp);
   }
+
+  renderInnerContent() {
+    this.canvasContext.drawImage(this.img, 0, 0);
+  }
 }
 extendPrototype(
   [BaseElement, TransformElement, CVBaseElement, HierarchyElement, FrameElement, RenderableElement],
@@ -59,10 +63,6 @@ CVImageElement.prototype.createContent = function () {
     );
     this.img = canvas;
   }
-};
-
-CVImageElement.prototype.renderInnerContent = function () {
-  this.canvasContext.drawImage(this.img, 0, 0);
 };
 
 CVImageElement.prototype.destroy = function () {
