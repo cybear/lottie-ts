@@ -1,6 +1,6 @@
 # Prototype / `extendPrototype` inventory and class migration strategy
 
-This document supports Track A (strict typing) and Track B (ES classes) modernization. *Last updated: 2025-03-22 — adds shape pipeline data types (`SVGShapeData`, `CVShapeData`, `SVGStyleData`, `SVGTransformData`, `ShapeGroupData`, `ShapeTransformManager`, `ProcessedElement`, `ShapeElementData`) and effect leaf classes in `effects/SliderEffect.ts`; see Track B table.*
+This document supports Track A (strict typing) and Track B (ES classes) modernization. *Last updated: 2025-03-22 — adds `SlotManager`, canvas `CVContextData` (+ internal `CanvasContext`), SVG filter/effect classes (`SVGFillFilter`, `SVGTritoneFilter`, `SVGProLevelsFilter`, `SVGGaussianBlurEffect`, `SVGMatte3Effect`, `SVGStrokeEffect`); `ExpressionValue` remains a factory function (see below).*
 
 Regenerate the call-site table with:
 
@@ -194,6 +194,11 @@ These are `class` constructors whose **`prototype`** methods are still merged on
 | Effect value holders | `SliderEffect`, `AngleEffect`, `ColorEffect`, `PointEffect`, `LayerIndexEffect`, `MaskIndexEffect`, `CheckboxEffect`, `NoValueEffect` (`effects/SliderEffect.ts`) |
 | Dynamic / modifiers | `DynamicPropertyContainer`, `ShapeModifier` (+ concrete modifiers), `ShapeProperty`, `KeyframedShapeProperty`, `ShapeExpressions` (expression decorator) |
 | Worker bundle | `ProxyElement`, `CanvasElement` |
+| Slots | `SlotManager` (`slotFactory` → `new SlotManager`) |
+| Canvas render state | `CVContextData`, internal `CanvasContext` (`CVContextData.ts`) |
+| SVG filter primitives | `SVGFillFilter`, `SVGTritoneFilter`, `SVGProLevelsFilter`, `SVGGaussianBlurEffect`, `SVGMatte3Effect`, `SVGStrokeEffect` (compose with existing `SVGComposableEffect` / `SVGTintFilter` / `SVGDropShadowEffect` / `SVGTransformEffect`) |
+
+**Still a plain function (by design):** [`ExpressionValue`](../../src/utils/expressions/ExpressionValue.ts) builds and returns an augmented `Number` or typed array with expression hooks—it is not used as `new ExpressionValue()`, so it stays a factory function.
 
 **Shared prototype data** (single instance per constructor) remains assigned **after** the `class` body where the old code relied on it: e.g. `TransformElement.prototype.mHelper`, `CVBaseElement.prototype.mHelper`, `ITextElement.prototype.emptyProp`, **`TextProperty.prototype.defaultBoxWidth`**. **`CVMaskElement.prototype.getMaskProperty`** is copied from **`MaskElement.prototype`**. For nested canvas compositions, **`CanvasRendererBase.prototype.createNull`** is copied from `SVGRendererBase.prototype.createNull`, not defined as a subclass field.
 
