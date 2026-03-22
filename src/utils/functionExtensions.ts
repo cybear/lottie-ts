@@ -1,13 +1,16 @@
-type Constructor = { prototype: Record<string, unknown> };
+type Constructor = { prototype: object };
 
 function extendPrototype(sources: Constructor[], destination: Constructor): void {
+  const destProto = destination.prototype as object;
   const len = sources.length;
   for (let i = 0; i < len; i += 1) {
-    const sourcePrototype = sources[i].prototype;
-    for (const attr in sourcePrototype) {
-      if (Object.prototype.hasOwnProperty.call(sourcePrototype, attr)) {
-        destination.prototype[attr] = sourcePrototype[attr];
-      }
+    const sourcePrototype = sources[i].prototype as object;
+    const names = Object.getOwnPropertyNames(sourcePrototype);
+    for (let j = 0; j < names.length; j += 1) {
+      const key = names[j];
+      if (key === 'constructor') continue;
+      const desc = Object.getOwnPropertyDescriptor(sourcePrototype, key);
+      if (desc) Object.defineProperty(destProto, key, desc);
     }
   }
 }

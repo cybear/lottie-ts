@@ -1,0 +1,186 @@
+# Prototype / `extendPrototype` inventory and class migration strategy
+
+This document supports Track A (strict typing) and Track B (ES classes) modernization. Regenerate the call-site table with:
+
+```bash
+rg "extendPrototype\(" src --glob '*.ts' -l
+```
+
+## How `extendPrototype` works
+
+[`src/utils/functionExtensions.ts`](../../src/utils/functionExtensions.ts) copies **enumerable own properties** from each source constructor’s `prototype` onto the destination’s `prototype`, in **array order**. Later sources overwrite earlier keys on collision—**order matters**.
+
+The worker bundle duplicates the same helper inside [`src/worker_wrapper.ts`](../../src/worker_wrapper.ts) for proxy DOM/canvas types.
+
+## Trait dependency overview (mermaid)
+
+```mermaid
+flowchart TB
+  subgraph core [Core traits]
+    BE[BaseElement]
+    TE[TransformElement]
+    HE[HierarchyElement]
+    FE[FrameElement]
+    RE[RenderableElement]
+    RDE[RenderableDOMElement]
+    ITE[ITextElement]
+    ISE[IShapeElement via ShapeElement]
+    ICE[ICompElement]
+    BR[BaseRenderer]
+  end
+
+  subgraph svgR [SVG stack]
+    SVGB[SVGBaseElement]
+    SRB[SVGRendererBase extends BaseRenderer]
+    SVGComp[SVGCompElement]
+  end
+
+  subgraph canvasR [Canvas stack]
+    CVB[CVBaseElement]
+    CRB[CanvasRendererBase extends BaseRenderer]
+    CVComp[CVCompElement]
+  end
+
+  subgraph htmlR [HTML stack]
+    HB[HBaseElement]
+    HRB[HybridRendererBase extends BaseRenderer]
+    HComp[HCompElement]
+  end
+
+  BE --> RDE
+  TE --> RDE
+  HE --> RDE
+  FE --> RDE
+  RE --> RDE
+  ICE --> RDE
+
+  BR --> SRB
+  BR --> CRB
+  BR --> HRB
+
+  SRB --> SVGComp
+  SVGB --> SVGComp
+  ICE --> SVGComp
+
+  CRB --> CVComp
+  CVB --> CVComp
+  ICE --> CVComp
+
+  HRB --> HComp
+  HB --> HComp
+  ICE --> HComp
+```
+
+**Note:** Precomposed elements (e.g. `IImageElement`, `SVGShapeElement`, `HSolidElement`) are themselves mixin products; comps and hybrid shapes **stack renderer bases with element traits** (e.g. `SVGCompElement` = `SVGRendererBase` + `ICompElement` + `SVGBaseElement`).
+
+## `extendPrototype` call sites by category
+
+### Animation / events
+
+| Destination        | Mixin chain                         | File                      |
+| ------------------ | ----------------------------------- | ------------------------- |
+| `AnimationItem`    | `BaseEvent`                         | `animation/AnimationItem.ts` |
+
+### Renderers
+
+| Destination           | Mixin chain                    | File                           |
+| --------------------- | ------------------------------ | ------------------------------ |
+| `SVGRendererBase`     | `BaseRenderer`                 | `renderers/SVGRendererBase.ts` |
+| `SVGRenderer`         | `SVGRendererBase`              | `renderers/SVGRenderer.ts`     |
+| `CanvasRendererBase`  | `BaseRenderer`                 | `renderers/CanvasRendererBase.ts` |
+| `CanvasRenderer`      | `CanvasRendererBase`           | `renderers/CanvasRenderer.ts`  |
+| `HybridRendererBase`  | `BaseRenderer`                 | `renderers/HybridRendererBase.ts` |
+| `HybridRenderer`      | `HybridRendererBase`           | `renderers/HybridRenderer.ts`  |
+
+### Composition elements (nested renderer + comp)
+
+| Destination    | Mixin chain                                              | File                               |
+| -------------- | -------------------------------------------------------- | ---------------------------------- |
+| `SVGCompElement` | `SVGRendererBase`, `ICompElement`, `SVGBaseElement`    | `elements/svgElements/SVGCompElement.ts` |
+| `CVCompElement`  | `CanvasRendererBase`, `ICompElement`, `CVBaseElement`   | `elements/canvasElements/CVCompElement.ts` |
+| `HCompElement`   | `HybridRendererBase`, `ICompElement`, `HBaseElement`  | `elements/htmlElements/HCompElement.ts` |
+| `CVCompBaseElement` | `BaseRenderer`                                       | `elements/canvasElements/CVCompBaseElement.ts` |
+
+### Shared / DOM elements
+
+| Destination      | Mixin chain                                                                 | File                         |
+| ---------------- | --------------------------------------------------------------------------- | ---------------------------- |
+| `ICompElement`   | `BaseElement`, `TransformElement`, `HierarchyElement`, `FrameElement`, `RenderableDOMElement` | `elements/CompElement.ts`    |
+| `IImageElement`  | `BaseElement`, `TransformElement`, `SVGBaseElement`, `HierarchyElement`, `FrameElement`, `RenderableDOMElement` | `elements/ImageElement.ts`   |
+| `ISolidElement`  | `IImageElement`                                                             | `elements/SolidElement.ts`   |
+| `SVGShapeElement` | `BaseElement`, `TransformElement`, `SVGBaseElement`, `IShapeElement`, `HierarchyElement`, `FrameElement`, `RenderableDOMElement` | `elements/svgElements/SVGShapeElement.ts` |
+| `SVGTextLottieElement` | `BaseElement`, `TransformElement`, `SVGBaseElement`, `HierarchyElement`, `FrameElement`, `RenderableDOMElement`, `ITextElement` | `elements/svgElements/SVGTextElement.ts` |
+| `NullElement`    | `BaseElement`, `TransformElement`, `HierarchyElement`, `FrameElement`      | `elements/NullElement.ts`    |
+| `RenderableDOMElement` | `RenderableElement`, dynamic proxy prototype                              | `elements/helpers/RenderableDOMElement.ts` |
+
+### Canvas layer elements
+
+| Destination     | Mixin chain                                                                                       | File                                  |
+| --------------- | ------------------------------------------------------------------------------------------------- | ------------------------------------- |
+| `CVShapeElement` | `BaseElement`, `TransformElement`, `CVBaseElement`, `IShapeElement`, `HierarchyElement`, `FrameElement`, `RenderableElement` | `elements/canvasElements/CVShapeElement.ts` |
+| `CVTextElement` | `BaseElement`, `TransformElement`, `CVBaseElement`, `HierarchyElement`, `FrameElement`, `RenderableElement`, `ITextElement` | `elements/canvasElements/CVTextElement.ts` |
+| `CVImageElement` | `BaseElement`, `TransformElement`, `CVBaseElement`, `HierarchyElement`, `FrameElement`, `RenderableElement` | `elements/canvasElements/CVImageElement.ts` |
+| `CVSolidElement` | same pattern as CVImage without extra text interface                                              | `elements/canvasElements/CVSolidElement.ts` |
+
+### HTML layer elements
+
+| Destination    | Mixin chain                                                                                         | File                               |
+| -------------- | --------------------------------------------------------------------------------------------------- | ---------------------------------- |
+| `HSolidElement` | `BaseElement`, `TransformElement`, `HBaseElement`, `HierarchyElement`, `FrameElement`, `RenderableDOMElement` | `elements/htmlElements/HSolidElement.ts` |
+| `HImageElement` | `BaseElement`, `TransformElement`, `HBaseElement`, `HSolidElement`, `HierarchyElement`, `FrameElement`, `RenderableElement` | `elements/htmlElements/HImageElement.ts` |
+| `HTextElement`  | `BaseElement`, `TransformElement`, `HBaseElement`, `HierarchyElement`, `FrameElement`, `RenderableDOMElement`, `ITextElement` | `elements/htmlElements/HTextElement.ts` |
+| `HShapeElement` | `BaseElement`, `TransformElement`, `HSolidElement`, `SVGShapeElement`, `HBaseElement`, `HierarchyElement`, `FrameElement`, `RenderableElement` | `elements/htmlElements/HShapeElement.ts` |
+| `HCameraElement` | `BaseElement`, `FrameElement`, `HierarchyElement`                                                | `elements/htmlElements/HCameraElement.ts` |
+
+### Effects / managers / audio
+
+| Destination        | Mixin chain                                      | File                                      |
+| ------------------ | ------------------------------------------------ | ----------------------------------------- |
+| `GroupEffect`      | `DynamicPropertyContainer`                       | `EffectsManager.ts`                       |
+| `FootageElement`   | `RenderableElement`, `BaseElement`, `FrameElement` | `elements/FootageElement.ts`            |
+| `AudioElement`     | `RenderableElement`, `BaseElement`, `FrameElement` | `elements/AudioElement.ts`              |
+| `SVGTransformEffect` | `TransformEffect`                            | `elements/svgElements/effects/SVGTransformEffect.ts` |
+| `CVTransformEffect`  | `TransformEffect`                            | `elements/canvasElements/effects/CVTransformEffect.ts` |
+| `SVGTintFilter`    | `SVGComposableEffect`                            | `elements/svgElements/effects/SVGTintEffect.ts` |
+| `SVGDropShadowEffect` | `SVGComposableEffect`                         | `elements/svgElements/effects/SVGDropShadowEffect.ts` |
+
+### Shape pipeline (modifiers + properties)
+
+| Destination              | Mixin chain                         | File                                      |
+| ------------------------ | ----------------------------------- | ----------------------------------------- |
+| `ShapeModifier`          | `DynamicPropertyContainer`            | `utils/shapes/ShapeModifiers.ts`          |
+| Concrete modifiers       | `ShapeModifier`                     | `TrimModifier`, `RepeaterModifier`, `RoundCornersModifier`, `ZigZagModifier`, `PuckerAndBloatModifier`, `OffsetPathModifier`, `MouseModifier`, `DashProperty` (see rg) |
+| `GradientProperty`, `DashProperty`, etc. | `DynamicPropertyContainer` | `utils/shapes/*.ts`, `helpers/shapes/*.ts` |
+| `SVGGradientStrokeStyleData` | `SVGGradientFillStyleData`, `DynamicPropertyContainer` | `SVGGradientStrokeStyleData.ts` |
+| `TransformProperty`      | `DynamicPropertyContainer`          | `utils/TransformProperty.ts`              |
+| Shape property factories | `DynamicPropertyContainer`          | `utils/shapes/ShapeProperty.ts` (internal)  |
+| Expression decorators    | `ShapeExpressions`                  | `utils/expressions/ExpressionPropertyDecorator.ts` |
+| Text                     | `DynamicPropertyContainer`          | `TextSelectorProperty.ts`, `TextAnimatorProperty.ts` |
+
+### Worker-only
+
+| Destination     | Mixin chain              | File                 |
+| --------------- | ------------------------ | -------------------- |
+| `CanvasElement` | `ProxyElement`           | `worker_wrapper.ts`  |
+
+---
+
+## Class migration strategy (Track B)
+
+**Chosen direction:** prefer **single inheritance + composition** for any large rewrite, with **TypeScript mixin factories** only where a proven linear mixin order must be preserved without duplicating method bodies.
+
+### Why not a pure `class` port of `extendPrototype`
+
+- JavaScript allows only **one** `extends` superclass. Today’s stacks like `HShapeElement` intentionally merge **seven** prototypes; reproducing that as `class A extends B extends …` is impossible without flattening.
+- `class X extends mixin2(mixin1(Base))` still uses the **prototype chain**; it is mainly syntax and ergonomics, not removal of prototypes.
+
+### Recommended approach
+
+1. **Inventory “hot” collision keys** before moving a vertical slice: for each destination, list methods copied from each source (order = last writer wins).
+2. **Per renderer family**, introduce one **abstract base class** (e.g. `SVGLayerElementBase`) that holds the merged *stable* API, with **delegates** for cross-cutting concerns (expressions, masks) if needed.
+3. **Migrate one vertical slice** (e.g. all SVG non-comp layers, or all `ShapeModifier` subclasses) with **full visual + unit + e2e** runs after each merge.
+4. **Keep worker parity**: mirror structural changes in `worker_wrapper.ts` or share a tiny shared “composition kernel” module that both bundles import (only if tree-shaking and worker constraints allow).
+
+### Verification
+
+After each slice, run `npm test`, `npm run test:e2e`, and compare baselines where visual tests apply. Order-sensitive behavior (effect of mixin sequence) must be explicitly tested or diffed when flattening.

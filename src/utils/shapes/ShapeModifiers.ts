@@ -1,65 +1,87 @@
-// @ts-nocheck
-import { extendPrototype } from '../functionExtensions';
 import DynamicPropertyContainer from '../helpers/dynamicProperties';
 import { initialDefaultFrame } from '../../main';
 import shapeCollectionPool from '../pooling/shapeCollection_pool';
 
 const ShapeModifiers = (function () {
-  const ob = {};
-  const modifiers = {};
-  ob.registerModifier = registerModifier;
-  ob.getModifier = getModifier;
+  const ob: {
+    registerModifier: (nm: string, factory: new (...args: unknown[]) => unknown) => void;
+    getModifier: (nm: string, elem?: unknown, data?: unknown) => unknown;
+  } = {
+    registerModifier,
+    getModifier,
+  };
+  const modifiers: Record<string, new (...args: unknown[]) => unknown> = {};
 
-  function registerModifier(nm, factory) {
+  function registerModifier(nm: string, factory: new (...args: unknown[]) => unknown) {
     if (!modifiers[nm]) {
       modifiers[nm] = factory;
     }
   }
 
-  function getModifier(nm, elem, data) {
-    return new modifiers[nm](elem, data);
+  function getModifier(nm: string, elem?: unknown, data?: unknown) {
+    const Ctor = modifiers[nm];
+    return new Ctor(elem, data);
   }
 
   return ob;
 })();
 
-function ShapeModifier() {}
-ShapeModifier.prototype.initModifierProperties = function () {};
-ShapeModifier.prototype.addShapeToModifier = function () {};
-ShapeModifier.prototype.addShape = function (data) {
-  if (!this.closed) {
-    // Adding shape to dynamic properties. It covers the case where a shape has no effects applied, to reset it's _mdf state on every tick.
-    data.sh.container.addDynamicProperty(data.sh);
-    const shapeData = { shape: data.sh, data: data, localShapeCollection: shapeCollectionPool.newShapeCollection() };
-    this.shapes.push(shapeData);
-    this.addShapeToModifier(shapeData);
-    if (this._isAnimated) {
-      data.setAsAnimated();
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+type ShapeModifierAddShapeData = any;
+
+class ShapeModifier extends DynamicPropertyContainer {
+  shapes!: Array<{
+    shape: unknown;
+    data: ShapeModifierAddShapeData;
+    localShapeCollection: ReturnType<typeof shapeCollectionPool.newShapeCollection>;
+  }>;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  elem!: any;
+  frameId!: number;
+  closed!: boolean;
+  k!: boolean;
+  getValue!: (force?: boolean) => void;
+
+  initModifierProperties(_elem: unknown, _data: unknown) {}
+
+  addShapeToModifier(_shapeData: unknown) {}
+
+  addShape(data: ShapeModifierAddShapeData) {
+    if (!this.closed) {
+      data.sh.container.addDynamicProperty(data.sh);
+      const shapeData = { shape: data.sh, data: data, localShapeCollection: shapeCollectionPool.newShapeCollection() };
+      this.shapes.push(shapeData);
+      this.addShapeToModifier(shapeData);
+      if (this._isAnimated) {
+        data.setAsAnimated();
+      }
     }
   }
-};
-ShapeModifier.prototype.init = function (elem, data) {
-  this.shapes = [];
-  this.elem = elem;
-  this.initDynamicPropertyContainer(elem);
-  this.initModifierProperties(elem, data);
-  this.frameId = initialDefaultFrame;
-  this.closed = false;
-  this.k = false;
-  if (this.dynamicProperties.length) {
-    this.k = true;
-  } else {
-    this.getValue(true);
-  }
-};
-ShapeModifier.prototype.processKeys = function () {
-  if (this.elem.globalData.frameId === this.frameId) {
-    return;
-  }
-  this.frameId = this.elem.globalData.frameId;
-  this.iterateDynamicProperties();
-};
 
-extendPrototype([DynamicPropertyContainer], ShapeModifier);
+  /** Normal modifiers: `init(elem, data)`. Repeater: `init(elem, arr, pos, elemsData)`. */
+  init(elem: unknown, arg1?: unknown, _arg2?: unknown, _arg3?: unknown) {
+    const data = arg1;
+    this.shapes = [];
+    this.elem = elem;
+    this.initDynamicPropertyContainer(elem);
+    this.initModifierProperties(elem, data);
+    this.frameId = initialDefaultFrame;
+    this.closed = false;
+    this.k = false;
+    if (this.dynamicProperties.length) {
+      this.k = true;
+    } else {
+      this.getValue(true);
+    }
+  }
+
+  processKeys() {
+    if (this.elem.globalData.frameId === this.frameId) {
+      return;
+    }
+    this.frameId = this.elem.globalData.frameId;
+    this.iterateDynamicProperties();
+  }
+}
 
 export { ShapeModifiers, ShapeModifier };

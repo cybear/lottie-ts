@@ -1,6 +1,5 @@
 // @ts-nocheck
 import { roundCorner } from '../common';
-import { extendPrototype } from '../functionExtensions';
 import PropertyFactory from '../PropertyFactory';
 import shapePool from '../pooling/shape_pool';
 import { ShapeModifier } from './ShapeModifiers';
@@ -167,121 +166,120 @@ function offsetSegmentSplit(segment, amount) {
   return [offsetSegment(left, amount), offsetSegment(mid, amount), offsetSegment(right, amount)];
 }
 
-function OffsetPathModifier() {}
-
-extendPrototype([ShapeModifier], OffsetPathModifier);
-OffsetPathModifier.prototype.initModifierProperties = function (elem, data) {
-  this.getValue = this.processKeys;
-  this.amount = PropertyFactory.getProp(elem, data.a, 0, null, this);
-  this.miterLimit = PropertyFactory.getProp(elem, data.ml, 0, null, this);
-  this.lineJoin = data.lj;
-  this._isAnimated = this.amount.effectsSequence.length !== 0;
-};
-
-OffsetPathModifier.prototype.processPath = function (inputBezier, amount, lineJoin, miterLimit) {
-  const outputBezier = shapePool.newElement();
-  outputBezier.c = inputBezier.c;
-  let count = inputBezier.length();
-  if (!inputBezier.c) {
-    count -= 1;
-  }
-  let i;
-  let j;
-  let segment;
-  let multiSegments = [];
-
-  for (i = 0; i < count; i += 1) {
-    segment = PolynomialBezier.shapeSegment(inputBezier, i);
-    multiSegments.push(offsetSegmentSplit(segment, amount));
+class OffsetPathModifier extends ShapeModifier {
+  initModifierProperties(elem, data) {
+    this.getValue = this.processKeys;
+    this.amount = PropertyFactory.getProp(elem, data.a, 0, null, this);
+    this.miterLimit = PropertyFactory.getProp(elem, data.ml, 0, null, this);
+    this.lineJoin = data.lj;
+    this._isAnimated = this.amount.effectsSequence.length !== 0;
   }
 
-  if (!inputBezier.c) {
-    for (i = count - 1; i >= 0; i -= 1) {
-      segment = PolynomialBezier.shapeSegmentInverted(inputBezier, i);
+  processPath(inputBezier, amount, lineJoin, miterLimit) {
+    const outputBezier = shapePool.newElement();
+    outputBezier.c = inputBezier.c;
+    let count = inputBezier.length();
+    if (!inputBezier.c) {
+      count -= 1;
+    }
+    let i;
+    let j;
+    let segment;
+    let multiSegments = [];
+
+    for (i = 0; i < count; i += 1) {
+      segment = PolynomialBezier.shapeSegment(inputBezier, i);
       multiSegments.push(offsetSegmentSplit(segment, amount));
     }
-  }
 
-  multiSegments = pruneIntersections(multiSegments);
+    if (!inputBezier.c) {
+      for (i = count - 1; i >= 0; i -= 1) {
+        segment = PolynomialBezier.shapeSegmentInverted(inputBezier, i);
+        multiSegments.push(offsetSegmentSplit(segment, amount));
+      }
+    }
 
-  // Add bezier segments to the output and apply line joints
-  let lastPoint = null;
-  let lastSeg = null;
+    multiSegments = pruneIntersections(multiSegments);
 
-  for (i = 0; i < multiSegments.length; i += 1) {
-    const multiSegment = multiSegments[i];
+    // Add bezier segments to the output and apply line joints
+    let lastPoint = null;
+    let lastSeg = null;
 
-    if (lastSeg) lastPoint = joinLines(outputBezier, lastSeg, multiSegment[0], lineJoin, miterLimit);
+    for (i = 0; i < multiSegments.length; i += 1) {
+      const multiSegment = multiSegments[i];
 
-    lastSeg = multiSegment[multiSegment.length - 1];
+      if (lastSeg) lastPoint = joinLines(outputBezier, lastSeg, multiSegment[0], lineJoin, miterLimit);
 
-    for (j = 0; j < multiSegment.length; j += 1) {
-      segment = multiSegment[j];
+      lastSeg = multiSegment[multiSegment.length - 1];
 
-      if (lastPoint && pointEqual(segment.points[0], lastPoint)) {
-        outputBezier.setXYAt(segment.points[1][0], segment.points[1][1], 'o', outputBezier.length() - 1);
-      } else {
+      for (j = 0; j < multiSegment.length; j += 1) {
+        segment = multiSegment[j];
+
+        if (lastPoint && pointEqual(segment.points[0], lastPoint)) {
+          outputBezier.setXYAt(segment.points[1][0], segment.points[1][1], 'o', outputBezier.length() - 1);
+        } else {
+          outputBezier.setTripleAt(
+            segment.points[0][0],
+            segment.points[0][1],
+            segment.points[1][0],
+            segment.points[1][1],
+            segment.points[0][0],
+            segment.points[0][1],
+            outputBezier.length(),
+          );
+        }
+
         outputBezier.setTripleAt(
-          segment.points[0][0],
-          segment.points[0][1],
-          segment.points[1][0],
-          segment.points[1][1],
-          segment.points[0][0],
-          segment.points[0][1],
+          segment.points[3][0],
+          segment.points[3][1],
+          segment.points[3][0],
+          segment.points[3][1],
+          segment.points[2][0],
+          segment.points[2][1],
           outputBezier.length(),
         );
+
+        lastPoint = segment.points[3];
       }
-
-      outputBezier.setTripleAt(
-        segment.points[3][0],
-        segment.points[3][1],
-        segment.points[3][0],
-        segment.points[3][1],
-        segment.points[2][0],
-        segment.points[2][1],
-        outputBezier.length(),
-      );
-
-      lastPoint = segment.points[3];
     }
+
+    if (multiSegments.length) joinLines(outputBezier, lastSeg, multiSegments[0][0], lineJoin, miterLimit);
+
+    return outputBezier;
   }
 
-  if (multiSegments.length) joinLines(outputBezier, lastSeg, multiSegments[0][0], lineJoin, miterLimit);
+  processShapes(_isFirstFrame) {
+    let shapePaths;
+    let i;
+    const len = this.shapes.length;
+    let j;
+    let jLen;
+    const amount = this.amount.v;
+    const miterLimit = this.miterLimit.v;
+    const lineJoin = this.lineJoin;
 
-  return outputBezier;
-};
-
-OffsetPathModifier.prototype.processShapes = function (_isFirstFrame) {
-  let shapePaths;
-  let i;
-  const len = this.shapes.length;
-  let j;
-  let jLen;
-  const amount = this.amount.v;
-  const miterLimit = this.miterLimit.v;
-  const lineJoin = this.lineJoin;
-
-  if (amount !== 0) {
-    let shapeData;
-    let localShapeCollection;
-    for (i = 0; i < len; i += 1) {
-      shapeData = this.shapes[i];
-      localShapeCollection = shapeData.localShapeCollection;
-      if (!(!shapeData.shape._mdf && !this._mdf && !_isFirstFrame)) {
-        localShapeCollection.releaseShapes();
-        shapeData.shape._mdf = true;
-        shapePaths = shapeData.shape.paths.shapes;
-        jLen = shapeData.shape.paths._length;
-        for (j = 0; j < jLen; j += 1) {
-          localShapeCollection.addShape(this.processPath(shapePaths[j], amount, lineJoin, miterLimit));
+    if (amount !== 0) {
+      let shapeData;
+      let localShapeCollection;
+      for (i = 0; i < len; i += 1) {
+        shapeData = this.shapes[i];
+        localShapeCollection = shapeData.localShapeCollection;
+        if (!(!shapeData.shape._mdf && !this._mdf && !_isFirstFrame)) {
+          localShapeCollection.releaseShapes();
+          shapeData.shape._mdf = true;
+          shapePaths = shapeData.shape.paths.shapes;
+          jLen = shapeData.shape.paths._length;
+          for (j = 0; j < jLen; j += 1) {
+            localShapeCollection.addShape(this.processPath(shapePaths[j], amount, lineJoin, miterLimit));
+          }
         }
+        shapeData.shape.paths = shapeData.localShapeCollection;
       }
-      shapeData.shape.paths = shapeData.localShapeCollection;
+    }
+    if (!this.dynamicProperties.length) {
+      this._mdf = false;
     }
   }
-  if (!this.dynamicProperties.length) {
-    this._mdf = false;
-  }
-};
+}
 
 export default OffsetPathModifier;

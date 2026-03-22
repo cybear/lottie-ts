@@ -2,13 +2,18 @@
 function workerContent() {
   function extendPrototype(sources, destination) {
     let i;
+    let j;
     const len = sources.length;
     let sourcePrototype;
+    const destProto = destination.prototype;
     for (i = 0; i < len; i += 1) {
       sourcePrototype = sources[i].prototype;
-      for (const attr in sourcePrototype) {
-        if (Object.prototype.hasOwnProperty.call(sourcePrototype, attr))
-          destination.prototype[attr] = sourcePrototype[attr];
+      const names = Object.getOwnPropertyNames(sourcePrototype);
+      for (j = 0; j < names.length; j += 1) {
+        const key = names[j];
+        if (key === 'constructor') continue;
+        const desc = Object.getOwnPropertyDescriptor(sourcePrototype, key);
+        if (desc) Object.defineProperty(destProto, key, desc);
       }
     }
   }

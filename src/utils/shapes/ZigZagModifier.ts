@@ -1,24 +1,123 @@
-// @ts-nocheck
-import { extendPrototype } from '../functionExtensions';
 import PropertyFactory from '../PropertyFactory';
 import shapePool from '../pooling/shape_pool';
 import { ShapeModifier } from './ShapeModifiers';
 import { PolynomialBezier } from '../PolynomialBezier';
+import type { ElementData, ModifierHostElement, NumericAnimatedProperty } from '../../types/lottieRuntime';
+import type { LottieBezierInputPath, PooledShapePath, ZigZagBezierSegment } from '../../types/shapeModifierPaths';
 
-function ZigZagModifier() {}
-extendPrototype([ShapeModifier], ZigZagModifier);
-ZigZagModifier.prototype.initModifierProperties = function (elem, data) {
-  this.getValue = this.processKeys;
-  this.amplitude = PropertyFactory.getProp(elem, data.s, 0, null, this);
-  this.frequency = PropertyFactory.getProp(elem, data.r, 0, null, this);
-  this.pointsType = PropertyFactory.getProp(elem, data.pt, 0, null, this);
-  this._isAnimated =
-    this.amplitude.effectsSequence.length !== 0 ||
-    this.frequency.effectsSequence.length !== 0 ||
-    this.pointsType.effectsSequence.length !== 0;
-};
+interface ZigZagModifierPayload extends ElementData {
+  s?: unknown;
+  r?: unknown;
+  pt?: unknown;
+}
 
-function setPoint(outputBezier, point, angle, direction, amplitude, outAmplitude, inAmplitude) {
+interface LocalShapeCollection {
+  releaseShapes(): void;
+  addShape(shape: PooledShapePath): void;
+}
+
+interface ZigZagShapeBundle {
+  shape: {
+    _mdf: boolean;
+    /** Alternates between path list and `localShapeCollection` during modifier pass (Lottie runtime pattern). */
+    paths: { shapes: LottieBezierInputPath[]; _length: number } | LocalShapeCollection;
+  };
+  localShapeCollection: LocalShapeCollection;
+}
+
+class ZigZagModifier extends ShapeModifier {
+  declare amplitude: NumericAnimatedProperty;
+  declare frequency: NumericAnimatedProperty;
+  declare pointsType: NumericAnimatedProperty;
+
+  initModifierProperties(elem: ModifierHostElement, data: ZigZagModifierPayload) {
+    this.getValue = this.processKeys;
+    this.amplitude = PropertyFactory.getProp(elem, data.s, 0, null, this) as NumericAnimatedProperty;
+    this.frequency = PropertyFactory.getProp(elem, data.r, 0, null, this) as NumericAnimatedProperty;
+    this.pointsType = PropertyFactory.getProp(elem, data.pt, 0, null, this) as NumericAnimatedProperty;
+    this._isAnimated =
+      this.amplitude.effectsSequence.length !== 0 ||
+      this.frequency.effectsSequence.length !== 0 ||
+      this.pointsType.effectsSequence.length !== 0;
+  }
+
+  processPath(path: LottieBezierInputPath, amplitude: number, frequency: number, pointType: number): PooledShapePath {
+    let count = path._length;
+    const clonedPath = shapePool.newElement() as PooledShapePath;
+    clonedPath.c = path.c;
+
+    if (!path.c) {
+      count -= 1;
+    }
+
+    if (count === 0) return clonedPath;
+
+    let direction = -1;
+    let segment: ZigZagBezierSegment | null = PolynomialBezier.shapeSegment(path, 0) as ZigZagBezierSegment;
+    zigZagCorner(clonedPath, path, 0, amplitude, frequency, pointType, direction);
+
+    for (let i = 0; i < count; i += 1) {
+      direction = zigZagSegment(clonedPath, segment!, amplitude, frequency, pointType, -direction);
+
+      if (i === count - 1 && !path.c) {
+        segment = null;
+      } else {
+        segment = PolynomialBezier.shapeSegment(path, (i + 1) % count) as ZigZagBezierSegment;
+      }
+
+      zigZagCorner(clonedPath, path, i + 1, amplitude, frequency, pointType, direction);
+    }
+
+    return clonedPath;
+  }
+
+  processShapes(_isFirstFrame: boolean) {
+    let shapePaths: LottieBezierInputPath[];
+    let i: number;
+    const len = this.shapes.length;
+    let j: number;
+    let jLen: number;
+    const amplitude = this.amplitude.v;
+    const frequency = Math.max(0, Math.round(this.frequency.v));
+    const pointType = this.pointsType.v;
+
+    if (amplitude !== 0) {
+      let shapeData: ZigZagShapeBundle;
+      let localShapeCollection: LocalShapeCollection;
+      for (i = 0; i < len; i += 1) {
+        shapeData = this.shapes[i] as ZigZagShapeBundle;
+        localShapeCollection = shapeData.localShapeCollection;
+        if (!(!shapeData.shape._mdf && !this._mdf && !_isFirstFrame)) {
+          localShapeCollection.releaseShapes();
+          shapeData.shape._mdf = true;
+          const pathsBlock = shapeData.shape.paths as { shapes: LottieBezierInputPath[]; _length: number };
+          shapePaths = pathsBlock.shapes;
+          jLen = pathsBlock._length;
+          for (j = 0; j < jLen; j += 1) {
+            localShapeCollection.addShape(this.processPath(shapePaths[j], amplitude, frequency, pointType));
+          }
+        }
+        shapeData.shape.paths = shapeData.localShapeCollection;
+      }
+    }
+    if (!this.dynamicProperties.length) {
+      this._mdf = false;
+    }
+  }
+}
+
+function setPoint(
+  outputBezier: PooledShapePath,
+  point: number[],
+  angle: number,
+  direction: number,
+  amplitude: number,
+  outAmplitude: number,
+  inAmplitude: number,
+  /** Original call site passed an 8th argument; kept for parity (unused). */
+  _unusedPointType?: number,
+): void {
+  void _unusedPointType;
   const angO = angle - Math.PI / 2;
   const angI = angle + Math.PI / 2;
   const px = point[0] + Math.cos(angle) * direction * amplitude;
@@ -35,7 +134,7 @@ function setPoint(outputBezier, point, angle, direction, amplitude, outAmplitude
   );
 }
 
-function getPerpendicularVector(pt1, pt2) {
+function getPerpendicularVector(pt1: number[], pt2: number[]): number[] {
   const vector = [pt2[0] - pt1[0], pt2[1] - pt1[1]];
   const rot = -Math.PI * 0.5;
   const rotatedVector = [
@@ -45,7 +144,7 @@ function getPerpendicularVector(pt1, pt2) {
   return rotatedVector;
 }
 
-function getProjectingAngle(path, cur) {
+function getProjectingAngle(path: LottieBezierInputPath, cur: number): number {
   const prevIndex = cur === 0 ? path.length() - 1 : cur - 1;
   const nextIndex = (cur + 1) % path.length();
   const prevPoint = path.v[prevIndex];
@@ -54,7 +153,15 @@ function getProjectingAngle(path, cur) {
   return Math.atan2(0, 1) - Math.atan2(pVector[1], pVector[0]);
 }
 
-function zigZagCorner(outputBezier, path, cur, amplitude, frequency, pointType, direction) {
+function zigZagCorner(
+  outputBezier: PooledShapePath,
+  path: LottieBezierInputPath,
+  cur: number,
+  amplitude: number,
+  frequency: number,
+  pointType: number,
+  direction: number,
+): void {
   const angle = getProjectingAngle(path, cur);
   const point = path.v[cur % path._length];
   const prevPoint = path.v[cur === 0 ? path._length - 1 : cur - 1];
@@ -76,7 +183,14 @@ function zigZagCorner(outputBezier, path, cur, amplitude, frequency, pointType, 
   );
 }
 
-function zigZagSegment(outputBezier, segment, amplitude, frequency, pointType, direction) {
+function zigZagSegment(
+  outputBezier: PooledShapePath,
+  segment: ZigZagBezierSegment,
+  amplitude: number,
+  frequency: number,
+  pointType: number,
+  direction: number,
+): number {
   for (let i = 0; i < frequency; i += 1) {
     const t = (i + 1) / (frequency + 1);
 
@@ -98,7 +212,6 @@ function zigZagSegment(outputBezier, segment, amplitude, frequency, pointType, d
       amplitude,
       dist / ((frequency + 1) * 2),
       dist / ((frequency + 1) * 2),
-      pointType,
     );
 
     direction = -direction;
@@ -106,68 +219,5 @@ function zigZagSegment(outputBezier, segment, amplitude, frequency, pointType, d
 
   return direction;
 }
-
-ZigZagModifier.prototype.processPath = function (path, amplitude, frequency, pointType) {
-  let count = path._length;
-  const clonedPath = shapePool.newElement();
-  clonedPath.c = path.c;
-
-  if (!path.c) {
-    count -= 1;
-  }
-
-  if (count === 0) return clonedPath;
-
-  let direction = -1;
-  let segment = PolynomialBezier.shapeSegment(path, 0);
-  zigZagCorner(clonedPath, path, 0, amplitude, frequency, pointType, direction);
-
-  for (let i = 0; i < count; i += 1) {
-    direction = zigZagSegment(clonedPath, segment, amplitude, frequency, pointType, -direction);
-
-    if (i === count - 1 && !path.c) {
-      segment = null;
-    } else {
-      segment = PolynomialBezier.shapeSegment(path, (i + 1) % count);
-    }
-
-    zigZagCorner(clonedPath, path, i + 1, amplitude, frequency, pointType, direction);
-  }
-
-  return clonedPath;
-};
-
-ZigZagModifier.prototype.processShapes = function (_isFirstFrame) {
-  let shapePaths;
-  let i;
-  const len = this.shapes.length;
-  let j;
-  let jLen;
-  const amplitude = this.amplitude.v;
-  const frequency = Math.max(0, Math.round(this.frequency.v));
-  const pointType = this.pointsType.v;
-
-  if (amplitude !== 0) {
-    let shapeData;
-    let localShapeCollection;
-    for (i = 0; i < len; i += 1) {
-      shapeData = this.shapes[i];
-      localShapeCollection = shapeData.localShapeCollection;
-      if (!(!shapeData.shape._mdf && !this._mdf && !_isFirstFrame)) {
-        localShapeCollection.releaseShapes();
-        shapeData.shape._mdf = true;
-        shapePaths = shapeData.shape.paths.shapes;
-        jLen = shapeData.shape.paths._length;
-        for (j = 0; j < jLen; j += 1) {
-          localShapeCollection.addShape(this.processPath(shapePaths[j], amplitude, frequency, pointType));
-        }
-      }
-      shapeData.shape.paths = shapeData.localShapeCollection;
-    }
-  }
-  if (!this.dynamicProperties.length) {
-    this._mdf = false;
-  }
-};
 
 export default ZigZagModifier;
