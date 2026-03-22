@@ -1,8 +1,6 @@
 // @ts-nocheck
-function RenderableElement() {}
-
-RenderableElement.prototype = {
-  initRenderable: function () {
+class RenderableElement {
+  initRenderable() {
     // layer's visibility related to inpoint and outpoint. Rename isVisible to isInRange
     this.isInRange = false;
     // layer's display state
@@ -11,21 +9,25 @@ RenderableElement.prototype = {
     this.isTransparent = false;
     // list of animated components
     this.renderableComponents = [];
-  },
-  addRenderableComponent: function (component) {
+  }
+
+  addRenderableComponent(component) {
     if (this.renderableComponents.indexOf(component) === -1) {
       this.renderableComponents.push(component);
     }
-  },
-  removeRenderableComponent: function (component) {
+  }
+
+  removeRenderableComponent(component) {
     if (this.renderableComponents.indexOf(component) !== -1) {
       this.renderableComponents.splice(this.renderableComponents.indexOf(component), 1);
     }
-  },
-  prepareRenderableFrame: function (num) {
+  }
+
+  prepareRenderableFrame(num) {
     this.checkLayerLimits(num);
-  },
-  checkTransparency: function () {
+  }
+
+  checkTransparency() {
     if (this.finalTransform.mProp.o.v <= 0) {
       if (!this.isTransparent && this.globalData.renderConfig.hideOnTransparent) {
         this.isTransparent = true;
@@ -35,7 +37,8 @@ RenderableElement.prototype = {
       this.isTransparent = false;
       this.show();
     }
-  },
+  }
+
   /**
    * @function
    * Initializes frame related properties.
@@ -44,7 +47,7 @@ RenderableElement.prototype = {
    * current frame number in Layer's time
    *
    */
-  checkLayerLimits: function (num) {
+  checkLayerLimits(num) {
     if (this.data.ip - this.data.st <= num && this.data.op - this.data.st > num) {
       if (this.isInRange !== true) {
         this.globalData._mdf = true;
@@ -57,8 +60,9 @@ RenderableElement.prototype = {
       this.isInRange = false;
       this.hide();
     }
-  },
-  renderRenderable: function () {
+  }
+
+  renderRenderable() {
     let i;
     const len = this.renderableComponents.length;
     for (i = 0; i < len; i += 1) {
@@ -66,21 +70,23 @@ RenderableElement.prototype = {
     }
     /* this.maskManager.renderFrame(this.finalTransform.mat);
         this.renderableEffectsManager.renderFrame(this._isFirstFrame); */
-  },
-  sourceRectAtTime: function () {
+  }
+
+  sourceRectAtTime() {
     return {
       top: 0,
       left: 0,
       width: 100,
       height: 100,
     };
-  },
-  getLayerSize: function () {
+  }
+
+  getLayerSize() {
     if (this.data.ty === 5) {
       return { w: this.data.textData.width, h: this.data.textData.height };
     }
     return { w: this.data.width, h: this.data.height };
-  },
-};
+  }
+}
 
 export default RenderableElement;

@@ -3,10 +3,8 @@ import { createElementID, getExpressionInterfaces } from '../utils/common';
 import getBlendMode from '../utils/helpers/blendModes';
 import EffectsManager from '../EffectsManager';
 
-function BaseElement() {}
-
-BaseElement.prototype = {
-  checkMasks: function () {
+class BaseElement {
+  checkMasks() {
     if (!this.data.hasMask) {
       return false;
     }
@@ -19,8 +17,9 @@ BaseElement.prototype = {
       i += 1;
     }
     return false;
-  },
-  initExpressions: function () {
+  }
+
+  initExpressions() {
     const expressionsInterfaces = getExpressionInterfaces();
     if (!expressionsInterfaces) {
       return;
@@ -50,14 +49,16 @@ BaseElement.prototype = {
       this.layerInterface.textInterface = TextExpressionInterface(this);
       this.layerInterface.text = this.layerInterface.textInterface;
     }
-  },
-  setBlendMode: function () {
+  }
+
+  setBlendMode() {
     const blendModeValue = getBlendMode(this.data.bm);
     const elem = this.baseElement || this.layerElement;
 
     elem.style['mix-blend-mode'] = blendModeValue;
-  },
-  initBaseData: function (data, globalData, comp) {
+  }
+
+  initBaseData(data, globalData, comp) {
     this.globalData = globalData;
     this.comp = comp;
     this.data = data;
@@ -69,11 +70,13 @@ BaseElement.prototype = {
     }
     // effects manager
     this.effectsManager = new EffectsManager(this.data, this, this.dynamicProperties);
-  },
-  getType: function () {
+  }
+
+  getType() {
     return this.type;
-  },
-  sourceRectAtTime: function () {},
-};
+  }
+
+  sourceRectAtTime() {}
+}
 
 export default BaseElement;

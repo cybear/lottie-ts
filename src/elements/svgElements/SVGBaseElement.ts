@@ -7,13 +7,11 @@ import filtersFactory from '../../utils/filters';
 import featureSupport from '../../utils/featureSupport';
 import SVGEffects from './SVGEffects';
 
-function SVGBaseElement() {}
-
-SVGBaseElement.prototype = {
-  initRendererElement: function () {
+class SVGBaseElement {
+  initRendererElement() {
     this.layerElement = createNS('g');
-  },
-  createContainerElements: function () {
+  }
+  createContainerElements() {
     this.matteElement = createNS('g');
     this.transformedElement = this.layerElement;
     this.maskedElement = this.layerElement;
@@ -70,32 +68,32 @@ SVGBaseElement.prototype = {
     if (this.data.bm !== 0) {
       this.setBlendMode();
     }
-  },
-  renderElement: function () {
+  }
+  renderElement() {
     if (this.finalTransform._localMatMdf) {
       this.transformedElement.setAttribute('transform', this.finalTransform.localMat.to2dCSS());
     }
     if (this.finalTransform._opMdf) {
       this.transformedElement.setAttribute('opacity', this.finalTransform.localOpacity);
     }
-  },
-  destroyBaseElement: function () {
+  }
+  destroyBaseElement() {
     this.layerElement = null;
     this.matteElement = null;
     this.maskManager.destroy();
-  },
-  getBaseElement: function () {
+  }
+  getBaseElement() {
     if (this.data.hd) {
       return null;
     }
     return this.baseElement;
-  },
-  createRenderableComponents: function () {
+  }
+  createRenderableComponents() {
     this.maskManager = new MaskElement(this.data, this, this.globalData);
     this.renderableEffectsManager = new SVGEffects(this);
     this.searchEffectTransforms();
-  },
-  getMatte: function (matteType) {
+  }
+  getMatte(matteType) {
     // This should not be a common case. But for backward compatibility, we'll create the matte object.
     // It solves animations that have two consecutive layers marked as matte masks.
     // Which is an undefined behavior in AE.
@@ -170,13 +168,13 @@ SVGBaseElement.prototype = {
       this.matteMasks[matteType] = id;
     }
     return this.matteMasks[matteType];
-  },
-  setMatte: function (id) {
+  }
+  setMatte(id) {
     if (!this.matteElement) {
       return;
     }
     this.matteElement.setAttribute('mask', 'url(' + getLocationHref() + '#' + id + ')');
-  },
-};
+  }
+}
 
 export default SVGBaseElement;

@@ -6,8 +6,6 @@ import CVEffects from './CVEffects';
 import CVMaskElement from './CVMaskElement';
 import effectTypes from '../../utils/helpers/effectTypes';
 
-function CVBaseElement() {}
-
 const operationsMap = {
   1: 'source-in',
   2: 'source-out',
@@ -15,10 +13,10 @@ const operationsMap = {
   4: 'source-out',
 };
 
-CVBaseElement.prototype = {
-  createElements: function () {},
-  initRendererElement: function () {},
-  createContainerElements: function () {
+class CVBaseElement {
+  createElements() {}
+  initRendererElement() {}
+  createContainerElements() {
     // If the layer is masked we will use two buffers to store each different states of the drawing
     // This solution is not ideal for several reason. But unfortunately, because of the recursive
     // nature of the render tree, it's the only simple way to make sure one inner mask doesn't override an outer mask.
@@ -39,41 +37,41 @@ CVBaseElement.prototype = {
     this.transformCanvas = this.globalData.transformCanvas;
     this.renderableEffectsManager = new CVEffects(this);
     this.searchEffectTransforms();
-  },
-  createContent: function () {},
-  setBlendMode: function () {
+  }
+  createContent() {}
+  setBlendMode() {
     const globalData = this.globalData;
     if (globalData.blendMode !== this.data.bm) {
       globalData.blendMode = this.data.bm;
       const blendModeValue = getBlendMode(this.data.bm);
       globalData.canvasContext.globalCompositeOperation = blendModeValue;
     }
-  },
-  createRenderableComponents: function () {
+  }
+  createRenderableComponents() {
     this.maskManager = new CVMaskElement(this.data, this);
     this.transformEffects = this.renderableEffectsManager.getEffects(effectTypes.TRANSFORM_EFFECT);
-  },
-  hideElement: function () {
+  }
+  hideElement() {
     if (!this.hidden && (!this.isInRange || this.isTransparent)) {
       this.hidden = true;
     }
-  },
-  showElement: function () {
+  }
+  showElement() {
     if (this.isInRange && !this.isTransparent) {
       this.hidden = false;
       this._isFirstFrame = true;
       this.maskManager._isFirstFrame = true;
     }
-  },
-  clearCanvas: function (canvasContext) {
+  }
+  clearCanvas(canvasContext) {
     canvasContext.clearRect(
       this.transformCanvas.tx,
       this.transformCanvas.ty,
       this.transformCanvas.w * this.transformCanvas.sx,
       this.transformCanvas.h * this.transformCanvas.sy,
     );
-  },
-  prepareLayer: function () {
+  }
+  prepareLayer() {
     if (this.data.tt >= 1) {
       const buffer = this.buffers[0];
       const bufferCtx = buffer.getContext('2d');
@@ -87,8 +85,8 @@ CVBaseElement.prototype = {
       this.clearCanvas(this.canvasContext);
       this.canvasContext.setTransform(this.currentTransform);
     }
-  },
-  exitLayer: function () {
+  }
+  exitLayer() {
     if (this.data.tt >= 1) {
       const buffer = this.buffers[1];
       // On the second buffer we store the current state of the global drawing
@@ -129,8 +127,8 @@ CVBaseElement.prototype = {
       // We reset the globalCompositeOperation to source-over, the standard type of operation
       this.canvasContext.globalCompositeOperation = 'source-over';
     }
-  },
-  renderFrame: function (forceRender) {
+  }
+  renderFrame(forceRender) {
     if (this.hidden || this.data.hd) {
       return;
     }
@@ -155,15 +153,16 @@ CVBaseElement.prototype = {
     if (this._isFirstFrame) {
       this._isFirstFrame = false;
     }
-  },
-  destroy: function () {
+  }
+  destroy() {
     this.canvasContext = null;
     this.data = null;
     this.globalData = null;
     this.maskManager.destroy();
-  },
-  mHelper: new Matrix(),
-};
+  }
+}
+
+CVBaseElement.prototype.mHelper = new Matrix();
 CVBaseElement.prototype.hide = CVBaseElement.prototype.hideElement;
 CVBaseElement.prototype.show = CVBaseElement.prototype.showElement;
 
