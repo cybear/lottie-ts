@@ -8,14 +8,16 @@ import HBaseElement from './HBaseElement';
 import ICompElement from '../CompElement';
 import SVGCompElement from '../svgElements/SVGCompElement';
 
-function HCompElement(data, globalData, comp) {
-  this.layers = data.layers;
-  this.supports3d = !data.hasMask;
-  this.completeLayers = false;
-  this.pendingElements = [];
-  this.elements = this.layers ? createSizedArray(this.layers.length) : [];
-  this.initElement(data, globalData, comp);
-  this.tm = data.tm ? PropertyFactory.getProp(this, data.tm, 0, globalData.frameRate, this) : { _placeholder: true };
+class HCompElement {
+  constructor(data, globalData, comp) {
+    this.layers = data.layers;
+    this.supports3d = !data.hasMask;
+    this.completeLayers = false;
+    this.pendingElements = [];
+    this.elements = this.layers ? createSizedArray(this.layers.length) : [];
+    this.initElement(data, globalData, comp);
+    this.tm = data.tm ? PropertyFactory.getProp(this, data.tm, 0, globalData.frameRate, this) : { _placeholder: true };
+  }
 }
 
 extendPrototype([BaseRenderer, HybridRendererBase, ICompElement, HBaseElement], HCompElement);
