@@ -1,5 +1,4 @@
-// @ts-nocheck
-/* eslint-disable camelcase */
+/* eslint-disable camelcase, @typescript-eslint/no-explicit-any -- expression VM: polymorphic math and eval sandbox */
 
 import { degToRads, BMMath } from '../common';
 import { createTypedArray } from '../helpers/arrays';
@@ -11,14 +10,14 @@ import propTypes from '../helpers/propTypes';
 const ExpressionManager = (function () {
   'use strict';
 
-  const ob = {};
+  const ob: Record<string, any> = {};
   const Math = BMMath;
   const window = null;
   const document = null;
   const XMLHttpRequest = null;
   const fetch = null;
   const frames = null;
-  let _lottieGlobal = {};
+  let _lottieGlobal: Record<string, any> = {};
   // Patch BMMath with a seedable PRNG so that expression randomness can be made
   // deterministic.  Uses the npm `seedrandom` package (MIT) instead of the
   // previously vendored copy, which had a custom `initialize(mathObj)` wrapper.
@@ -31,15 +30,15 @@ const ExpressionManager = (function () {
     _lottieGlobal = {};
   }
 
-  function $bm_isInstanceOfArray(arr) {
+  function $bm_isInstanceOfArray(arr: any) {
     return arr.constructor === Array || arr.constructor === Float32Array;
   }
 
-  function isNumerable(tOfV, v) {
+  function isNumerable(tOfV: any, v: any) {
     return tOfV === 'number' || v instanceof Number || tOfV === 'boolean' || tOfV === 'string';
   }
 
-  function $bm_neg(a) {
+  function $bm_neg(a: any) {
     const tOfA = typeof a;
     if (tOfA === 'number' || a instanceof Number || tOfA === 'boolean') {
       return -a;
@@ -63,7 +62,7 @@ const ExpressionManager = (function () {
   const easeOutBez = BezierFactory.getBezierEasing(0.167, 0.167, 0.667, 1, 'easeOut').get;
   const easeInOutBez = BezierFactory.getBezierEasing(0.33, 0, 0.667, 1, 'easeInOut').get;
 
-  function sum(a, b) {
+  function sum(a: any, b: any) {
     const tOfA = typeof a;
     const tOfB = typeof b;
     if ((isNumerable(tOfA, a) && isNumerable(tOfB, b)) || tOfA === 'string' || tOfB === 'string') {
@@ -101,7 +100,7 @@ const ExpressionManager = (function () {
   }
   const add = sum;
 
-  function sub(a, b) {
+  function sub(a: any, b: any) {
     const tOfA = typeof a;
     const tOfB = typeof b;
     if (isNumerable(tOfA, a) && isNumerable(tOfB, b)) {
@@ -144,7 +143,7 @@ const ExpressionManager = (function () {
     return 0;
   }
 
-  function mul(a, b) {
+  function mul(a: any, b: any) {
     const tOfA = typeof a;
     const tOfB = typeof b;
     let arr;
@@ -173,7 +172,7 @@ const ExpressionManager = (function () {
     return 0;
   }
 
-  function div(a, b) {
+  function div(a: any, b: any) {
     const tOfA = typeof a;
     const tOfB = typeof b;
     let arr;
@@ -200,7 +199,7 @@ const ExpressionManager = (function () {
     }
     return 0;
   }
-  function mod(a, b) {
+  function mod(a: any, b: any) {
     if (typeof a === 'string') {
       a = parseInt(a, 10);
     }
@@ -215,7 +214,7 @@ const ExpressionManager = (function () {
   const $bm_div = div;
   const $bm_mod = mod;
 
-  function clamp(num, min, max) {
+  function clamp(num: any, min: any, max: any) {
     if (min > max) {
       const mm = max;
       max = min;
@@ -224,22 +223,22 @@ const ExpressionManager = (function () {
     return Math.min(Math.max(num, min), max);
   }
 
-  function radiansToDegrees(val) {
+  function radiansToDegrees(val: any) {
     return val / degToRads;
   }
   const radians_to_degrees = radiansToDegrees;
 
-  function degreesToRadians(val) {
+  function degreesToRadians(val: any) {
     return val * degToRads;
   }
   const degrees_to_radians = radiansToDegrees;
 
   const helperLengthArray = [0, 0, 0, 0, 0, 0];
 
-  function length(arr1, arr2) {
+  function length(arr1: any, arr2?: any) {
     if (typeof arr1 === 'number' || arr1 instanceof Number) {
       arr2 = arr2 || 0;
-      return Math.abs(arr1 - arr2);
+      return Math.abs(Number(arr1) - Number(arr2));
     }
     if (!arr2) {
       arr2 = helperLengthArray;
@@ -253,17 +252,17 @@ const ExpressionManager = (function () {
     return Math.sqrt(addedLength);
   }
 
-  function normalize(vec) {
+  function normalize(vec: any) {
     return div(vec, length(vec));
   }
 
-  function rgbToHsl(val) {
+  function rgbToHsl(val: any) {
     const r = val[0];
     const g = val[1];
     const b = val[2];
     const max = Math.max(r, g, b);
     const min = Math.min(r, g, b);
-    let h;
+    let h = 0;
     let s;
     const l = (max + min) / 2;
 
@@ -292,7 +291,7 @@ const ExpressionManager = (function () {
     return [h, s, l, val[3]];
   }
 
-  function hue2rgb(p, q, t) {
+  function hue2rgb(p: any, q: any, t: any) {
     if (t < 0) t += 1;
     if (t > 1) t -= 1;
     if (t < 1 / 6) return p + (q - p) * 6 * t;
@@ -301,7 +300,7 @@ const ExpressionManager = (function () {
     return p;
   }
 
-  function hslToRgb(val) {
+  function hslToRgb(val: any) {
     const h = val[0];
     const s = val[1];
     const l = val[2];
@@ -325,7 +324,7 @@ const ExpressionManager = (function () {
     return [r, g, b, val[3]];
   }
 
-  function linear(t, tMin, tMax, value1, value2) {
+  function linear(t: any, tMin: any, tMax: any, value1: any, value2: any) {
     if (value1 === undefined || value2 === undefined) {
       value1 = tMin;
       value2 = tMax;
@@ -355,7 +354,7 @@ const ExpressionManager = (function () {
     }
     return arr;
   }
-  function random(min, max) {
+  function random(min: any, max: any) {
     if (max === undefined) {
       if (min === undefined) {
         min = 0;
@@ -385,7 +384,7 @@ const ExpressionManager = (function () {
     return min + rndm * (max - min);
   }
 
-  function createPath(points, inTangents, outTangents, closed) {
+  function createPath(points: any, inTangents: any, outTangents: any, closed: any) {
     let i;
     const len = points.length;
     const path = shapePool.newElement();
@@ -410,9 +409,9 @@ const ExpressionManager = (function () {
     return path;
   }
 
-  function initiateExpression(elem, data, property) {
+  function initiateExpression(this: any, elem: any, data: any, property: any) {
     // Bail out if we don't want expressions
-    function noOp(_value) {
+    function noOp(_value: any) {
       return _value;
     }
     if (!elem.globalData.renderConfig.runExpressions) {
@@ -423,10 +422,10 @@ const ExpressionManager = (function () {
     const needsVelocity = /velocity(?![\w\d])/.test(val);
     const _needsRandom = val.indexOf('random') !== -1;
     const elemType = elem.data.ty;
-    let transform;
-    let $bm_transform;
-    let content;
-    let effect;
+    let transform: any;
+    let $bm_transform: any;
+    let content: any;
+    let effect: any;
     const thisProperty = property;
     thisProperty._name = elem.data.nm;
     thisProperty.valueAtTime = thisProperty.getValueAtTime;
@@ -442,34 +441,34 @@ const ExpressionManager = (function () {
     const width = elem.data.sw ? elem.data.sw : 0;
     const height = elem.data.sh ? elem.data.sh : 0;
     const name = elem.data.nm;
-    let loopIn;
-    let loop_in;
-    let loopOut;
-    let loop_out;
-    let smooth;
-    let toWorld;
-    let fromWorld;
-    let fromComp;
-    let toComp;
-    let fromCompToSurface;
-    let position;
-    let rotation;
-    let anchorPoint;
-    let scale;
-    let thisLayer;
-    let thisComp;
-    let mask;
-    let valueAtTime;
-    let velocityAtTime;
+    let loopIn: any;
+    let loop_in: any;
+    let loopOut: any;
+    let loop_out: any;
+    let smooth: any;
+    let toWorld: any;
+    let fromWorld: any;
+    let fromComp: any;
+    let toComp: any;
+    let fromCompToSurface: any;
+    let position: any;
+    let rotation: any;
+    let anchorPoint: any;
+    let scale: any;
+    let thisLayer: any;
+    let thisComp: any;
+    let mask: any;
+    let valueAtTime: any;
+    let velocityAtTime: any;
 
-    let scoped_bm_rt;
+    let scoped_bm_rt: any;
     // val = val.replace(/(\\?"|')((http)(s)?(:\/))?\/.*?(\\?"|')/g, "\"\""); // deter potential network calls
     const expression_function = eval('[function _expression_function(){' + val + ';scoped_bm_rt=$bm_rt}]')[0]; // eslint-disable-line no-eval
     const numKeys = property.kf ? data.k.length : 0;
 
     const active = !this.data || this.data.hd !== true;
 
-    const wiggle = function wiggle(freq, amp) {
+    const wiggle = function wiggle(this: any, freq: any, amp: any) {
       let iWiggle;
       let j;
       const lenWiggle = this.pv.length ? this.pv.length : 1;
@@ -515,11 +514,11 @@ const ExpressionManager = (function () {
       smooth = thisProperty.smooth.bind(thisProperty);
     }
 
-    function loopInDuration(type, duration) {
+    function loopInDuration(type: any, duration: any) {
       return loopIn(type, duration, true);
     }
 
-    function loopOutDuration(type, duration) {
+    function loopOutDuration(type: any, duration: any) {
       return loopOut(type, duration, true);
     }
 
@@ -533,26 +532,26 @@ const ExpressionManager = (function () {
 
     const comp = elem.comp.globalData.projectInterface.bind(elem.comp.globalData.projectInterface);
 
-    function lookAt(elem1, elem2) {
+    function lookAt(elem1: any, elem2: any) {
       const fVec = [elem2[0] - elem1[0], elem2[1] - elem1[1], elem2[2] - elem1[2]];
       const pitch = Math.atan2(fVec[0], Math.sqrt(fVec[1] * fVec[1] + fVec[2] * fVec[2])) / degToRads;
       const yaw = -Math.atan2(fVec[1], fVec[2]) / degToRads;
       return [yaw, pitch, 0];
     }
 
-    function easeOut(t, tMin, tMax, val1, val2) {
+    function easeOut(t: any, tMin: any, tMax: any, val1: any, val2: any) {
       return applyEase(easeOutBez, t, tMin, tMax, val1, val2);
     }
 
-    function easeIn(t, tMin, tMax, val1, val2) {
+    function easeIn(t: any, tMin: any, tMax: any, val1: any, val2: any) {
       return applyEase(easeInBez, t, tMin, tMax, val1, val2);
     }
 
-    function ease(t, tMin, tMax, val1, val2) {
+    function ease(t: any, tMin: any, tMax: any, val1: any, val2: any) {
       return applyEase(easeInOutBez, t, tMin, tMax, val1, val2);
     }
 
-    function applyEase(fn, t, tMin, tMax, val1, val2) {
+    function applyEase(fn: any, t: any, tMin: any, tMax: any, val1: any, val2: any) {
       if (val1 === undefined) {
         val1 = tMin;
         val2 = tMax;
@@ -577,7 +576,7 @@ const ExpressionManager = (function () {
       return (val2 - val1) * mult + val1;
     }
 
-    function nearestKey(time) {
+    function nearestKey(time: any) {
       let iKey;
       const lenKey = data.k.length;
       let index;
@@ -614,21 +613,21 @@ const ExpressionManager = (function () {
           }
         }
       }
-      const obKey = {};
+      const obKey: any = {};
       obKey.index = index;
       obKey.time = keyTime / elem.comp.globalData.frameRate;
       return obKey;
     }
 
-    function key(ind) {
+    function key(ind: any) {
       let iKey;
       if (!data.k.length || typeof data.k[0] === 'number') {
         throw new Error('The property has no keyframe at index ' + ind);
       }
       ind -= 1;
-      const obKey = {
+      const obKey: any = {
         time: data.k[ind].t / elem.comp.globalData.frameRate,
-        value: [],
+        value: [] as any[],
       };
       const arr = Object.prototype.hasOwnProperty.call(data.k[ind], 's') ? data.k[ind].s : data.k[ind - 1].e;
 
@@ -640,14 +639,14 @@ const ExpressionManager = (function () {
       return obKey;
     }
 
-    function framesToTime(fr, fps) {
+    function framesToTime(fr: any, fps: any) {
       if (!fps) {
         fps = elem.comp.globalData.frameRate;
       }
       return fr / fps;
     }
 
-    function timeToFrames(t, fps) {
+    function timeToFrames(t: any, fps: any) {
       if (!t && t !== 0) {
         t = time;
       }
@@ -657,7 +656,7 @@ const ExpressionManager = (function () {
       return t * fps;
     }
 
-    function seedRandom(seed) {
+    function seedRandom(seed: any) {
       BMMath.seedrandom(randSeed + seed);
     }
 
@@ -665,7 +664,7 @@ const ExpressionManager = (function () {
       return elem.sourceRectAtTime();
     }
 
-    function substring(init, end) {
+    function substring(init: any, end: any) {
       if (typeof value === 'string') {
         if (end === undefined) {
           return value.substring(init);
@@ -675,7 +674,7 @@ const ExpressionManager = (function () {
       return '';
     }
 
-    function substr(init, end) {
+    function substr(init: any, end: any) {
       if (typeof value === 'string') {
         if (end === undefined) {
           return value.substr(init);
@@ -685,25 +684,25 @@ const ExpressionManager = (function () {
       return '';
     }
 
-    function posterizeTime(framesPerSecond) {
+    function posterizeTime(framesPerSecond: any) {
       time = framesPerSecond === 0 ? 0 : Math.floor(time * framesPerSecond) / framesPerSecond;
       value = valueAtTime(time);
     }
 
-    let time;
-    let velocity;
-    let value;
-    let text;
-    let textIndex;
-    let textTotal;
-    let selectorValue;
+    let time: any;
+    let velocity: any;
+    let value: any;
+    let text: any;
+    let textIndex: any;
+    let textTotal: any;
+    let selectorValue: any;
     const index = elem.data.ind;
     let hasParent = !!(elem.hierarchy && elem.hierarchy.length);
-    let parent;
+    let parent: any;
     const randSeed = Math.floor(Math.random() * 1000000);
     const globalData = elem.globalData;
 
-    function executeExpression(_value) {
+    function executeExpression(this: any, _value: any) {
       // globalData.pushExpression();
       value = _value;
       if (this.frameExpressionId === elem.globalData.frameId && this.propType !== 'textSelector') {
