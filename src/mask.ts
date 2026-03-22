@@ -1,44 +1,116 @@
-// @ts-nocheck
 import { getLocationHref } from './main';
 import { createElementID } from './utils/common';
 import { createSizedArray } from './utils/helpers/arrays';
 import PropertyFactory from './utils/PropertyFactory';
 import ShapePropertyFactory from './utils/shapes/ShapeProperty';
+import type { ShapePropertyFactoryApi } from './utils/shapes/shapePropertyFactoryTypes';
 import createNS from './utils/helpers/svg_elements';
+import type {
+  GlobalData,
+  MaskDefinitionJson,
+  MaskHostLayerData,
+  RenderableComponentEntry,
+} from './types/lottieRuntime';
+
+const shapeFactory = ShapePropertyFactory as ShapePropertyFactoryApi;
+
+/** Bezier path value passed to `drawPath` (`prop.v` from shape property). */
+interface MaskPathNodes {
+  v: number[][];
+  o: number[][];
+  i: number[][];
+  _length: number;
+  c?: boolean;
+}
+
+interface MaskOpacityProp {
+  v: number;
+  _mdf?: boolean;
+}
+
+interface MaskShapeProp {
+  v: MaskPathNodes;
+  _mdf?: boolean;
+  k?: boolean;
+}
+
+type MaskViewDataEntry = {
+  elem: SVGElement;
+  lastPath: string;
+  op: MaskOpacityProp;
+  prop: MaskShapeProp;
+  invRect?: SVGElement | null;
+};
+
+interface MaskExpanderProp {
+  v: number;
+  _mdf?: boolean;
+}
+
+interface StoredMaskRow {
+  elem: SVGElement;
+  x: MaskExpanderProp | null;
+  expan: SVGElement | null;
+  lastPath: string;
+  lastOperator: string;
+  filterId: string | undefined;
+  lastRadius: number;
+}
+
+/** Layer host passed into `MaskElement` (SVG / HTML bases satisfy at runtime; structurally loose for mixin classes). */
+export interface MaskHostElement {
+  comp: { data: { w?: number; h?: number } };
+  maskedElement: SVGElement;
+  finalTransform: {
+    mat: { getInverseMatrix(): { to2dCSS(): string } };
+    mProp: { _mdf?: boolean };
+  };
+  addRenderableComponent(comp: RenderableComponentEntry): void;
+}
 
 class MaskElement {
-  constructor(data, element, globalData) {
+  declare data: MaskHostLayerData;
+  declare element: MaskHostElement;
+  declare globalData: GlobalData;
+  storedData: (StoredMaskRow | undefined)[];
+  masksProperties: MaskDefinitionJson[];
+  maskElement: SVGElement | null;
+  viewData: MaskViewDataEntry[];
+  solidPath: string;
+
+  constructor(data: MaskHostLayerData, element: MaskHostElement, globalData: GlobalData) {
     this.data = data;
     this.element = element;
     this.globalData = globalData;
     this.storedData = [];
     this.masksProperties = this.data.masksProperties || [];
     this.maskElement = null;
-    const defs = this.globalData.defs;
-    let i;
+    const defs = this.globalData.defs as SVGDefsElement;
+    let i: number;
     let len = this.masksProperties ? this.masksProperties.length : 0;
-    this.viewData = createSizedArray(len);
+    this.viewData = createSizedArray(len) as MaskViewDataEntry[];
     this.solidPath = '';
 
-    let path;
+    let path: SVGElement;
     const properties = this.masksProperties;
     let count = 0;
-    const currentMasks = [];
-    let j;
-    let jLen;
+    const currentMasks: SVGElement[] = [];
+    let j: number;
+    let jLen: number;
     const layerId = createElementID();
-    let rect;
-    let expansor;
-    let feMorph;
-    let x;
-    let maskType = 'clipPath';
-    let maskRef = 'clip-path';
+    let rect: SVGElement | null;
+    let expansor: SVGElement;
+    let feMorph: SVGElement | null;
+    let x: MaskExpanderProp | null;
+    let maskType: 'clipPath' | 'mask' = 'clipPath';
+    let maskRef: 'clip-path' | 'mask' = 'clip-path';
     for (i = 0; i < len; i += 1) {
+      const opacityProp = properties[i].o as { k: number; x?: unknown };
       if (
         (properties[i].mode !== 'a' && properties[i].mode !== 'n') ||
         properties[i].inv ||
-        properties[i].o.k !== 100 ||
-        properties[i].o.x
+        opacityProp.k !== 100 ||
+        opacityProp.x
       ) {
         maskType = 'mask';
         maskRef = 'mask';
@@ -47,8 +119,8 @@ class MaskElement {
       if ((properties[i].mode === 's' || properties[i].mode === 'i') && count === 0) {
         rect = createNS('rect');
         rect.setAttribute('fill', '#ffffff');
-        rect.setAttribute('width', this.element.comp.data.w || 0);
-        rect.setAttribute('height', this.element.comp.data.h || 0);
+        rect.setAttribute('width', String(this.element.comp.data.w || 0));
+        rect.setAttribute('height', String(this.element.comp.data.h || 0));
         currentMasks.push(rect);
       } else {
         rect = null;
@@ -56,10 +128,9 @@ class MaskElement {
 
       path = createNS('path');
       if (properties[i].mode === 'n') {
-        // TODO move this to a factory or to a constructor
         this.viewData[i] = {
-          op: PropertyFactory.getProp(this.element, properties[i].o, 0, 0.01, this.element),
-          prop: ShapePropertyFactory.getShapeProp(this.element, properties[i], 3),
+          op: PropertyFactory.getProp(this.element, properties[i].o, 0, 0.01, this.element) as MaskOpacityProp,
+          prop: shapeFactory.getShapeProp(this.element, properties[i], 3) as MaskShapeProp,
           elem: path,
           lastPath: '',
         };
@@ -69,12 +140,12 @@ class MaskElement {
 
         path.setAttribute('fill', properties[i].mode === 's' ? '#000000' : '#ffffff');
         path.setAttribute('clip-rule', 'nonzero');
-        let filterID;
+        let filterID: string | undefined;
 
-        if (properties[i].x.k !== 0) {
+        if ((properties[i].x as { k: number }).k !== 0) {
           maskType = 'mask';
           maskRef = 'mask';
-          x = PropertyFactory.getProp(this.element, properties[i].x, 0, null, this.element);
+          x = PropertyFactory.getProp(this.element, properties[i].x, 0, null, this.element) as MaskExpanderProp;
           filterID = createElementID();
           expansor = createNS('filter');
           expansor.setAttribute('id', filterID);
@@ -90,7 +161,6 @@ class MaskElement {
           x = null;
         }
 
-        // TODO move this to a factory or to a constructor
         this.storedData[i] = {
           elem: path,
           x: x,
@@ -121,13 +191,12 @@ class MaskElement {
         if (properties[i].inv && !this.solidPath) {
           this.solidPath = this.createLayerSolidPath();
         }
-        // TODO move this to a factory or to a constructor
         this.viewData[i] = {
           elem: path,
           lastPath: '',
-          op: PropertyFactory.getProp(this.element, properties[i].o, 0, 0.01, this.element),
-          prop: ShapePropertyFactory.getShapeProp(this.element, properties[i], 3),
-          invRect: rect,
+          op: PropertyFactory.getProp(this.element, properties[i].o, 0, 0.01, this.element) as MaskOpacityProp,
+          prop: shapeFactory.getShapeProp(this.element, properties[i], 3) as MaskShapeProp,
+          invRect: rect ?? undefined,
         };
         if (!this.viewData[i].prop.k) {
           this.drawPath(properties[i], this.viewData[i].prop.v, this.viewData[i]);
@@ -152,42 +221,40 @@ class MaskElement {
     }
   }
 
-  getMaskProperty(pos) {
+  getMaskProperty(pos: number): MaskShapeProp {
     return this.viewData[pos].prop;
   }
 
-  renderFrame(isFirstFrame) {
+  renderFrame(isFirstFrame: boolean) {
     const finalMat = this.element.finalTransform.mat;
-    let i;
+    let i: number;
     const len = this.masksProperties.length;
     for (i = 0; i < len; i += 1) {
       if (this.viewData[i].prop._mdf || isFirstFrame) {
         this.drawPath(this.masksProperties[i], this.viewData[i].prop.v, this.viewData[i]);
       }
       if (this.viewData[i].op._mdf || isFirstFrame) {
-        this.viewData[i].elem.setAttribute('fill-opacity', this.viewData[i].op.v);
+        this.viewData[i].elem.setAttribute('fill-opacity', String(this.viewData[i].op.v));
       }
       if (this.masksProperties[i].mode !== 'n') {
         if (this.viewData[i].invRect && (this.element.finalTransform.mProp._mdf || isFirstFrame)) {
-          this.viewData[i].invRect.setAttribute('transform', finalMat.getInverseMatrix().to2dCSS());
+          this.viewData[i].invRect!.setAttribute('transform', finalMat.getInverseMatrix().to2dCSS());
         }
-        if (this.storedData[i].x && (this.storedData[i].x._mdf || isFirstFrame)) {
-          const feMorph = this.storedData[i].expan;
-          if (this.storedData[i].x.v < 0) {
-            if (this.storedData[i].lastOperator !== 'erode') {
-              this.storedData[i].lastOperator = 'erode';
-              this.storedData[i].elem.setAttribute(
-                'filter',
-                'url(' + getLocationHref() + '#' + this.storedData[i].filterId + ')',
-              );
+        const stored = this.storedData[i];
+        if (stored?.x && (stored.x._mdf || isFirstFrame)) {
+          const feMorph = stored.expan;
+          if (stored.x.v < 0) {
+            if (stored.lastOperator !== 'erode') {
+              stored.lastOperator = 'erode';
+              stored.elem.setAttribute('filter', 'url(' + getLocationHref() + '#' + stored.filterId + ')');
             }
-            feMorph.setAttribute('radius', -this.storedData[i].x.v);
+            feMorph!.setAttribute('radius', String(-stored.x.v));
           } else {
-            if (this.storedData[i].lastOperator !== 'dilate') {
-              this.storedData[i].lastOperator = 'dilate';
-              this.storedData[i].elem.setAttribute('filter', null);
+            if (stored.lastOperator !== 'dilate') {
+              stored.lastOperator = 'dilate';
+              stored.elem.setAttribute('filter', null as unknown as string);
             }
-            this.storedData[i].elem.setAttribute('stroke-width', this.storedData[i].x.v * 2);
+            stored.elem.setAttribute('stroke-width', String(stored.x.v * 2));
           }
         }
       }
@@ -199,20 +266,20 @@ class MaskElement {
   }
 
   createLayerSolidPath() {
+    const compSize = this.globalData.compSize!;
     let path = 'M0,0 ';
-    path += ' h' + this.globalData.compSize.w;
-    path += ' v' + this.globalData.compSize.h;
-    path += ' h-' + this.globalData.compSize.w;
-    path += ' v-' + this.globalData.compSize.h + ' ';
+    path += ' h' + compSize.w;
+    path += ' v' + compSize.h;
+    path += ' h-' + compSize.w;
+    path += ' v-' + compSize.h + ' ';
     return path;
   }
 
-  drawPath(pathData, pathNodes, viewData) {
+  drawPath(pathData: MaskDefinitionJson, pathNodes: MaskPathNodes, viewData: MaskViewDataEntry) {
     let pathString = ' M' + pathNodes.v[0][0] + ',' + pathNodes.v[0][1];
-    let i;
+    let i: number;
     const len = pathNodes._length;
     for (i = 1; i < len; i += 1) {
-      // pathString += " C"+pathNodes.o[i-1][0]+','+pathNodes.o[i-1][1] + " "+pathNodes.i[i][0]+','+pathNodes.i[i][1] + " "+pathNodes.v[i][0]+','+pathNodes.v[i][1];
       pathString +=
         ' C' +
         pathNodes.o[i - 1][0] +
@@ -227,7 +294,6 @@ class MaskElement {
         ',' +
         pathNodes.v[i][1];
     }
-    // pathString += " C"+pathNodes.o[i-1][0]+','+pathNodes.o[i-1][1] + " "+pathNodes.i[0][0]+','+pathNodes.i[0][1] + " "+pathNodes.v[0][0]+','+pathNodes.v[0][1];
     if (pathNodes.c && len > 1) {
       pathString +=
         ' C' +
@@ -243,7 +309,6 @@ class MaskElement {
         ',' +
         pathNodes.v[0][1];
     }
-    // pathNodes.__renderedString = pathString;
 
     if (viewData.lastPath !== pathString) {
       let pathShapeValue = '';
@@ -258,11 +323,11 @@ class MaskElement {
   }
 
   destroy() {
-    this.element = null;
-    this.globalData = null;
+    this.element = null as unknown as MaskHostElement;
+    this.globalData = null as unknown as GlobalData;
     this.maskElement = null;
-    this.data = null;
-    this.masksProperties = null;
+    this.data = null as unknown as MaskHostLayerData;
+    this.masksProperties = null as unknown as MaskDefinitionJson[];
   }
 }
 

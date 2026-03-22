@@ -1,23 +1,63 @@
-// @ts-nocheck
 import { createSizedArray } from '../../utils/helpers/arrays';
 
 import ShapePropertyFactory from '../../utils/shapes/ShapeProperty';
+import type { ShapePropertyFactoryApi } from '../../utils/shapes/shapePropertyFactoryTypes';
 import MaskElement from '../../mask';
+import type {
+  GlobalData,
+  MaskDefinitionJson,
+  MaskHostLayerData,
+  RenderableComponentEntry,
+} from '../../types/lottieRuntime';
+
+const shapeFactory = ShapePropertyFactory as ShapePropertyFactoryApi;
+
+interface PointTransformMatrix {
+  applyToPointArray(x: number, y: number, z: number): number[];
+  applyToTriplePoints(o: unknown, i: unknown, v: unknown): number[];
+}
+
+/** Canvas layer host for mask path rendering (`CVBaseElement` subset at runtime). */
+export interface CVMaskLayerHost {
+  finalTransform: { mat: PointTransformMatrix };
+  canvasContext: CanvasRenderingContext2D;
+  globalData: GlobalData & { compSize: { w: number; h: number }; renderer: { save(force?: boolean): void } };
+  addRenderableComponent(c: RenderableComponentEntry): void;
+}
+
+interface MaskShapeVertices {
+  v: number[][];
+  o: number[][];
+  i: number[][];
+  _length: number;
+  c?: boolean;
+}
+
+/** Return value of `getShapeProp` for mask path (type 3). */
+interface CVMaskShapeProp {
+  v: MaskShapeVertices;
+}
 
 class CVMaskElement {
-  constructor(data, element) {
+  declare data: MaskHostLayerData;
+  declare element: CVMaskLayerHost;
+  masksProperties: MaskDefinitionJson[];
+  viewData: CVMaskShapeProp[];
+  hasMasks: boolean;
+
+  constructor(data: MaskHostLayerData, element: CVMaskLayerHost) {
     this.data = data;
     this.element = element;
     this.masksProperties = this.data.masksProperties || [];
-    this.viewData = createSizedArray(this.masksProperties.length);
-    let i;
+    this.viewData = createSizedArray(this.masksProperties.length) as CVMaskShapeProp[];
+    let i: number;
     const len = this.masksProperties.length;
     let hasMasks = false;
     for (i = 0; i < len; i += 1) {
       if (this.masksProperties[i].mode !== 'n') {
         hasMasks = true;
       }
-      this.viewData[i] = ShapePropertyFactory.getShapeProp(this.element, this.masksProperties[i], 3);
+      this.viewData[i] = shapeFactory.getShapeProp(this.element, this.masksProperties[i], 3) as CVMaskShapeProp;
     }
     this.hasMasks = hasMasks;
     if (hasMasks) {
@@ -31,11 +71,11 @@ class CVMaskElement {
     }
     const transform = this.element.finalTransform.mat;
     const ctx = this.element.canvasContext;
-    let i;
+    let i: number;
     const len = this.masksProperties.length;
-    let pt;
-    let pts;
-    let data;
+    let pt: number[];
+    let pts: number[];
+    let data: MaskShapeVertices;
     ctx.beginPath();
     for (i = 0; i < len; i += 1) {
       if (this.masksProperties[i].mode !== 'n') {
@@ -49,7 +89,7 @@ class CVMaskElement {
         data = this.viewData[i].v;
         pt = transform.applyToPointArray(data.v[0][0], data.v[0][1], 0);
         ctx.moveTo(pt[0], pt[1]);
-        let j;
+        let j: number;
         const jLen = data._length;
         for (j = 1; j < jLen; j += 1) {
           pts = transform.applyToTriplePoints(data.o[j - 1], data.i[j], data.v[j]);
@@ -64,10 +104,12 @@ class CVMaskElement {
   }
 
   destroy() {
-    this.element = null;
+    this.element = null as unknown as CVMaskLayerHost;
   }
 }
 
-CVMaskElement.prototype.getMaskProperty = MaskElement.prototype.getMaskProperty;
+(
+  CVMaskElement.prototype as unknown as { getMaskProperty: typeof MaskElement.prototype.getMaskProperty }
+).getMaskProperty = MaskElement.prototype.getMaskProperty;
 
 export default CVMaskElement;

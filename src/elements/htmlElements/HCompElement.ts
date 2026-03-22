@@ -1,4 +1,3 @@
-// @ts-nocheck
 import { extendPrototype } from '../../utils/functionExtensions';
 import { createSizedArray } from '../../utils/helpers/arrays';
 import PropertyFactory from '../../utils/PropertyFactory';
@@ -7,24 +6,55 @@ import HybridRendererBase from '../../renderers/HybridRendererBase';
 import HBaseElement from './HBaseElement';
 import ICompElement from '../CompElement';
 import SVGCompElement from '../svgElements/SVGCompElement';
+import type {
+  CompChildElement,
+  CompLayerData,
+  GlobalData,
+  RendererElementInstance,
+  RendererLayerData,
+} from '../../types/lottieRuntime';
+
+/** Time remap property on comps (`PropertyFactory` or placeholder). */
+type CompTimeRemapProp = { _placeholder: true } | { _placeholder?: false; v: number };
 
 class HCompElement {
-  constructor(data, globalData, comp) {
-    this.layers = data.layers;
-    this.supports3d = !data.hasMask;
+  declare initElement: (data: CompLayerData, globalData: GlobalData, comp: unknown) => void;
+  declare globalData: GlobalData;
+  declare layers: CompLayerData['layers'];
+  declare completeLayers: boolean;
+  declare pendingElements: RendererElementInstance[];
+  declare elements: Array<CompChildElement | null | undefined>;
+  declare data: CompLayerData;
+  declare tm: CompTimeRemapProp;
+  declare layerElement: HTMLElement | SVGElement;
+  declare svgElement: SVGSVGElement;
+  declare baseElement: HTMLElement;
+  declare transformedElement: HTMLElement;
+  supports3d!: boolean;
+  declare _createBaseContainerElements: () => void;
+
+  constructor(data: RendererLayerData, globalData: GlobalData, comp: unknown) {
+    const compData = data as unknown as CompLayerData;
+    this.layers = compData.layers;
+    this.supports3d = !compData.hasMask;
     this.completeLayers = false;
     this.pendingElements = [];
-    this.elements = this.layers ? createSizedArray(this.layers.length) : [];
-    this.initElement(data, globalData, comp);
-    this.tm = data.tm ? PropertyFactory.getProp(this, data.tm, 0, globalData.frameRate, this) : { _placeholder: true };
+    this.elements = this.layers
+      ? (createSizedArray(this.layers.length) as Array<CompChildElement | null | undefined>)
+      : [];
+    this.initElement(compData, globalData, comp);
+    this.tm = compData.tm
+      ? (PropertyFactory.getProp(this, compData.tm, 0, globalData.frameRate, this) as CompTimeRemapProp)
+      : { _placeholder: true };
   }
 
-  addTo3dContainer(elem, pos) {
+  addTo3dContainer(elem: Element, pos: number) {
     let j = 0;
-    let nextElement;
+    let nextElement: Element | undefined;
     while (j < pos) {
-      if (this.elements[j] && this.elements[j].getBaseElement) {
-        nextElement = this.elements[j].getBaseElement();
+      const el = this.elements[j];
+      if (el?.getBaseElement) {
+        nextElement = el.getBaseElement() ?? undefined;
       }
       j += 1;
     }
@@ -35,22 +65,21 @@ class HCompElement {
     }
   }
 
-  createComp(data) {
+  createComp(data: RendererLayerData): RendererElementInstance {
     if (!this.supports3d) {
-      return new SVGCompElement(data, this.globalData, this);
+      return new SVGCompElement(data, this.globalData, this) as unknown as RendererElementInstance;
     }
-    return new HCompElement(data, this.globalData, this);
+    return new HCompElement(data, this.globalData, this) as unknown as RendererElementInstance;
   }
 
   createContainerElements() {
     this._createBaseContainerElements();
-    // divElement.style.clip = 'rect(0px, '+this.data.w+'px, '+this.data.h+'px, 0px)';
     if (this.data.hasMask) {
-      this.svgElement.setAttribute('width', this.data.w);
-      this.svgElement.setAttribute('height', this.data.h);
+      this.svgElement.setAttribute('width', String(this.data.w));
+      this.svgElement.setAttribute('height', String(this.data.h));
       this.transformedElement = this.baseElement;
     } else {
-      this.transformedElement = this.layerElement;
+      this.transformedElement = this.layerElement as HTMLElement;
     }
   }
 }

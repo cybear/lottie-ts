@@ -2,10 +2,11 @@ import { getLocationHref } from '../../main';
 import { createElementID } from '../../utils/common';
 import createNS from '../../utils/helpers/svg_elements';
 import MaskElement from '../../mask';
+import type { MaskHostElement } from '../../mask';
 import filtersFactory from '../../utils/filters';
 import featureSupport from '../../utils/featureSupport';
 import SVGEffects from './SVGEffects';
-import type { BaseInitLayerData, GlobalData } from '../../types/lottieRuntime';
+import type { BaseInitLayerData, GlobalData, RenderableComponentEntry } from '../../types/lottieRuntime';
 
 type Matrix2dCss = { to2dCSS(): string };
 
@@ -50,6 +51,7 @@ class SVGBaseElement {
   declare checkMasks: () => boolean;
   declare setBlendMode: () => void;
   declare finalTransform: FinalTransformLocalSlice;
+  declare addRenderableComponent: (c: RenderableComponentEntry) => void;
 
   initRendererElement() {
     this.layerElement = createNS('g') as SVGGElement;
@@ -135,7 +137,7 @@ class SVGBaseElement {
   }
 
   createRenderableComponents() {
-    this.maskManager = new MaskElement(this.data, this, this.globalData);
+    this.maskManager = new MaskElement(this.data, this as unknown as MaskHostElement, this.globalData);
     this.renderableEffectsManager = new SVGEffects(this);
     this.searchEffectTransforms();
   }

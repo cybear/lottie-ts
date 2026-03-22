@@ -5,7 +5,13 @@ import BaseRenderer from '../../renderers/BaseRenderer';
 import SVGBaseElement from '../svgElements/SVGBaseElement';
 import CVEffects from '../canvasElements/CVEffects';
 import MaskElement from '../../mask';
-import type { BaseInitLayerData, GlobalData, RendererElementInstance } from '../../types/lottieRuntime';
+import type { MaskHostElement } from '../../mask';
+import type {
+  BaseInitLayerData,
+  GlobalData,
+  RenderableComponentEntry,
+  RendererElementInstance,
+} from '../../types/lottieRuntime';
 
 type MatrixCss = { toCSS(): string };
 
@@ -28,6 +34,7 @@ type LayerDataHtml = BaseInitLayerData & {
 class HBaseElement {
   declare data: LayerDataHtml;
   declare globalData: GlobalData;
+  declare comp: { data: { w?: number; h?: number } };
   declare baseElement: HTMLElement;
   declare svgElement: SVGSVGElement;
   declare layerElement: HTMLElement | SVGElement;
@@ -43,6 +50,7 @@ class HBaseElement {
   declare renderRenderable: () => void;
   declare renderInnerContent: () => void;
   declare setBlendMode: () => void;
+  declare addRenderableComponent: (c: RenderableComponentEntry) => void;
 
   checkBlendMode() {}
 
@@ -115,7 +123,7 @@ class HBaseElement {
   }
 
   createRenderableComponents() {
-    this.maskManager = new MaskElement(this.data, this, this.globalData);
+    this.maskManager = new MaskElement(this.data, this as unknown as MaskHostElement, this.globalData);
   }
 
   addEffects() {}

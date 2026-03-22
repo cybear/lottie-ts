@@ -3,8 +3,9 @@ import getBlendMode from '../../utils/helpers/blendModes';
 import Matrix from '../../3rd_party/transformation-matrix';
 import CVEffects from './CVEffects';
 import CVMaskElement from './CVMaskElement';
+import type { CVMaskLayerHost } from './CVMaskElement';
 import effectTypes from '../../utils/helpers/effectTypes';
-import type { GlobalData } from '../../types/lottieRuntime';
+import type { GlobalData, RenderableComponentEntry } from '../../types/lottieRuntime';
 import type { CanvasTransformCanvas } from '../../renderers/CanvasRendererBase';
 
 const operationsMap: Record<number, GlobalCompositeOperation> = {
@@ -52,6 +53,7 @@ class CVBaseElement {
   declare _isFirstFrame: boolean;
   declare finalTransform: { localMat: { props: number[] }; localOpacity: number };
   declare comp: CompWithLookup;
+  declare addRenderableComponent: (c: RenderableComponentEntry) => void;
   declare renderTransform: () => void;
   declare renderRenderable: () => void;
   declare renderLocalTransform: () => void;
@@ -100,7 +102,7 @@ class CVBaseElement {
   }
 
   createRenderableComponents() {
-    this.maskManager = new CVMaskElement(this.data, this) as CVBaseElement['maskManager'];
+    this.maskManager = new CVMaskElement(this.data, this as unknown as CVMaskLayerHost) as CVBaseElement['maskManager'];
     this.transformEffects = this.renderableEffectsManager.getEffects(effectTypes.TRANSFORM_EFFECT);
   }
 

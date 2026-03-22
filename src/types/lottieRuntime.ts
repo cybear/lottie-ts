@@ -189,6 +189,11 @@ export type CompLayerData = LayerInOutData & {
   op: number;
   layers: Array<ElementData & { st: number }>;
   tm?: unknown;
+  /** Precomp frame size (canvas clip / hybrid mask SVG size). */
+  w?: number;
+  h?: number;
+  /** Hybrid HTML comp: when true, embeds SVG mask wrapper and disables 3D path. */
+  hasMask?: boolean;
 };
 
 /** Child layer instance stored on a comp (`elements[i]`). */
@@ -197,6 +202,8 @@ export interface CompChildElement {
   prepareFrame(num: number): void;
   renderFrame(): void;
   _mdf?: boolean;
+  /** Present on DOM / hybrid layer instances (`HCompElement.addTo3dContainer`). */
+  getBaseElement?: () => Element | null;
 }
 
 export interface SlotManagerLike {
@@ -242,6 +249,20 @@ export interface MaskPropertyEntry {
   mode: string;
   cl?: boolean;
 }
+
+/** Mask row JSON consumed by `MaskElement` / `CVMaskElement` / `ShapePropertyFactory`. */
+export interface MaskDefinitionJson extends MaskPropertyEntry {
+  inv?: boolean;
+  o?: unknown;
+  x?: unknown;
+  pt?: unknown;
+  ks?: unknown;
+}
+
+/** Layer `data` slice passed into `MaskElement` / `CVMaskElement` constructors. */
+export type MaskHostLayerData = ElementData & {
+  masksProperties?: MaskDefinitionJson[];
+};
 
 /** Layer fields used by `BaseElement` (init, masks, blend mode, expressions). */
 export type BaseInitLayerData = ElementData & {
