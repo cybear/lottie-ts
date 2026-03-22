@@ -18,13 +18,13 @@ class SVGCompElement {
     this.initElement(data, globalData, comp);
     this.tm = data.tm ? PropertyFactory.getProp(this, data.tm, 0, globalData.frameRate, this) : { _placeholder: true };
   }
+
+  createComp(data) {
+    return new SVGCompElement(data, this.globalData, this);
+  }
 }
 
 extendPrototype([BaseRenderer, SVGRendererBase, ICompElement, SVGBaseElement], SVGCompElement);
-
-SVGCompElement.prototype.createComp = function (data) {
-  return new SVGCompElement(data, this.globalData, this);
-};
 
 registerSVGCompElement(SVGCompElement);
 

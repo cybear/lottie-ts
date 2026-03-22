@@ -16,6 +16,10 @@ class CVCompElement {
     this.initElement(data, globalData, comp);
     this.tm = data.tm ? PropertyFactory.getProp(this, data.tm, 0, globalData.frameRate, this) : { _placeholder: true };
   }
+
+  createComp(data) {
+    return new CVCompElement(data, this.globalData, this);
+  }
 }
 
 extendPrototype([BaseRenderer, CanvasRendererBase, ICompElement, CVBaseElement], CVCompElement);
@@ -48,10 +52,6 @@ CVCompElement.prototype.destroy = function () {
   }
   this.layers = null;
   this.elements = null;
-};
-
-CVCompElement.prototype.createComp = function (data) {
-  return new CVCompElement(data, this.globalData, this);
 };
 
 export default CVCompElement;

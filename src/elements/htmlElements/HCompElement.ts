@@ -18,6 +18,29 @@ class HCompElement {
     this.initElement(data, globalData, comp);
     this.tm = data.tm ? PropertyFactory.getProp(this, data.tm, 0, globalData.frameRate, this) : { _placeholder: true };
   }
+
+  addTo3dContainer(elem, pos) {
+    let j = 0;
+    let nextElement;
+    while (j < pos) {
+      if (this.elements[j] && this.elements[j].getBaseElement) {
+        nextElement = this.elements[j].getBaseElement();
+      }
+      j += 1;
+    }
+    if (nextElement) {
+      this.layerElement.insertBefore(elem, nextElement);
+    } else {
+      this.layerElement.appendChild(elem);
+    }
+  }
+
+  createComp(data) {
+    if (!this.supports3d) {
+      return new SVGCompElement(data, this.globalData, this);
+    }
+    return new HCompElement(data, this.globalData, this);
+  }
 }
 
 extendPrototype([BaseRenderer, HybridRendererBase, ICompElement, HBaseElement], HCompElement);
@@ -33,29 +56,6 @@ HCompElement.prototype.createContainerElements = function () {
   } else {
     this.transformedElement = this.layerElement;
   }
-};
-
-HCompElement.prototype.addTo3dContainer = function (elem, pos) {
-  let j = 0;
-  let nextElement;
-  while (j < pos) {
-    if (this.elements[j] && this.elements[j].getBaseElement) {
-      nextElement = this.elements[j].getBaseElement();
-    }
-    j += 1;
-  }
-  if (nextElement) {
-    this.layerElement.insertBefore(elem, nextElement);
-  } else {
-    this.layerElement.appendChild(elem);
-  }
-};
-
-HCompElement.prototype.createComp = function (data) {
-  if (!this.supports3d) {
-    return new SVGCompElement(data, this.globalData, this);
-  }
-  return new HCompElement(data, this.globalData, this);
 };
 
 export default HCompElement;

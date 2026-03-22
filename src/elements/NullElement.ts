@@ -13,24 +13,24 @@ class NullElement {
     this.initTransform(data, globalData, comp);
     this.initHierarchy();
   }
-
-  prepareFrame(num) {
-    this.prepareProperties(num, true);
-  }
-
-  renderFrame() {}
-
-  getBaseElement() {
-    return null;
-  }
-
-  destroy() {}
-
-  sourceRectAtTime() {}
-
-  hide() {}
 }
 
 extendPrototype([BaseElement, TransformElement, HierarchyElement, FrameElement], NullElement);
+
+NullElement.prototype.prepareFrame = function (num) {
+  this.prepareProperties(num, true);
+};
+
+NullElement.prototype.renderFrame = function () {};
+
+NullElement.prototype.getBaseElement = function () {
+  return null;
+};
+
+NullElement.prototype.destroy = function () {};
+
+NullElement.prototype.sourceRectAtTime = function () {};
+
+NullElement.prototype.hide = function () {};
 
 export default NullElement;
