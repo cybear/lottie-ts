@@ -1,7 +1,20 @@
-// @ts-nocheck
 function workerContent() {
   class ProxyElement {
-    constructor(type, namespace) {
+    _state: string;
+    _isDirty: boolean;
+    _isProxy: boolean;
+    _changedStyles: any[];
+    _changedAttributes: any[];
+    _changedElements: any[];
+    _textContent: any;
+    type: any;
+    namespace: any;
+    children: any[];
+    attributes: Record<string, any>;
+    style: any;
+    parentNode: any;
+
+    constructor(type: any, namespace: any) {
       this._state = 'init';
       this._isDirty = false;
       this._isProxy = true;
@@ -16,17 +29,17 @@ function workerContent() {
       this.attributes = {
         id: 'l_d_' + localIdCounter,
       };
-      this.style = new Style(this);
+      this.style = new (Style as any)(this);
     }
 
-    appendChild(_child) {
+    appendChild(_child: any) {
       _child.parentNode = this;
       this.children.push(_child);
       this._isDirty = true;
       this._changedElements.push([_child, this.attributes.id]);
     }
 
-    insertBefore(_newElement, _nextElement) {
+    insertBefore(_newElement: any, _nextElement: any) {
       const children = this.children;
       for (let i = 0; i < children.length; i += 1) {
         if (children[i] === _nextElement) {
@@ -39,7 +52,7 @@ function workerContent() {
       children.push(_nextElement);
     }
 
-    setAttribute(_attribute, _value) {
+    setAttribute(_attribute: any, _value: any) {
       this.attributes[_attribute] = _value;
       if (!this._isDirty) {
         this._isDirty = true;
@@ -53,7 +66,7 @@ function workerContent() {
         namespace: this.namespace,
         style: this.style.serialize(),
         attributes: this.attributes,
-        children: this.children.map(function (child) {
+        children: this.children.map(function (child: any) {
           return child.serialize();
         }),
         textContent: this._textContent,
@@ -61,11 +74,11 @@ function workerContent() {
     }
 
     // eslint-disable-next-line class-methods-use-this
-    addEventListener(_, _callback) {
+    addEventListener(_: any, _callback: any) {
       setTimeout(_callback, 1);
     }
 
-    setAttributeNS(_, _attribute, _value) {
+    setAttributeNS(_: any, _attribute: any, _value: any) {
       this.attributes[_attribute] = _value;
       if (!this._isDirty) {
         this._isDirty = true;
@@ -75,23 +88,23 @@ function workerContent() {
   }
 
   Object.defineProperty(ProxyElement.prototype, 'textContent', {
-    set: function (_value) {
+    set: function (this: any, _value: any) {
       this._isDirty = true;
       this._textContent = _value;
     },
   });
 
   let localIdCounter = 0;
-  const animations = {};
+  const animations: Record<string, any> = {};
 
   const styleProperties = ['width', 'height', 'display', 'transform', 'opacity', 'contentVisibility', 'mix-blend-mode'];
 
-  function Style(element) {
+  function Style(this: any, element: any) {
     this.element = element;
   }
   Style.prototype = {
-    serialize: function () {
-      const obj = {};
+    serialize: function (this: any) {
+      const obj: Record<string, any> = {};
       for (let i = 0; i < styleProperties.length; i += 1) {
         const propertyKey = styleProperties[i];
         const keyName = '_' + propertyKey;
@@ -102,9 +115,9 @@ function workerContent() {
       return obj;
     },
   };
-  styleProperties.forEach(function (propertyKey) {
+  styleProperties.forEach(function (propertyKey: string) {
     Object.defineProperty(Style.prototype, propertyKey, {
-      set: function (value) {
+      set: function (this: any, value: any) {
         if (!this.element._isDirty) {
           this.element._isDirty = true;
         }
@@ -112,42 +125,42 @@ function workerContent() {
         const keyName = '_' + propertyKey;
         this[keyName] = value;
       },
-      get: function () {
+      get: function (this: any) {
         const keyName = '_' + propertyKey;
         return this[keyName];
       },
     });
   });
 
-  function CanvasContext(element) {
+  function CanvasContext(this: any, element: any) {
     this.element = element;
   }
 
   CanvasContext.prototype = {
-    createRadialGradient: function (...gradArgs) {
-      function addColorStop(...stopArgs) {
-        instruction.stops.push(stopArgs);
-      }
-      const instruction = {
+    createRadialGradient: function (this: any, ...gradArgs: any[]) {
+      const instruction: { t: string; a: any[]; stops: any[] } = {
         t: 'rGradient',
         a: gradArgs,
         stops: [],
       };
+      function addColorStop(...stopArgs: any[]) {
+        instruction.stops.push(stopArgs);
+      }
       this.element.instructions.push(instruction);
       return {
         addColorStop: addColorStop,
       };
     },
 
-    createLinearGradient: function (...gradArgs) {
-      function addColorStop(...stopArgs) {
-        instruction.stops.push(stopArgs);
-      }
-      const instruction = {
+    createLinearGradient: function (this: any, ...gradArgs: any[]) {
+      const instruction: { t: string; a: any[]; stops: any[] } = {
         t: 'lGradient',
         a: gradArgs,
         stops: [],
       };
+      function addColorStop(...stopArgs: any[]) {
+        instruction.stops.push(stopArgs);
+      }
       this.element.instructions.push(instruction);
       return {
         addColorStop: addColorStop,
@@ -158,7 +171,7 @@ function workerContent() {
   Object.defineProperties(CanvasContext.prototype, {
     canvas: {
       enumerable: true,
-      get: function () {
+      get: function (this: any) {
         return this.element;
       },
     },
@@ -184,8 +197,8 @@ function workerContent() {
     'lineTo',
   ];
 
-  canvasContextMethods.forEach(function (method) {
-    CanvasContext.prototype[method] = function (...args) {
+  canvasContextMethods.forEach(function (method: string) {
+    (CanvasContext.prototype as any)[method] = function (this: any, ...args: any[]) {
       this.element.instructions.push({
         t: method,
         a: args,
@@ -205,9 +218,9 @@ function workerContent() {
     'globalCompositeOperation',
   ];
 
-  canvasContextProperties.forEach(function (property) {
+  canvasContextProperties.forEach(function (property: string) {
     Object.defineProperty(CanvasContext.prototype, property, {
-      set: function (_value) {
+      set: function (this: any, _value: any) {
         this.element.instructions.push({
           t: property,
           a: _value,
@@ -217,12 +230,17 @@ function workerContent() {
   });
 
   class CanvasElement extends ProxyElement {
-    constructor(type, namespace) {
+    instructions: any[];
+    width: number;
+    height: number;
+    context: any;
+
+    constructor(type: any, namespace: any) {
       super(type, namespace);
       this.instructions = [];
       this.width = 0;
       this.height = 0;
-      this.context = new CanvasContext(this);
+      this.context = new (CanvasContext as any)(this);
     }
 
     getContext() {
@@ -234,19 +252,19 @@ function workerContent() {
     }
   }
 
-  function createElement(namespace, type) {
+  function createElement(namespace: any, type: any) {
     if (type === 'canvas') {
       return new CanvasElement(type, namespace);
     }
     return new ProxyElement(type, namespace);
   }
 
-  const document = {
+  const document: any = {
     // eslint-disable-line no-redeclare
-    createElementNS: function (namespace, type) {
+    createElementNS: function (namespace: any, type: any) {
       return createElement(namespace, type);
     },
-    createElement: function (type) {
+    createElement: function (type: any) {
       return createElement('', type);
     },
     getElementsByTagName: function () {
@@ -261,21 +279,21 @@ function workerContent() {
 
     /* <%= contents %> */
 
-    function addElementToList(element, list) {
+    function addElementToList(element: any, list: any[]) {
       list.push(element);
       element._isDirty = false;
       element._changedStyles.length = 0;
       element._changedAttributes.length = 0;
       element._changedElements.length = 0;
       element._textContent = null;
-      element.children.forEach(function (child) {
+      element.children.forEach(function (child: any) {
         addElementToList(child, list);
       });
     }
 
-    function addChangedAttributes(element) {
+    function addChangedAttributes(element: any) {
       const changedAttributes = element._changedAttributes;
-      const attributes = [];
+      const attributes: any[] = [];
       let attribute;
       for (let i = 0; i < changedAttributes.length; i += 1) {
         attribute = changedAttributes[i];
@@ -284,9 +302,9 @@ function workerContent() {
       return attributes;
     }
 
-    function addChangedStyles(element) {
+    function addChangedStyles(element: any) {
       const changedStyles = element._changedStyles;
-      const styles = [];
+      const styles: any[] = [];
       let style;
       for (let i = 0; i < changedStyles.length; i += 1) {
         style = changedStyles[i];
@@ -295,9 +313,9 @@ function workerContent() {
       return styles;
     }
 
-    function addChangedElements(element, elements) {
+    function addChangedElements(element: any, elements: any[]) {
       const changedElements = element._changedElements;
-      const elementsList = [];
+      const elementsList: any[] = [];
       let elementData;
       for (let i = 0; i < changedElements.length; i += 1) {
         elementData = changedElements[i];
@@ -307,11 +325,12 @@ function workerContent() {
       return elementsList;
     }
 
-    function loadAnimation(payload) {
+    function loadAnimation(payload: any) {
       const params = payload.params;
-      let wrapper;
-      const elements = [];
-      let canvas;
+      let wrapper: any;
+      const elements: any[] = [];
+      let canvas: any;
+      const LottieAPI = (self as any).lottie;
       if (params.renderer === 'svg') {
         wrapper = document.createElement('div');
         params.container = wrapper;
@@ -325,11 +344,11 @@ function workerContent() {
         const ctx = canvas.getContext('2d');
         params.rendererSettings.context = ctx;
       }
-      const animation = lottie.loadAnimation(params);
-      animation.addEventListener('error', function (error) {
+      const animation: any = LottieAPI.loadAnimation(params);
+      animation.addEventListener('error', function (error: any) {
         console.log(error); // eslint-disable-line
       });
-      animation.onError = function (error) {
+      animation.onError = function (error: any) {
         console.log('ERRORO', error); // eslint-disable-line
       };
       animation.addEventListener('_play', function () {
@@ -360,8 +379,8 @@ function workerContent() {
             },
           });
         });
-        animation.addEventListener('drawnFrame', function (event) {
-          const changedElements = [];
+        animation.addEventListener('drawnFrame', function (event: any) {
+          const changedElements: any[] = [];
           let element;
           for (let i = 0; i < elements.length; i += 1) {
             element = elements[i];
@@ -391,7 +410,7 @@ function workerContent() {
           });
         });
       } else if (canvas._isProxy) {
-        animation.addEventListener('drawnFrame', function (event) {
+        animation.addEventListener('drawnFrame', function (event: any) {
           self.postMessage({
             type: 'CanvasUpdated',
             payload: {
@@ -428,8 +447,8 @@ function workerContent() {
     return {
       loadAnimation: loadAnimation,
     };
-  })({});
-  onmessage = function (evt) {
+  })();
+  onmessage = function (evt: any) {
     const data = evt.data;
     const type = data.type;
     const payload = data.payload;
@@ -473,7 +492,7 @@ function workerContent() {
       }
     } else if (type === 'addEventListener') {
       if (animations[payload.id]) {
-        const eventCallback = function (...cbArgs) {
+        const eventCallback = function (...cbArgs: any[]) {
           self.postMessage({
             type: 'event',
             payload: {
@@ -490,8 +509,8 @@ function workerContent() {
       }
     } else if (type === 'removeEventListener') {
       if (animations[payload.id]) {
-        const callback = animations[payload.id].events[payload.callbackId];
-        animations[payload.id].animation.removeEventListener(payload.eventName, callback);
+        const entry = animations[payload.id].events[payload.callbackId];
+        animations[payload.id].animation.removeEventListener(payload.eventName, entry.callback);
       }
     } else if (type === 'destroy') {
       if (animations[payload.id]) {
@@ -516,25 +535,24 @@ function workerContent() {
   };
 }
 
-function createWorker(fn) {
+function createWorker(fn: () => void) {
   const blob = new Blob(['(' + fn.toString() + '())'], { type: 'text/javascript' });
   const url = URL.createObjectURL(blob);
   return new Worker(url);
 }
-// eslint-disable-next-line no-unused-vars
-const lottie = (function () {
+const _lottieWorkerFacade = (function () {
   'use strict';
 
   const workerInstance = createWorker(workerContent);
   let animationIdCounter = 0;
   let eventsIdCounter = 0;
-  const animations = {};
+  const animations: Record<string, any> = {};
   const defaultSettings = {
     rendererSettings: {},
   };
 
-  function createTree(data, container, map, afterElement) {
-    let elem;
+  function createTree(data: any, container: any, map: any, afterElement?: any) {
+    let elem: any;
     if (data.type === 'div') {
       elem = document.createElement('div');
     } else {
@@ -560,7 +578,7 @@ const lottie = (function () {
         elem.style[style] = data.style[style];
       }
     }
-    data.children.forEach(function (element) {
+    data.children.forEach(function (element: any) {
       createTree(element, elem, map);
     });
     if (!afterElement) {
@@ -571,11 +589,11 @@ const lottie = (function () {
   }
 
   const handleAnimationLoaded = (function () {
-    return function (payload) {
+    return function (payload: any) {
       const animation = animations[payload.id];
       animation._loaded = true;
       // if callbacks have been added before the animation has loaded
-      animation.pendingCallbacks.forEach(function (callbackData) {
+      animation.pendingCallbacks.forEach(function (callbackData: any) {
         animation.animInstance.addEventListener(callbackData.eventName, callbackData.callback);
         if (callbackData.eventName === 'DOMLoaded') {
           callbackData.callback();
@@ -596,7 +614,7 @@ const lottie = (function () {
   })();
 
   const handleSVGLoaded = (function () {
-    return function (payload) {
+    return function (payload: any) {
       const animation = animations[payload.id];
       const container = animation.container;
       const elements = animation.elements;
@@ -604,7 +622,7 @@ const lottie = (function () {
     };
   })();
 
-  function addNewElements(newElements, elements) {
+  function addNewElements(newElements: any, elements: any) {
     let element;
     for (let i = 0; i < newElements.length; i += 1) {
       element = newElements[i];
@@ -621,7 +639,7 @@ const lottie = (function () {
     }
   }
 
-  function updateElementStyles(element, styles) {
+  function updateElementStyles(element: any, styles: any) {
     let style;
     for (let i = 0; i < styles.length; i += 1) {
       style = styles[i];
@@ -629,7 +647,7 @@ const lottie = (function () {
     }
   }
 
-  function updateElementAttributes(element, attributes) {
+  function updateElementAttributes(element: any, attributes: any) {
     let attribute;
     for (let i = 0; i < attributes.length; i += 1) {
       attribute = attributes[i];
@@ -637,13 +655,13 @@ const lottie = (function () {
     }
   }
 
-  function updateTextContent(element, text) {
+  function updateTextContent(element: any, text: any) {
     if (text) {
       element.textContent = text;
     }
   }
 
-  function handleAnimationUpdate(payload) {
+  function handleAnimationUpdate(payload: any) {
     const changedElements = payload.elements;
     const animation = animations[payload.id];
     if (animation) {
@@ -661,9 +679,9 @@ const lottie = (function () {
     }
   }
 
-  function createInstructionsHandler(canvas) {
-    const ctx = canvas.getContext('2d');
-    const map = {
+  function createInstructionsHandler(canvas: any) {
+    const ctx = canvas.getContext('2d') as CanvasRenderingContext2D;
+    const map: Record<string, any> = {
       beginPath: ctx.beginPath,
       closePath: ctx.closePath,
       rect: ctx.rect,
@@ -677,25 +695,25 @@ const lottie = (function () {
       save: ctx.save,
       restore: ctx.restore,
     };
-    return function (instructions) {
+    return function (instructions: any) {
       for (let i = 0; i < instructions.length; i += 1) {
         const instruction = instructions[i];
         const fn = map[instruction.t];
         if (fn) {
           fn.apply(ctx, instruction.a);
         } else {
-          ctx[instruction.t] = instruction.a;
+          (ctx as any)[instruction.t] = instruction.a;
         }
       }
     };
   }
 
-  function handleCanvasAnimationUpdate(payload) {
+  function handleCanvasAnimationUpdate(payload: any) {
     const animation = animations[payload.id];
     animation.instructionsHandler(payload.instructions);
   }
 
-  function handleEvent(payload) {
+  function handleEvent(payload: any) {
     const animation = animations[payload.id];
     if (animation) {
       const callbacks = animation.callbacks;
@@ -705,21 +723,21 @@ const lottie = (function () {
     }
   }
 
-  function handlePlaying(payload) {
+  function handlePlaying(payload: any) {
     const animation = animations[payload.id];
     if (animation) {
       animation.animInstance.isPaused = false;
     }
   }
 
-  function handlePaused(payload) {
+  function handlePaused(payload: any) {
     const animation = animations[payload.id];
     if (animation) {
       animation.animInstance.isPaused = true;
     }
   }
 
-  const messageHandlers = {
+  const messageHandlers: Record<string, (p: any) => void> = {
     DOMLoaded: handleAnimationLoaded,
     SVGloaded: handleSVGLoaded,
     SVGupdated: handleAnimationUpdate,
@@ -729,14 +747,15 @@ const lottie = (function () {
     paused: handlePaused,
   };
 
-  workerInstance.onmessage = function (event) {
-    if (messageHandlers[event.data.type]) {
-      messageHandlers[event.data.type](event.data.payload);
+  workerInstance.onmessage = function (event: MessageEvent) {
+    const t = event.data.type as string;
+    if (messageHandlers[t]) {
+      messageHandlers[t](event.data.payload);
     }
   };
 
-  function resolveAnimationData(params) {
-    return new Promise(function (resolve, reject) {
+  function resolveAnimationData(params: any) {
+    return new Promise<any>(function (resolve, reject) {
       const paramsCopy = Object.assign({}, defaultSettings, params);
       if (paramsCopy.animType && !paramsCopy.renderer) {
         paramsCopy.renderer = paramsCopy.animType;
@@ -751,10 +770,10 @@ const lottie = (function () {
         resolve(paramsCopy);
       } else if (paramsCopy.path) {
         fetch(paramsCopy.path)
-          .then(function (response) {
+          .then(function (response: any) {
             return response.json();
           })
-          .then(function (animationData) {
+          .then(function (animationData: any) {
             paramsCopy.animationData = animationData;
             delete paramsCopy.path;
             resolve(paramsCopy);
@@ -765,16 +784,16 @@ const lottie = (function () {
     });
   }
 
-  function loadAnimation(params) {
+  function loadAnimation(params: any) {
     animationIdCounter += 1;
     const animationId = 'lottie_animationId_' + animationIdCounter;
-    const animation = {
+    const animation: any = {
       elements: {},
       callbacks: {},
-      pendingCallbacks: [],
+      pendingCallbacks: [] as any[],
       status: 'init',
     };
-    const animInstance = {
+    const animInstance: any = {
       id: animationId,
       isPaused: true,
       pause: function () {
@@ -801,7 +820,7 @@ const lottie = (function () {
           },
         });
       },
-      setSpeed: function (value) {
+      setSpeed: function (value: any) {
         workerInstance.postMessage({
           type: 'setSpeed',
           payload: {
@@ -810,7 +829,7 @@ const lottie = (function () {
           },
         });
       },
-      setDirection: function (value) {
+      setDirection: function (value: any) {
         workerInstance.postMessage({
           type: 'setDirection',
           payload: {
@@ -819,7 +838,7 @@ const lottie = (function () {
           },
         });
       },
-      setLoop: function (value) {
+      setLoop: function (value: any) {
         workerInstance.postMessage({
           type: 'setLoop',
           payload: {
@@ -828,7 +847,7 @@ const lottie = (function () {
           },
         });
       },
-      goToAndStop: function (value, isFrame) {
+      goToAndStop: function (value: any, isFrame: any) {
         workerInstance.postMessage({
           type: 'goToAndStop',
           payload: {
@@ -838,7 +857,7 @@ const lottie = (function () {
           },
         });
       },
-      goToAndPlay: function (value, isFrame) {
+      goToAndPlay: function (value: any, isFrame: any) {
         workerInstance.postMessage({
           type: 'goToAndPlay',
           payload: {
@@ -848,7 +867,7 @@ const lottie = (function () {
           },
         });
       },
-      playSegments: function (arr, forceFlag) {
+      playSegments: function (arr: any, forceFlag: any) {
         workerInstance.postMessage({
           type: 'playSegments',
           payload: {
@@ -858,7 +877,7 @@ const lottie = (function () {
           },
         });
       },
-      setSubframe: function (value) {
+      setSubframe: function (value: any) {
         workerInstance.postMessage({
           type: 'setSubframe',
           payload: {
@@ -867,7 +886,7 @@ const lottie = (function () {
           },
         });
       },
-      addEventListener: function (eventName, callback) {
+      addEventListener: function (eventName: any, callback: any) {
         if (!animation._loaded) {
           animation.pendingCallbacks.push({
             eventName: eventName,
@@ -890,8 +909,8 @@ const lottie = (function () {
           });
         }
       },
-      removeEventListener: function (eventName, callback) {
-        Object.keys(animation.callbacks).forEach(function (key) {
+      removeEventListener: function (eventName: any, callback: any) {
+        Object.keys(animation.callbacks).forEach(function (key: string) {
           if (
             animation.callbacks[key].eventName === eventName &&
             (animation.callbacks[key].callback === callback || !callback)
@@ -925,7 +944,7 @@ const lottie = (function () {
           });
         }
       },
-      resize: function (width, height) {
+      resize: function (width: any, height: any) {
         const devicePixelRatio = window.devicePixelRatio || 1;
         workerInstance.postMessage({
           type: 'resize',
@@ -937,7 +956,7 @@ const lottie = (function () {
           },
         });
       },
-      updateDocumentData: function (path, documentData, index) {
+      updateDocumentData: function (path: any, documentData: any, index: any) {
         workerInstance.postMessage({
           type: 'updateDocumentData',
           payload: {
@@ -950,13 +969,13 @@ const lottie = (function () {
       },
     };
     animation.animInstance = animInstance;
-    resolveAnimationData(params).then(function (animationParams) {
+    resolveAnimationData(params).then(function (animationParams: any) {
       if (animation.status === 'destroyable') {
         animation.animInstance.destroy();
         return;
       }
       animation.status = 'loaded';
-      const transferedObjects = [];
+      const transferedObjects: any[] = [];
       if (animationParams.container) {
         animation.container = animationParams.container;
         delete animationParams.container;

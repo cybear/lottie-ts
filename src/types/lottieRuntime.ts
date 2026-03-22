@@ -1,6 +1,6 @@
 /**
  * Incremental runtime typings for the Lottie player (strict-typing / Track A).
- * Expand this module as `@ts-nocheck` is removed from more files.
+ * Expand this module as more call sites are typed (Track A).
  */
 
 /** Composition dimensions from animation root (`animData.w` / `animData.h`). */

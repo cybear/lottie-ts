@@ -1,4 +1,4 @@
-// @ts-nocheck
+/* eslint-disable @typescript-eslint/no-explicit-any -- bundle entry: effect ctor variance at registration boundary */
 import lottie from './html_light';
 import { setExpressionsPlugin, setExpressionInterfaces } from '../utils/common';
 import Expressions from '../utils/expressions/Expressions';
@@ -17,19 +17,21 @@ import SVGMatte3Effect from '../elements/svgElements/effects/SVGMatte3Effect';
 import SVGGaussianBlurEffect from '../elements/svgElements/effects/SVGGaussianBlurEffect';
 import SVGTransformEffect from '../elements/svgElements/effects/SVGTransformEffect';
 
+const registerSvgEffect = registerEffect as (id: number, effect: any, countsAsEffect?: boolean) => void;
+
 // Registering expression plugin
 setExpressionsPlugin(Expressions);
 setExpressionInterfaces(interfacesProvider);
 expressionPropertyDecorator();
 expressionTextPropertyDecorator();
-registerEffect(20, SVGTintFilter, true);
-registerEffect(21, SVGFillFilter, true);
-registerEffect(22, SVGStrokeEffect, false);
-registerEffect(23, SVGTritoneFilter, true);
-registerEffect(24, SVGProLevelsFilter, true);
-registerEffect(25, SVGDropShadowEffect, true);
-registerEffect(28, SVGMatte3Effect, false);
-registerEffect(29, SVGGaussianBlurEffect, true);
-registerEffect(35, SVGTransformEffect, false);
+registerSvgEffect(20, SVGTintFilter, true);
+registerSvgEffect(21, SVGFillFilter, true);
+registerSvgEffect(22, SVGStrokeEffect, false);
+registerSvgEffect(23, SVGTritoneFilter, true);
+registerSvgEffect(24, SVGProLevelsFilter, true);
+registerSvgEffect(25, SVGDropShadowEffect, true);
+registerSvgEffect(28, SVGMatte3Effect, false);
+registerSvgEffect(29, SVGGaussianBlurEffect, true);
+registerSvgEffect(35, SVGTransformEffect, false);
 
 export default lottie;
