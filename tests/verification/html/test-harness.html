@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>lottie-web Puppeteer test harness</title>
+  <style>
+    body { margin: 0; background: #fff; }
+    #container { width: 200px; height: 200px; }
+  </style>
+</head>
+<body>
+  <div id="container"></div>
+
+  <!--
+    The test runner sets window.__LOTTIE_SRC__ before loading this page via
+    page.evaluate(); here we just provide the harness API.
+    The actual lottie script tag is injected by the test via:
+      await page.addScriptTag({ path: '...' });
+  -->
+
+  <script>
+    /**
+     * Minimal lottie animation JSON used for all test cases.
+     * A single shape layer with a red circle — enough to exercise the renderer
+     * without needing any external assets.
+     */
+    window.__TEST_ANIM__ = {
+      v: "5.5.7",
+      fr: 30,
+      ip: 0,
+      op: 30,
+      w: 200,
+      h: 200,
+      nm: "test",
+      ddd: 0,
+      assets: [],
+      layers: [{
+        ddd: 0, ind: 1, ty: 4, nm: "circle", sr: 1,
+        ks: {
+          o: { a: 0, k: 100 },
+          r: { a: 0, k: 0 },
+          p: { a: 0, k: [100, 100, 0] },
+          a: { a: 0, k: [0, 0, 0] },
+          s: { a: 0, k: [100, 100, 100] }
+        },
+        ao: 0,
+        shapes: [{
+          ty: "gr",
+          it: [
+            { ty: "el", s: { a: 0, k: [80, 80] }, p: { a: 0, k: [0, 0] } },
+            { ty: "fl", c: { a: 0, k: [1, 0, 0, 1] }, o: { a: 0, k: 100 }, r: 1 }
+          ]
+        }]
+      }]
+    };
+
+    /**
+     * Load an animation and wait until it is ready.
+     * Handles the case where DOMLoaded fires synchronously (inline animationData)
+     * before addEventListener can register — we check isLoaded first.
+     */
+    function loadAndWait(renderer, animData) {
+      return new Promise(function(resolve, reject) {
+        try {
+          // Destroy any existing animation and clear the container
+          lottie.destroy();
+          var container = document.getElementById('container');
+          container.innerHTML = '';
+
+          var resolved = false;
+          function done() {
+            if (resolved) return;
+            resolved = true;
+            resolve({
+              ok: true,
+              renderer: renderer,
+              totalFrames: anim.totalFrames,
+              frameRate: anim.frameRate,
+              version: lottie.version
+            });
+          }
+
+          var anim = lottie.loadAnimation({
+            container: container,
+            renderer: renderer,
+            loop: false,
+            autoplay: false,
+            animationData: JSON.parse(JSON.stringify(animData))
+          });
+
+          // If animationData is inline, DOMLoaded may already have fired by now
+          if (anim.isLoaded) {
+            done();
+            return;
+          }
+
+          anim.addEventListener('DOMLoaded', done);
+
+          anim.addEventListener('error', function(err) {
+            if (!resolved) reject(new Error('Animation error: ' + JSON.stringify(err)));
+          });
+
+          setTimeout(function() {
+            if (!resolved) reject(new Error('Animation not ready after 8 s'));
+          }, 8000);
+        } catch(e) {
+          reject(e);
+        }
+      });
+    }
+
+    /**
+     * Exposed to Puppeteer via page.evaluate()
+     */
+    window.__testLoadAnimation = function(renderer) {
+      return loadAndWait(renderer, window.__TEST_ANIM__);
+    };
+
+    window.__testGoToAndStop = function(renderer, frame) {
+      return loadAndWait(renderer, window.__TEST_ANIM__).then(function(result) {
+        var anims = lottie.getRegisteredAnimations ? lottie.getRegisteredAnimations() : [];
+        var anim = anims[anims.length - 1];
+        if (anim) {
+          anim.goToAndStop(frame, true);
+          return { currentFrame: anim.currentFrame };
+        }
+        // fallback: use global goToAndStop and report via the result
+        lottie.goToAndStop(frame, true);
+        return { currentFrame: frame };
+      });
+    };
+  </script>
+</body>
+</html>

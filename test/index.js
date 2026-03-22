@@ -8,11 +8,14 @@ const puppeteer = require('puppeteer');
 const express = require('express');
 const fs = require('fs');
 const { promises: { readFile } } = require('fs');
-const commandLineArgs = require('command-line-args');
+const { parseArgs } = require('node:util');
 const PNG = require('pngjs').PNG;
-const pixelmatch = require('pixelmatch');
 
-const examplesDirectory = '/test/animations/';
+/** Set in takeImageStrip via dynamic import (pixelmatch v7+ is ESM-only). */
+let pixelmatch;
+
+/** Lottie JSON under repo root (served as /demo/.../data.json) */
+const examplesDirectory = '/demo/';
 const createDirectory = 'screenshots/create';
 const compareDirectory = 'screenshots/compare';
 
@@ -28,85 +31,24 @@ function createDirectoryPath(path) {
 }
 
 const animations = [
-  {
-    fileName: 'pigeon.json',
-    renderer: 'svg',
-  },
-  {
-    fileName: 'banner.json',
-    renderer: 'svg',
-  },
-  {
-    fileName: 'adrock.json',
-    renderer: 'canvas',
-  },
-  {
-    fileName: 'bm_ronda.json',
-    renderer: 'svg',
-  },
-  {
-    fileName: 'bodymovin.json',
-    renderer: 'svg',
-  },
-  {
-    fileName: 'bodymovin.json',
-    renderer: 'canvas',
-  },
-  {
-    fileName: 'dalek.json',
-    renderer: 'svg',
-  },
-  {
-    fileName: 'navidad.json',
-    renderer: 'svg',
-  },
-  {
-    fileName: 'monster.json',
-    renderer: 'svg',
-  },
-  {
-    fileName: 'bacon.json',
-    renderer: 'svg',
-  },
-  {
-    fileName: 'lights.json',
-    renderer: 'svg',
-  },
-  {
-    fileName: 'ripple.json',
-    renderer: 'svg',
-  },
-  {
-    fileName: 'starfish.json',
-    renderer: 'svg',
-  },
-  {
-    directory: 'footage',
-    fileName: 'data.json',
-    renderer: 'svg',
-  },
-]
+  { directory: 'adrock', fileName: 'data.json', renderer: 'svg' },
+  { directory: 'adrock', fileName: 'data.json', renderer: 'canvas' },
+  { directory: 'bodymovin', fileName: 'data.json', renderer: 'svg' },
+  { directory: 'bodymovin', fileName: 'data.json', renderer: 'canvas' },
+  { directory: 'gatin', fileName: 'data.json', renderer: 'svg' },
+  { directory: 'happy2016', fileName: 'data.json', renderer: 'svg' },
+  { directory: 'navidad', fileName: 'data.json', renderer: 'svg' },
+];
 
 const getSettings = async () => {
-    const defaultValues = {
-        step: 'create',
-    }
-    const opts = [
-        {
-          name: 'step',
-          alias: 's',
-          type: (val) => {
-            
-            return val === 'compare' ? 'compare' : 'create';
-          },
-          description: 'Whether it is the create or the compare step',
-        }
-    ];
-  const settings = {
-    ...defaultValues,
-    ...commandLineArgs(opts),
-  };
-  return settings;
+  const { values } = parseArgs({
+    args: process.argv.slice(2),
+    options: {
+      step: { type: 'string', short: 's', default: 'create' },
+    },
+  });
+  const step = values.step === 'compare' ? 'compare' : 'create';
+  return { step };
 };
 
 const wait = (time) => new Promise((resolve) => setTimeout(resolve, time));
@@ -156,7 +98,7 @@ const startServer = async () => {
     return file;
   }));
 
-  app.get('/*', async (req, res) => {
+  app.get('/*splat', async (req, res) => {
     try {
       if (req.originalUrl.indexOf('.json') !== -1) {
         const file = await readFile(`.${req.originalUrl}`, 'utf8');
@@ -170,10 +112,16 @@ const startServer = async () => {
       res.send('');
     }
   });
-  app.listen('9999');
+  await new Promise((resolve) => {
+    app.listen(9999, '127.0.0.1', resolve);
+  });
 };
 
-const getBrowser = async () => puppeteer.launch({ defaultViewport: null });
+const getBrowser = async () => puppeteer.launch({
+  defaultViewport: null,
+  headless: true,
+  args: ['--no-sandbox', '--disable-setuid-sandbox'],
+});
 
 const startPage = async (browser, path, renderer) => {
   const targetURL = `http://localhost:9999/test/index.html\
@@ -334,17 +282,28 @@ const iteratePages = async (browser, settings) => {
 
 
 const takeImageStrip = async () => {
+  let browser;
+  let exitCode = 0;
   try {
+    const pm = await import('pixelmatch');
+    pixelmatch = pm.default;
     await startServer();
     const settings = await getSettings();
-    await wait(1);
-    const browser = await getBrowser();
+    browser = await getBrowser();
     await iteratePages(browser, settings);
-    process.exit(0);
   } catch (error) {
     console.log(error); // eslint-disable-line no-console
-    process.exit(1);
+    exitCode = 1;
+  } finally {
+    if (browser) {
+      try {
+        await browser.close();
+      } catch (_) {
+        /* ignore */
+      }
+    }
   }
+  process.exit(exitCode);
 };
 
 takeImageStrip();

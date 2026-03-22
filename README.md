@@ -1,12 +1,20 @@
-# Lottie for Web, [Android](https://github.com/airbnb/lottie-android), [iOS](https://github.com/airbnb/lottie-ios), [React Native](https://github.com/airbnb/lottie-react-native), and [Windows](https://aka.ms/lottie)
+# lottie-ts
 
-Lottie is a mobile library for Web,  and iOS that parses [Adobe After Effects](https://www.adobe.com/products/aftereffects.html) animations exported as json with [Bodymovin](https://github.com/airbnb/lottie-web) and renders them natively on mobile!
+**lottie-ts** is a TypeScript rewrite of [lottie-web](https://github.com/airbnb/lottie-web) — the web player for animations exported from Adobe After Effects via the [Bodymovin](https://github.com/airbnb/lottie-web) plugin.
+
+Key improvements over the original:
+- Full **TypeScript** source with strict types
+- **Tree-shakeable custom builds** — ship only the code your animations actually need
+- Modern toolchain: **Rollup**, **Vitest**, **ESLint + Prettier**, **Husky** pre-commit hooks
+- npm-managed dependencies (no vendored libraries)
+
+See also the original platform libraries: [Android](https://github.com/airbnb/lottie-android) · [iOS](https://github.com/airbnb/lottie-ios) · [React Native](https://github.com/airbnb/lottie-react-native) · [Windows](https://aka.ms/lottie)
 
 For the first time, designers can create **and ship** beautiful animations without an engineer painstakingly recreating it by hand. They say a picture is worth 1,000 words so here are 13,000:
 
 
 
-# View documentation, FAQ, help, examples, and more at [airbnb.io/lottie](https://airbnb.io/lottie/)
+# View documentation, FAQ, help, examples, and more at [bsod.github.io/lottie-ts](https://bsod.github.io/lottie-ts/)
 
 
 
@@ -87,11 +95,7 @@ brew cask install lottie
 
 # HTML player installation
 ```bash
-# with npm
-npm install lottie-web
-
-# with bower
-bower install bodymovin
+npm install lottie-ts
 ```
 Or you can use the script file from here:
 https://cdnjs.com/libraries/bodymovin
@@ -121,7 +125,7 @@ Or get it directly from the AE plugin clicking on Get Player
 ```
 You can call lottie.loadAnimation() to start an animation.
 It takes an object as a unique param with:
-- animationData: an Object with the exported animation data. **Note:** If your animation contains repeaters and you plan to call loadAnimation multiple times with the same animation, please deep clone the object before passing it (see [#1159](https://github.com/airbnb/lottie-web/issues/1159) and [#2151](https://github.com/airbnb/lottie-web/issues/2151).)
+- animationData: an Object with the exported animation data. **Note:** If your animation contains repeaters and you plan to call loadAnimation multiple times with the same animation, please deep clone the object before passing it (see [airbnb/lottie-web#1159](https://github.com/airbnb/lottie-web/issues/1159) and [airbnb/lottie-web#2151](https://github.com/airbnb/lottie-web/issues/2151).)
 - path: the relative path to the animation object. (animationData and path are mutually exclusive)
 - loop: true / false / number
 - autoplay: true / false it will start playing as soon as it is ready
@@ -144,7 +148,7 @@ lottie.loadAnimation({
 
 #### Composition Settings:
 Check this wiki page for an explanation for each setting.
-https://github.com/airbnb/lottie-web/wiki/Composition-Settings
+https://github.com/bjorn-soderqvist-milestone/lottie-ts/wiki/Composition-Settings
 
 ## Usage
 Animation instances have these main methods:
@@ -190,7 +194,7 @@ Animation instances have these main methods:
 
 ### Additional methods:
 - updateDocumentData -- updates a text layer's data
-[More Info](https://github.com/airbnb/lottie-web/wiki/TextLayer.updateDocumentData)
+[More Info](https://github.com/bjorn-soderqvist-milestone/lottie-ts/wiki/TextLayer.updateDocumentData)
 ***
 
 ### Lottie has several global methods that will affect all animations:
@@ -304,48 +308,72 @@ my email is **hernantorrisi@gmail.com**
 - It supports masks and inverted masks. Maybe other modes will come but it has a huge performance hit.
 - It supports time remapping
 - The script supports shapes, rectangles, ellipses and stars.
-- Expressions. Check the wiki page for [more info.](https://github.com/bodymovin/bodymovin/wiki/Expressions)
+- Expressions. Check the wiki page for [more info.](https://github.com/bjorn-soderqvist-milestone/lottie-ts/wiki/Expressions)
 - Not supported: image sequences, videos and audio are not supported
 - **No  negative layer stretching**! No idea why, but stretching a layer messes with all the data.
 
 ## Development
-`npm install` or `bower install` first
-`npm start`
+
+```bash
+npm install
+```
+
+Build all bundles:
+```bash
+npm run build
+```
+
+Run unit tests (Vitest):
+```bash
+npm test
+```
+
+Run end-to-end / visual regression tests (Puppeteer):
+```bash
+npm run test:e2e
+```
+
+Lint:
+```bash
+npm run lint
+```
+
+Type-check:
+```bash
+npm run typecheck
+```
+
+### Custom / tree-shaken builds
+
+Produce a bundle that contains only the code required by specific animation file(s):
+
+```bash
+# Analyse an animation to see which features it uses:
+npm run analyze -- demo/happy2016/data.json
+
+# Build a tree-shaken bundle for that animation (SVG renderer only):
+npm run build:custom -- --animations demo/happy2016/data.json --renderer svg
+# → build/player/lottie.custom.js
+
+# Multiple animations, all renderers, unminified:
+npm run build:custom -- \
+  --animations demo/happy2016/data.json demo/banner/data.json \
+  --renderer all --no-minify
+```
+
+For `happy2016` with the SVG renderer the custom build is ~179 KB minified vs ~281 KB for the full `lottie_svg.min.js` — a 36% reduction.
+
+Run `node tools/build-custom.cjs --help` for all available options.
+
+### Source
+
+The source is written in TypeScript and lives in `src/`. The entry points are in `src/modules/`.
 
 ## Notes
-- If you want to modify the parser or the player, there are some gulp commands that can simplify the task
+- If you want to modify the parser or the player, use the npm scripts described in the Development section above
 - look at the great animations exported on codepen [See examples on codepen.](https://codepen.io/collection/nVYWZR/)
 - gzipping the animation jsons and the player have a huge reduction on the filesize. I recommend doing it if you use it for a project.
 
 ## Issues
 - For missing mask in Safari browser, please call lottie.setLocationHref(locationHref) before animation is generated. It usually caused by usage of base tag in html. (see above for description of setLocationHref)
 
-## Contributors
-
-### Code Contributors
-
-This project exists thanks to all the people who contribute. [[Contribute](CONTRIBUTING.md)].
-<a href="https://github.com/airbnb/lottie-web/graphs/contributors"><img src="https://opencollective.com/lottie/contributors.svg?width=890&button=false" /></a>
-
-### Financial Contributors
-
-Become a financial contributor and help us sustain our community. [[Contribute](https://opencollective.com/lottie/contribute)]
-
-#### Individuals
-
-<a href="https://opencollective.com/lottie"><img src="https://opencollective.com/lottie/individuals.svg?width=890"></a>
-
-#### Organizations
-
-Support this project with your organization. Your logo will show up here with a link to your website. [[Contribute](https://opencollective.com/lottie/contribute)]
-
-<a href="https://opencollective.com/lottie/organization/0/website"><img src="https://opencollective.com/lottie/organization/0/avatar.svg"></a>
-<a href="https://opencollective.com/lottie/organization/1/website"><img src="https://opencollective.com/lottie/organization/1/avatar.svg"></a>
-<a href="https://opencollective.com/lottie/organization/2/website"><img src="https://opencollective.com/lottie/organization/2/avatar.svg"></a>
-<a href="https://opencollective.com/lottie/organization/3/website"><img src="https://opencollective.com/lottie/organization/3/avatar.svg"></a>
-<a href="https://opencollective.com/lottie/organization/4/website"><img src="https://opencollective.com/lottie/organization/4/avatar.svg"></a>
-<a href="https://opencollective.com/lottie/organization/5/website"><img src="https://opencollective.com/lottie/organization/5/avatar.svg"></a>
-<a href="https://opencollective.com/lottie/organization/6/website"><img src="https://opencollective.com/lottie/organization/6/avatar.svg"></a>
-<a href="https://opencollective.com/lottie/organization/7/website"><img src="https://opencollective.com/lottie/organization/7/avatar.svg"></a>
-<a href="https://opencollective.com/lottie/organization/8/website"><img src="https://opencollective.com/lottie/organization/8/avatar.svg"></a>
-<a href="https://opencollective.com/lottie/organization/9/website"><img src="https://opencollective.com/lottie/organization/9/avatar.svg"></a>

@@ -1,0 +1,191 @@
+{
+  "timestamp": "2025-08-25T14:03:05.406Z",
+  "tests": [
+    {
+      "name": "Build directory exists",
+      "status": "PASS",
+      "details": "File exists",
+      "timestamp": "2025-08-25T14:03:05.407Z"
+    },
+    {
+      "name": "Main file exists: lottie.js",
+      "status": "PASS",
+      "details": "File exists",
+      "timestamp": "2025-08-25T14:03:05.407Z"
+    },
+    {
+      "name": "Main file exists: lottie.min.js",
+      "status": "PASS",
+      "details": "File exists",
+      "timestamp": "2025-08-25T14:03:05.407Z"
+    },
+    {
+      "name": "Main file exists: lottie_light.js",
+      "status": "PASS",
+      "details": "File exists",
+      "timestamp": "2025-08-25T14:03:05.407Z"
+    },
+    {
+      "name": "Main file exists: lottie_light.min.js",
+      "status": "PASS",
+      "details": "File exists",
+      "timestamp": "2025-08-25T14:03:05.407Z"
+    },
+    {
+      "name": "Main bundle size (unminified)",
+      "status": "PASS",
+      "details": "611KB",
+      "timestamp": "2025-08-25T14:03:05.407Z"
+    },
+    {
+      "name": "Main bundle size (minified)",
+      "status": "PASS",
+      "details": "299KB",
+      "timestamp": "2025-08-25T14:03:05.408Z"
+    },
+    {
+      "name": "Light bundle size (unminified)",
+      "status": "PASS",
+      "details": "380KB",
+      "timestamp": "2025-08-25T14:03:05.408Z"
+    },
+    {
+      "name": "Light bundle size (minified)",
+      "status": "PASS",
+      "details": "164KB",
+      "timestamp": "2025-08-25T14:03:05.408Z"
+    },
+    {
+      "name": "Main bundle JavaScript syntax",
+      "status": "PASS",
+      "details": "All checks passed",
+      "timestamp": "2025-08-25T14:03:05.410Z"
+    },
+    {
+      "name": "Light bundle JavaScript syntax",
+      "status": "PASS",
+      "details": "All checks passed",
+      "timestamp": "2025-08-25T14:03:05.411Z"
+    },
+    {
+      "name": "Main bundle API methods",
+      "status": "PASS",
+      "details": "All checks passed",
+      "timestamp": "2025-08-25T14:03:05.412Z"
+    },
+    {
+      "name": "Light bundle API methods",
+      "status": "PASS",
+      "details": "All checks passed",
+      "timestamp": "2025-08-25T14:03:05.413Z"
+    },
+    {
+      "name": "SVG renderer support",
+      "status": "PASS",
+      "details": "All checks passed",
+      "timestamp": "2025-08-25T14:03:05.414Z"
+    },
+    {
+      "name": "Canvas renderer support",
+      "status": "PASS",
+      "details": "All checks passed",
+      "timestamp": "2025-08-25T14:03:05.416Z"
+    },
+    {
+      "name": "HTML renderer support",
+      "status": "FAIL",
+      "details": "HTML renderer: failed",
+      "timestamp": "2025-08-25T14:03:05.417Z"
+    },
+    {
+      "name": "Main worker functionality",
+      "status": "PASS",
+      "details": "All checks passed",
+      "timestamp": "2025-08-25T14:03:05.419Z"
+    },
+    {
+      "name": "Canvas worker functionality",
+      "status": "PASS",
+      "details": "All checks passed",
+      "timestamp": "2025-08-25T14:03:05.420Z"
+    },
+    {
+      "name": "ESM module structure: lottie.min.js",
+      "status": "PASS",
+      "details": "All checks passed",
+      "timestamp": "2025-08-25T14:03:05.424Z"
+    },
+    {
+      "name": "ESM module structure: lottie_canvas.min.js",
+      "status": "PASS",
+      "details": "All checks passed",
+      "timestamp": "2025-08-25T14:03:05.428Z"
+    },
+    {
+      "name": "ESM module structure: lottie_html.min.js",
+      "status": "PASS",
+      "details": "All checks passed",
+      "timestamp": "2025-08-25T14:03:05.430Z"
+    },
+    {
+      "name": "CommonJS structure: lottie.min.js",
+      "status": "FAIL",
+      "details": "CommonJS exports: failed",
+      "timestamp": "2025-08-25T14:03:05.432Z"
+    },
+    {
+      "name": "CommonJS structure: lottie_canvas.min.js",
+      "status": "FAIL",
+      "details": "CommonJS exports: failed",
+      "timestamp": "2025-08-25T14:03:05.433Z"
+    },
+    {
+      "name": "CommonJS structure: lottie_html.min.js",
+      "status": "FAIL",
+      "details": "CommonJS exports: failed",
+      "timestamp": "2025-08-25T14:03:05.434Z"
+    },
+    {
+      "name": "TypeScript definitions: lottie.d.ts",
+      "status": "FAIL",
+      "details": "TypeScript declarations: failed, TypeScript interfaces: failed",
+      "timestamp": "2025-08-25T14:03:05.435Z"
+    },
+    {
+      "name": "TypeScript definitions: lottie_html.d.ts",
+      "status": "FAIL",
+      "details": "TypeScript declarations: failed, TypeScript interfaces: failed",
+      "timestamp": "2025-08-25T14:03:05.435Z"
+    },
+    {
+      "name": "TypeScript definitions: lottie_light.d.ts",
+      "status": "FAIL",
+      "details": "TypeScript declarations: failed, TypeScript interfaces: failed",
+      "timestamp": "2025-08-25T14:03:05.435Z"
+    },
+    {
+      "name": "TypeScript definitions: lottie_light_canvas.d.ts",
+      "status": "FAIL",
+      "details": "TypeScript declarations: failed, TypeScript interfaces: failed",
+      "timestamp": "2025-08-25T14:03:05.435Z"
+    },
+    {
+      "name": "TypeScript definitions: lottie_light_html.d.ts",
+      "status": "FAIL",
+      "details": "TypeScript declarations: failed, TypeScript interfaces: failed",
+      "timestamp": "2025-08-25T14:03:05.436Z"
+    },
+    {
+      "name": "TypeScript definitions: lottie_svg.d.ts",
+      "status": "FAIL",
+      "details": "TypeScript declarations: failed, TypeScript interfaces: failed",
+      "timestamp": "2025-08-25T14:03:05.436Z"
+    }
+  ],
+  "summary": {
+    "total": 30,
+    "passed": 20,
+    "failed": 10,
+    "skipped": 0
+  }
+}

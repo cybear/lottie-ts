@@ -1,20 +1,80 @@
 {
-  "name": "lottie-web",
-  "version": "5.13.0",
-  "description": "After Effects plugin for exporting animations to SVG + JavaScript or canvas + JavaScript",
+  "name": "lottie-ts",
+  "version": "6.0.0",
+  "description": "Lottie web player — fully rewritten in TypeScript with tree-shakeable custom builds",
   "main": "./build/player/lottie.js",
+  "module": "./build/player/esm/lottie.min.js",
+  "exports": {
+    ".": {
+      "types": "./index.d.ts",
+      "import": "./build/player/esm/lottie.min.js",
+      "require": "./build/player/cjs/lottie.min.js",
+      "default": "./build/player/lottie.js"
+    },
+    "./lottie_svg": {
+      "types": "./build/player/lottie_svg.d.ts",
+      "import": "./build/player/esm/lottie_svg.min.js",
+      "require": "./build/player/cjs/lottie_svg.min.js",
+      "default": "./build/player/lottie_svg.js"
+    },
+    "./lottie_canvas": {
+      "import": "./build/player/esm/lottie_canvas.min.js",
+      "require": "./build/player/cjs/lottie_canvas.min.js",
+      "default": "./build/player/lottie_canvas.js"
+    },
+    "./lottie_html": {
+      "types": "./build/player/lottie_html.d.ts",
+      "import": "./build/player/esm/lottie_html.min.js",
+      "require": "./build/player/cjs/lottie_html.min.js",
+      "default": "./build/player/lottie_html.js"
+    },
+    "./lottie_light": {
+      "types": "./build/player/lottie_light.d.ts",
+      "import": "./build/player/esm/lottie_light.min.js",
+      "require": "./build/player/cjs/lottie_light.min.js",
+      "default": "./build/player/lottie_light.js"
+    },
+    "./lottie_light_canvas": {
+      "types": "./build/player/lottie_light_canvas.d.ts",
+      "import": "./build/player/esm/lottie_light_canvas.min.js",
+      "require": "./build/player/cjs/lottie_light_canvas.min.js",
+      "default": "./build/player/lottie_light_canvas.js"
+    },
+    "./lottie_light_html": {
+      "types": "./build/player/lottie_light_html.d.ts",
+      "import": "./build/player/esm/lottie_light_html.min.js",
+      "require": "./build/player/cjs/lottie_light_html.min.js",
+      "default": "./build/player/lottie_light_html.js"
+    }
+  },
   "repository": {
     "type": "git",
-    "url": "https://github.com/airbnb/lottie-web.git"
+    "url": "https://github.com/bjorn-soderqvist-milestone/lottie-ts.git"
   },
   "sideEffects": false,
+  "engines": {
+    "node": "^20.19.0 || ^22.12.0 || >=24.0.0"
+  },
   "scripts": {
-    "build": "npx eslint ./player/js/**/* && rollup -c && node tasks/build_worker",
-    "build_test": "node tasks/build.js",
-    "lint": "npx eslint ./player/js/**/*",
-    "lint:fix": "npx eslint ./player/js/**/* --fix",
+    "build": "eslint \"src/**/*.{ts,js}\" && rollup -c rollup.config.mjs && node tasks/build_worker",
+    "lint": "eslint \"src/**/*.{ts,js}\"",
+    "lint:fix": "eslint \"src/**/*.{ts,js}\" --fix",
+    "typecheck": "tsc --noEmit",
+    "prepublishOnly": "npm run lint && npm run typecheck && npm run build && npm test",
+    "test": "vitest run",
+    "test:e2e": "node tests/verification/puppeteer-test.cjs",
+    "serve": "node tools/serve.cjs",
+    "analyze": "node tools/analyze-animation.cjs",
+    "build:custom": "node tools/build-custom.cjs",
+    "test:e2e:capture": "node tests/verification/puppeteer-test.cjs --capture",
     "test:create": "node test/index.js",
-    "test:compare": "node test/index.js -s compare"
+    "test:compare": "node test/index.js -s compare",
+    "test:watch": "vitest",
+    "coverage": "vitest run --coverage",
+    "docs:dev": "vitepress dev docs",
+    "docs:build": "vitepress build docs",
+    "docs:preview": "vitepress preview docs",
+    "prepare": "husky"
   },
   "keywords": [
     "animation",
@@ -25,25 +85,49 @@
     "export"
   ],
   "devDependencies": {
-    "@babel/core": "^7.16.0",
-    "@babel/plugin-transform-runtime": "^7.17.0",
-    "@babel/preset-env": "^7.16.4",
-    "@rollup/plugin-babel": "^5.3.0",
-    "@rollup/plugin-node-resolve": "^13.0.6",
-    "cheerio": "^1.0.0-rc.2",
-    "command-line-args": "^5.2.1",
-    "eslint": "^7.16.0",
-    "eslint-config-airbnb-base": "^14.2.1",
-    "eslint-plugin-import": "^2.22.1",
-    "express": "^4.18.2",
-    "pixelmatch": "^5.3.0",
+    "@rollup/plugin-commonjs": "^29.0.2",
+    "@rollup/plugin-node-resolve": "^16.0.3",
+    "@rollup/plugin-terser": "^1.0.0",
+    "@rollup/plugin-typescript": "^12.3.0",
+    "@types/howler": "^2.2.12",
+    "@types/seedrandom": "^3.0.8",
+    "@eslint/js": "^9.22.0",
+    "globals": "^16.0.0",
+    "typescript-eslint": "^8.26.0",
+    "@vitest/coverage-v8": "^4.1.0",
+    "eslint": "^9.22.0",
+    "eslint-config-prettier": "^10.1.8",
+    "express": "^5.2.1",
+    "husky": "^9.1.7",
+    "happy-dom": "^20.0.11",
+    "lint-staged": "^16.4.0",
+    "pixelmatch": "^7.1.0",
     "pngjs": "^7.0.0",
-    "puppeteer": "^20.5.0",
-    "rollup": "^2.61.0",
-    "rollup-plugin-terser": "^7.0.2",
-    "uglify-js": "^3.4.9",
-    "watch": "^1.0.2"
+    "prettier": "^3.8.1",
+    "puppeteer": "^24.10.0",
+    "rollup": "^4.59.1",
+    "tslib": "^2.8.1",
+    "typescript": "^5.9.3",
+    "vitepress": "^1.6.4",
+    "vitest": "^4.1.0"
   },
   "types": "./index.d.ts",
-  "license": "MIT"
+  "license": "MIT",
+  "lint-staged": {
+    "src/**/*.{ts,js}": [
+      "prettier --write",
+      "eslint --fix"
+    ]
+  },
+  "dependencies": {
+    "howler": "^2.2.4",
+    "seedrandom": "^3.0.5"
+  },
+  "overrides": {
+    "vitepress": {
+      "vite": {
+        "esbuild": "^0.25.0"
+      }
+    }
+  }
 }

@@ -1,0 +1,51 @@
+name: CI
+
+on:
+  pull_request:
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        # Align with package.json engines and Vitest 4.1 / Vite 8 (Node 22 needs ≥22.12).
+        node-version: ['20.19', '22.12', '24', '25']
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      # npm store cache (from package-lock.json) — speeds up npm ci across runs.
+      - name: Set up Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: npm
+          cache-dependency-path: package-lock.json
+
+      # Must run *before* npm ci: Puppeteer’s install can populate ~/.cache/puppeteer.
+      # Previously this step ran after tests, so the cache never helped installs.
+      - name: Cache Puppeteer Chromium
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/puppeteer
+          key: puppeteer-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
+          restore-keys: puppeteer-${{ runner.os }}-
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Type-check
+        run: npx tsc --noEmit
+
+      - name: Build
+        run: npm run build
+
+      - name: Unit tests
+        run: npm test
+
+      # Pixel baselines are tied to one Chromium build; running E2E once avoids 4× browser work.
+      - name: E2E tests
+        if: matrix.node-version == '24'
+        run: npm run test:e2e

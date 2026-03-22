@@ -1,9 +1,9 @@
 const fs = require('fs');
-const UglifyJS = require("uglify-js");
+const { minify } = require("terser");
 const packageFile = require("../package.json");
 
 const buildFolder = 'build/player/';
-const rootFolder = 'player/';
+const rootFolder = 'src/';
 const bm_version = packageFile.version;
 const defaultBuilds = [ 'canvas_worker', 'lottie_worker']
 
@@ -16,7 +16,7 @@ function wrapScriptWithModule(code, build) {
 		try {
 			// Wrapping with module
 			let moduleFileName = 'worker_wrapper';
-			let wrappedCode = fs.readFileSync(`${rootFolder}js/${moduleFileName}.js`, "utf8");
+			let wrappedCode = fs.readFileSync(`${rootFolder}${moduleFileName}.ts`, "utf8");
 			wrappedCode = wrappedCode.replace('/* <%= contents %> */',code);
 			wrappedCode = wrappedCode.replace('[[BM_VERSION]]',bm_version);
 			resolve(wrappedCode);
@@ -26,28 +26,20 @@ function wrapScriptWithModule(code, build) {
 	});
 }
 
-function uglifyCode(code) {
-	return new Promise((resolve, reject)=>{
-		try {
-			const result = UglifyJS.minify(code, {
-				output: 
-					{
-						ascii_only:true
-					},
-					toplevel:true,
-					mangle: {
-						reserved: ['lottie']
-					}
-				});
-			if (result.error) {
-				reject(result.error)
-			} else {
-				resolve(result.code)
-			}
-		} catch(err) {
-			reject(err)
-		}
-	})
+async function uglifyCode(code) {
+	const result = await minify(code, {
+		output: {
+			ascii_only: true,
+		},
+		toplevel: true,
+		mangle: {
+			reserved: ['lottie'],
+		},
+	});
+	if (result.error) {
+		throw result.error;
+	}
+	return result.code;
 }
 
 async function modularizeCode(code, build) {
