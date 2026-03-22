@@ -1,4 +1,4 @@
-// @ts-nocheck
+/* eslint-disable @typescript-eslint/no-explicit-any -- shape path / keyframe property builders */
 import { degToRads, roundCorner, bmMin } from '../common';
 import DynamicPropertyContainer from '../helpers/dynamicProperties';
 import PropertyFactory from '../PropertyFactory';
@@ -9,7 +9,7 @@ import shapeCollectionPool from '../pooling/shapeCollection_pool';
 const ShapePropertyFactory = (function () {
   const initFrame = -999999;
 
-  function interpolateShape(frameNum, previousValue, caching) {
+  function interpolateShape(this: any, frameNum: any, previousValue: any, caching: any) {
     let iterationIndex = caching.lastIndex;
     let keyPropS;
     let keyPropE;
@@ -90,7 +90,7 @@ const ShapePropertyFactory = (function () {
     }
   }
 
-  function interpolateShapeCurrentTime() {
+  function interpolateShapeCurrentTime(this: any) {
     const frameNum = this.comp.renderedFrame - this.offsetTime;
     const initTime = this.keyframes[0].t - this.offsetTime;
     const endTime = this.keyframes[this.keyframes.length - 1].t - this.offsetTime;
@@ -110,11 +110,11 @@ const ShapePropertyFactory = (function () {
     return this.pv;
   }
 
-  function resetShape() {
+  function resetShape(this: any) {
     this.paths = this.localShapeCollection;
   }
 
-  function shapesEqual(shape1, shape2) {
+  function shapesEqual(shape1: any, shape2: any) {
     if (shape1._length !== shape2._length || shape1.c !== shape2.c) {
       return false;
     }
@@ -135,9 +135,9 @@ const ShapePropertyFactory = (function () {
     return true;
   }
 
-  function setVValue(newPath) {
+  function setVValue(this: any, newPath: any) {
     if (!shapesEqual(this.v, newPath)) {
-      this.v = shapePool.clone(newPath);
+      this.v = (shapePool as any).clone(newPath);
       this.localShapeCollection.releaseShapes();
       this.localShapeCollection.addShape(this.v);
       this._mdf = true;
@@ -145,7 +145,7 @@ const ShapePropertyFactory = (function () {
     }
   }
 
-  function processEffectsSequence() {
+  function processEffectsSequence(this: any) {
     if (this.elem.globalData.frameId === this.frameId) {
       return;
     }
@@ -178,7 +178,23 @@ const ShapePropertyFactory = (function () {
   }
 
   class ShapeProperty {
-    constructor(elem, data, type) {
+    propType!: string;
+    comp!: any;
+    container!: any;
+    elem!: any;
+    data!: any;
+    k!: boolean;
+    kf!: boolean;
+    _mdf!: boolean;
+    v!: any;
+    pv!: any;
+    localShapeCollection!: any;
+    paths!: any;
+    reset!: () => void;
+    effectsSequence!: any[];
+    frameId!: number;
+
+    constructor(elem: any, data: any, type: any) {
       this.propType = 'shape';
       this.comp = elem.comp;
       this.container = elem;
@@ -188,28 +204,48 @@ const ShapePropertyFactory = (function () {
       this.kf = false;
       this._mdf = false;
       const pathData = type === 3 ? data.pt.k : data.ks.k;
-      this.v = shapePool.clone(pathData);
-      this.pv = shapePool.clone(this.v);
+      this.v = (shapePool as any).clone(pathData);
+      this.pv = (shapePool as any).clone(this.v);
       this.localShapeCollection = shapeCollectionPool.newShapeCollection();
       this.paths = this.localShapeCollection;
       this.paths.addShape(this.v);
       this.reset = resetShape;
       this.effectsSequence = [];
+      this.frameId = -1;
     }
   }
 
-  function addEffect(effectFunction) {
+  function addEffect(this: any, effectFunction: any) {
     this.effectsSequence.push(effectFunction);
     this.container.addDynamicProperty(this);
   }
 
-  ShapeProperty.prototype.interpolateShape = interpolateShape;
-  ShapeProperty.prototype.getValue = processEffectsSequence;
-  ShapeProperty.prototype.setVValue = setVValue;
-  ShapeProperty.prototype.addEffect = addEffect;
+  (ShapeProperty.prototype as any).interpolateShape = interpolateShape;
+  (ShapeProperty.prototype as any).getValue = processEffectsSequence;
+  (ShapeProperty.prototype as any).setVValue = setVValue;
+  (ShapeProperty.prototype as any).addEffect = addEffect;
 
   class KeyframedShapeProperty {
-    constructor(elem, data, type) {
+    propType!: string;
+    comp!: any;
+    elem!: any;
+    container!: any;
+    offsetTime!: number;
+    keyframes!: any;
+    keyframesMetadata!: any[];
+    k!: boolean;
+    kf!: boolean;
+    v!: any;
+    pv!: any;
+    localShapeCollection!: any;
+    paths!: any;
+    lastFrame!: number;
+    reset!: () => void;
+    _caching!: { lastFrame: number; lastIndex: number };
+    effectsSequence!: any[];
+    frameId!: number;
+
+    constructor(elem: any, data: any, type: any) {
       this.propType = 'shape';
       this.comp = elem.comp;
       this.elem = elem;
@@ -220,9 +256,9 @@ const ShapePropertyFactory = (function () {
       this.k = true;
       this.kf = true;
       const len = this.keyframes[0].s[0].i.length;
-      this.v = shapePool.newElement();
+      this.v = (shapePool as any).newElement();
       this.v.setPathData(this.keyframes[0].s[0].c, len);
-      this.pv = shapePool.clone(this.v);
+      this.pv = (shapePool as any).clone(this.v);
       this.localShapeCollection = shapeCollectionPool.newShapeCollection();
       this.paths = this.localShapeCollection;
       this.paths.addShape(this.v);
@@ -230,17 +266,29 @@ const ShapePropertyFactory = (function () {
       this.reset = resetShape;
       this._caching = { lastFrame: initFrame, lastIndex: 0 };
       this.effectsSequence = [interpolateShapeCurrentTime.bind(this)];
+      this.frameId = -1;
     }
   }
-  KeyframedShapeProperty.prototype.getValue = processEffectsSequence;
-  KeyframedShapeProperty.prototype.interpolateShape = interpolateShape;
-  KeyframedShapeProperty.prototype.setVValue = setVValue;
-  KeyframedShapeProperty.prototype.addEffect = addEffect;
+  (KeyframedShapeProperty.prototype as any).getValue = processEffectsSequence;
+  (KeyframedShapeProperty.prototype as any).interpolateShape = interpolateShape;
+  (KeyframedShapeProperty.prototype as any).setVValue = setVValue;
+  (KeyframedShapeProperty.prototype as any).addEffect = addEffect;
 
   class EllShapeProperty extends DynamicPropertyContainer {
-    constructor(elem, data) {
+    v!: any;
+    localShapeCollection!: any;
+    paths!: any;
+    d!: number;
+    elem!: any;
+    comp!: any;
+    frameId!: number;
+    p!: any;
+    s!: any;
+    k!: boolean;
+
+    constructor(elem: any, data: any) {
       super();
-      this.v = shapePool.newElement();
+      this.v = (shapePool as any).newElement();
       this.v.setPathData(true, 4);
       this.localShapeCollection = shapeCollectionPool.newShapeCollection();
       this.paths = this.localShapeCollection;
@@ -312,9 +360,27 @@ const ShapePropertyFactory = (function () {
   }
 
   class StarShapeProperty extends DynamicPropertyContainer {
-    constructor(elem, data) {
+    v!: any;
+    elem!: any;
+    comp!: any;
+    data!: any;
+    frameId!: number;
+    d!: number;
+    ir?: any;
+    is?: any;
+    convertToPath!: () => void;
+    pt!: any;
+    p!: any;
+    r!: any;
+    or!: any;
+    os!: any;
+    localShapeCollection!: any;
+    paths!: any;
+    k!: boolean;
+
+    constructor(elem: any, data: any) {
       super();
-      this.v = shapePool.newElement();
+      this.v = (shapePool as any).newElement();
       this.v.setPathData(true, 0);
       this.elem = elem;
       this.comp = elem.comp;
@@ -447,9 +513,21 @@ const ShapePropertyFactory = (function () {
   }
 
   class RectShapeProperty extends DynamicPropertyContainer {
-    constructor(elem, data) {
+    v!: any;
+    localShapeCollection!: any;
+    paths!: any;
+    elem!: any;
+    comp!: any;
+    frameId!: number;
+    d!: number;
+    p!: any;
+    s!: any;
+    r!: any;
+    k!: boolean;
+
+    constructor(elem: any, data: any) {
       super();
-      this.v = shapePool.newElement();
+      this.v = (shapePool as any).newElement();
       this.v.c = true;
       this.localShapeCollection = shapeCollectionPool.newShapeCollection();
       this.localShapeCollection.addShape(this.v);
@@ -527,8 +605,8 @@ const ShapePropertyFactory = (function () {
     }
   }
 
-  function getShapeProp(elem, data, type) {
-    let prop;
+  function getShapeProp(elem: any, data: any, type: any) {
+    let prop: any;
     if (type === 3 || type === 4) {
       const dataProp = type === 3 ? data.pt : data.ks;
       const keys = dataProp.k;
@@ -544,7 +622,7 @@ const ShapePropertyFactory = (function () {
     } else if (type === 7) {
       prop = new StarShapeProperty(elem, data);
     }
-    if (prop.k) {
+    if (prop?.k) {
       elem.addDynamicProperty(prop);
     }
     return prop;
@@ -558,7 +636,7 @@ const ShapePropertyFactory = (function () {
     return KeyframedShapeProperty;
   }
 
-  const ob = {};
+  const ob: Record<string, any> = {};
   ob.getShapeProp = getShapeProp;
   ob.getConstructorFunction = getConstructorFunction;
   ob.getKeyframedConstructorFunction = getKeyframedConstructorFunction;
