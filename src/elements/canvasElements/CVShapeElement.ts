@@ -527,29 +527,35 @@ class CVShapeElement {
     this.transformsManager.processSequences(this._isFirstFrame);
     this.renderShape(this.transformHelper, this.shapesData, this.itemsData, true);
   }
+
+  createContent() {
+    this.searchShapes(this.shapesData, this.itemsData, this.prevViewData, true, []);
+  }
+
+  destroy() {
+    this.shapesData = null;
+    this.globalData = null;
+    this.canvasContext = null;
+    this.stylesList.length = 0;
+    this.itemsData.length = 0;
+  }
 }
+
+const cvShapeCreateContent = CVShapeElement.prototype.createContent;
+const cvShapeDestroy = CVShapeElement.prototype.destroy;
 
 extendPrototype(
   [BaseElement, TransformElement, CVBaseElement, IShapeElement, HierarchyElement, FrameElement, RenderableElement],
   CVShapeElement,
 );
 
+CVShapeElement.prototype.createContent = cvShapeCreateContent;
+CVShapeElement.prototype.destroy = cvShapeDestroy;
+
 CVShapeElement.prototype.initElement = RenderableDOMElement.prototype.initElement;
 
 CVShapeElement.prototype.transformHelper = { opacity: 1, _opMdf: false };
 
 CVShapeElement.prototype.dashResetter = [];
-
-CVShapeElement.prototype.createContent = function () {
-  this.searchShapes(this.shapesData, this.itemsData, this.prevViewData, true, []);
-};
-
-CVShapeElement.prototype.destroy = function () {
-  this.shapesData = null;
-  this.globalData = null;
-  this.canvasContext = null;
-  this.stylesList.length = 0;
-  this.itemsData.length = 0;
-};
 
 export default CVShapeElement;
