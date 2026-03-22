@@ -1,6 +1,5 @@
 // @ts-nocheck
 import { degToRads, roundCorner, bmMin } from '../common';
-import { extendPrototype } from '../functionExtensions';
 import DynamicPropertyContainer from '../helpers/dynamicProperties';
 import PropertyFactory from '../PropertyFactory';
 import BezierFactory from '../../3rd_party/BezierEaser';
@@ -234,10 +233,9 @@ const ShapePropertyFactory = (function () {
   KeyframedShapeProperty.prototype.setVValue = setVValue;
   KeyframedShapeProperty.prototype.addEffect = addEffect;
 
-  const EllShapeProperty = (function () {
-    const cPoint = roundCorner;
-
-    function EllShapePropertyFactory(elem, data) {
+  class EllShapeProperty extends DynamicPropertyContainer {
+    constructor(elem, data) {
+      super();
       this.v = shapePool.newElement();
       this.v.setPathData(true, 4);
       this.localShapeCollection = shapeCollectionPool.newShapeCollection();
@@ -258,60 +256,60 @@ const ShapePropertyFactory = (function () {
       }
     }
 
-    EllShapePropertyFactory.prototype = {
-      reset: resetShape,
-      getValue: function () {
-        if (this.elem.globalData.frameId === this.frameId) {
-          return;
-        }
-        this.frameId = this.elem.globalData.frameId;
-        this.iterateDynamicProperties();
+    reset() {
+      this.paths = this.localShapeCollection;
+    }
 
-        if (this._mdf) {
-          this.convertEllToPath();
-        }
-      },
-      convertEllToPath: function () {
-        const p0 = this.p.v[0];
-        const p1 = this.p.v[1];
-        const s0 = this.s.v[0] / 2;
-        const s1 = this.s.v[1] / 2;
-        const _cw = this.d !== 3;
-        const _v = this.v;
-        _v.v[0][0] = p0;
-        _v.v[0][1] = p1 - s1;
-        _v.v[1][0] = _cw ? p0 + s0 : p0 - s0;
-        _v.v[1][1] = p1;
-        _v.v[2][0] = p0;
-        _v.v[2][1] = p1 + s1;
-        _v.v[3][0] = _cw ? p0 - s0 : p0 + s0;
-        _v.v[3][1] = p1;
-        _v.i[0][0] = _cw ? p0 - s0 * cPoint : p0 + s0 * cPoint;
-        _v.i[0][1] = p1 - s1;
-        _v.i[1][0] = _cw ? p0 + s0 : p0 - s0;
-        _v.i[1][1] = p1 - s1 * cPoint;
-        _v.i[2][0] = _cw ? p0 + s0 * cPoint : p0 - s0 * cPoint;
-        _v.i[2][1] = p1 + s1;
-        _v.i[3][0] = _cw ? p0 - s0 : p0 + s0;
-        _v.i[3][1] = p1 + s1 * cPoint;
-        _v.o[0][0] = _cw ? p0 + s0 * cPoint : p0 - s0 * cPoint;
-        _v.o[0][1] = p1 - s1;
-        _v.o[1][0] = _cw ? p0 + s0 : p0 - s0;
-        _v.o[1][1] = p1 + s1 * cPoint;
-        _v.o[2][0] = _cw ? p0 - s0 * cPoint : p0 + s0 * cPoint;
-        _v.o[2][1] = p1 + s1;
-        _v.o[3][0] = _cw ? p0 - s0 : p0 + s0;
-        _v.o[3][1] = p1 - s1 * cPoint;
-      },
-    };
+    getValue() {
+      if (this.elem.globalData.frameId === this.frameId) {
+        return;
+      }
+      this.frameId = this.elem.globalData.frameId;
+      this.iterateDynamicProperties();
 
-    extendPrototype([DynamicPropertyContainer], EllShapePropertyFactory);
+      if (this._mdf) {
+        this.convertEllToPath();
+      }
+    }
 
-    return EllShapePropertyFactory;
-  })();
+    convertEllToPath() {
+      const cPoint = roundCorner;
+      const p0 = this.p.v[0];
+      const p1 = this.p.v[1];
+      const s0 = this.s.v[0] / 2;
+      const s1 = this.s.v[1] / 2;
+      const _cw = this.d !== 3;
+      const _v = this.v;
+      _v.v[0][0] = p0;
+      _v.v[0][1] = p1 - s1;
+      _v.v[1][0] = _cw ? p0 + s0 : p0 - s0;
+      _v.v[1][1] = p1;
+      _v.v[2][0] = p0;
+      _v.v[2][1] = p1 + s1;
+      _v.v[3][0] = _cw ? p0 - s0 : p0 + s0;
+      _v.v[3][1] = p1;
+      _v.i[0][0] = _cw ? p0 - s0 * cPoint : p0 + s0 * cPoint;
+      _v.i[0][1] = p1 - s1;
+      _v.i[1][0] = _cw ? p0 + s0 : p0 - s0;
+      _v.i[1][1] = p1 - s1 * cPoint;
+      _v.i[2][0] = _cw ? p0 + s0 * cPoint : p0 - s0 * cPoint;
+      _v.i[2][1] = p1 + s1;
+      _v.i[3][0] = _cw ? p0 - s0 : p0 + s0;
+      _v.i[3][1] = p1 + s1 * cPoint;
+      _v.o[0][0] = _cw ? p0 + s0 * cPoint : p0 - s0 * cPoint;
+      _v.o[0][1] = p1 - s1;
+      _v.o[1][0] = _cw ? p0 + s0 : p0 - s0;
+      _v.o[1][1] = p1 + s1 * cPoint;
+      _v.o[2][0] = _cw ? p0 - s0 * cPoint : p0 + s0 * cPoint;
+      _v.o[2][1] = p1 + s1;
+      _v.o[3][0] = _cw ? p0 - s0 : p0 + s0;
+      _v.o[3][1] = p1 - s1 * cPoint;
+    }
+  }
 
-  const StarShapeProperty = (function () {
-    function StarShapePropertyFactory(elem, data) {
+  class StarShapeProperty extends DynamicPropertyContainer {
+    constructor(elem, data) {
+      super();
       this.v = shapePool.newElement();
       this.v.setPathData(true, 0);
       this.elem = elem;
@@ -343,109 +341,110 @@ const ShapePropertyFactory = (function () {
       }
     }
 
-    StarShapePropertyFactory.prototype = {
-      reset: resetShape,
-      getValue: function () {
-        if (this.elem.globalData.frameId === this.frameId) {
-          return;
-        }
-        this.frameId = this.elem.globalData.frameId;
-        this.iterateDynamicProperties();
-        if (this._mdf) {
-          this.convertToPath();
-        }
-      },
-      convertStarToPath: function () {
-        const numPts = Math.floor(this.pt.v) * 2;
-        const angle = (Math.PI * 2) / numPts;
-        /* this.v.v.length = numPts;
+    reset() {
+      this.paths = this.localShapeCollection;
+    }
+
+    getValue() {
+      if (this.elem.globalData.frameId === this.frameId) {
+        return;
+      }
+      this.frameId = this.elem.globalData.frameId;
+      this.iterateDynamicProperties();
+      if (this._mdf) {
+        this.convertToPath();
+      }
+    }
+
+    convertStarToPath() {
+      const numPts = Math.floor(this.pt.v) * 2;
+      const angle = (Math.PI * 2) / numPts;
+      /* this.v.v.length = numPts;
                 this.v.i.length = numPts;
                 this.v.o.length = numPts; */
-        let longFlag = true;
-        const longRad = this.or.v;
-        const shortRad = this.ir.v;
-        const longRound = this.os.v;
-        const shortRound = this.is.v;
-        const longPerimSegment = (2 * Math.PI * longRad) / (numPts * 2);
-        const shortPerimSegment = (2 * Math.PI * shortRad) / (numPts * 2);
-        let i;
-        let rad;
-        let roundness;
-        let perimSegment;
-        let currentAng = -Math.PI / 2;
-        currentAng += this.r.v;
-        const dir = this.data.d === 3 ? -1 : 1;
-        this.v._length = 0;
-        for (i = 0; i < numPts; i += 1) {
-          rad = longFlag ? longRad : shortRad;
-          roundness = longFlag ? longRound : shortRound;
-          perimSegment = longFlag ? longPerimSegment : shortPerimSegment;
-          let x = rad * Math.cos(currentAng);
-          let y = rad * Math.sin(currentAng);
-          const ox = x === 0 && y === 0 ? 0 : y / Math.sqrt(x * x + y * y);
-          const oy = x === 0 && y === 0 ? 0 : -x / Math.sqrt(x * x + y * y);
-          x += +this.p.v[0];
-          y += +this.p.v[1];
-          this.v.setTripleAt(
-            x,
-            y,
-            x - ox * perimSegment * roundness * dir,
-            y - oy * perimSegment * roundness * dir,
-            x + ox * perimSegment * roundness * dir,
-            y + oy * perimSegment * roundness * dir,
-            i,
-            true,
-          );
+      let longFlag = true;
+      const longRad = this.or.v;
+      const shortRad = this.ir.v;
+      const longRound = this.os.v;
+      const shortRound = this.is.v;
+      const longPerimSegment = (2 * Math.PI * longRad) / (numPts * 2);
+      const shortPerimSegment = (2 * Math.PI * shortRad) / (numPts * 2);
+      let i;
+      let rad;
+      let roundness;
+      let perimSegment;
+      let currentAng = -Math.PI / 2;
+      currentAng += this.r.v;
+      const dir = this.data.d === 3 ? -1 : 1;
+      this.v._length = 0;
+      for (i = 0; i < numPts; i += 1) {
+        rad = longFlag ? longRad : shortRad;
+        roundness = longFlag ? longRound : shortRound;
+        perimSegment = longFlag ? longPerimSegment : shortPerimSegment;
+        let x = rad * Math.cos(currentAng);
+        let y = rad * Math.sin(currentAng);
+        const ox = x === 0 && y === 0 ? 0 : y / Math.sqrt(x * x + y * y);
+        const oy = x === 0 && y === 0 ? 0 : -x / Math.sqrt(x * x + y * y);
+        x += +this.p.v[0];
+        y += +this.p.v[1];
+        this.v.setTripleAt(
+          x,
+          y,
+          x - ox * perimSegment * roundness * dir,
+          y - oy * perimSegment * roundness * dir,
+          x + ox * perimSegment * roundness * dir,
+          y + oy * perimSegment * roundness * dir,
+          i,
+          true,
+        );
 
-          /* this.v.v[i] = [x,y];
+        /* this.v.v[i] = [x,y];
                     this.v.i[i] = [x+ox*perimSegment*roundness*dir,y+oy*perimSegment*roundness*dir];
                     this.v.o[i] = [x-ox*perimSegment*roundness*dir,y-oy*perimSegment*roundness*dir];
                     this.v._length = numPts; */
-          longFlag = !longFlag;
-          currentAng += angle * dir;
-        }
-      },
-      convertPolygonToPath: function () {
-        const numPts = Math.floor(this.pt.v);
-        const angle = (Math.PI * 2) / numPts;
-        const rad = this.or.v;
-        const roundness = this.os.v;
-        const perimSegment = (2 * Math.PI * rad) / (numPts * 4);
-        let i;
-        let currentAng = -Math.PI * 0.5;
-        const dir = this.data.d === 3 ? -1 : 1;
-        currentAng += this.r.v;
-        this.v._length = 0;
-        for (i = 0; i < numPts; i += 1) {
-          let x = rad * Math.cos(currentAng);
-          let y = rad * Math.sin(currentAng);
-          const ox = x === 0 && y === 0 ? 0 : y / Math.sqrt(x * x + y * y);
-          const oy = x === 0 && y === 0 ? 0 : -x / Math.sqrt(x * x + y * y);
-          x += +this.p.v[0];
-          y += +this.p.v[1];
-          this.v.setTripleAt(
-            x,
-            y,
-            x - ox * perimSegment * roundness * dir,
-            y - oy * perimSegment * roundness * dir,
-            x + ox * perimSegment * roundness * dir,
-            y + oy * perimSegment * roundness * dir,
-            i,
-            true,
-          );
-          currentAng += angle * dir;
-        }
-        this.paths.length = 0;
-        this.paths[0] = this.v;
-      },
-    };
-    extendPrototype([DynamicPropertyContainer], StarShapePropertyFactory);
+        longFlag = !longFlag;
+        currentAng += angle * dir;
+      }
+    }
 
-    return StarShapePropertyFactory;
-  })();
+    convertPolygonToPath() {
+      const numPts = Math.floor(this.pt.v);
+      const angle = (Math.PI * 2) / numPts;
+      const rad = this.or.v;
+      const roundness = this.os.v;
+      const perimSegment = (2 * Math.PI * rad) / (numPts * 4);
+      let i;
+      let currentAng = -Math.PI * 0.5;
+      const dir = this.data.d === 3 ? -1 : 1;
+      currentAng += this.r.v;
+      this.v._length = 0;
+      for (i = 0; i < numPts; i += 1) {
+        let x = rad * Math.cos(currentAng);
+        let y = rad * Math.sin(currentAng);
+        const ox = x === 0 && y === 0 ? 0 : y / Math.sqrt(x * x + y * y);
+        const oy = x === 0 && y === 0 ? 0 : -x / Math.sqrt(x * x + y * y);
+        x += +this.p.v[0];
+        y += +this.p.v[1];
+        this.v.setTripleAt(
+          x,
+          y,
+          x - ox * perimSegment * roundness * dir,
+          y - oy * perimSegment * roundness * dir,
+          x + ox * perimSegment * roundness * dir,
+          y + oy * perimSegment * roundness * dir,
+          i,
+          true,
+        );
+        currentAng += angle * dir;
+      }
+      this.paths.length = 0;
+      this.paths[0] = this.v;
+    }
+  }
 
-  const RectShapeProperty = (function () {
-    function RectShapePropertyFactory(elem, data) {
+  class RectShapeProperty extends DynamicPropertyContainer {
+    constructor(elem, data) {
+      super();
       this.v = shapePool.newElement();
       this.v.c = true;
       this.localShapeCollection = shapeCollectionPool.newShapeCollection();
@@ -467,63 +466,62 @@ const ShapePropertyFactory = (function () {
       }
     }
 
-    RectShapePropertyFactory.prototype = {
-      convertRectToPath: function () {
-        const p0 = this.p.v[0];
-        const p1 = this.p.v[1];
-        const v0 = this.s.v[0] / 2;
-        const v1 = this.s.v[1] / 2;
-        const round = bmMin(v0, v1, this.r.v);
-        const cPoint = round * (1 - roundCorner);
-        this.v._length = 0;
+    convertRectToPath() {
+      const p0 = this.p.v[0];
+      const p1 = this.p.v[1];
+      const v0 = this.s.v[0] / 2;
+      const v1 = this.s.v[1] / 2;
+      const round = bmMin(v0, v1, this.r.v);
+      const cPoint = round * (1 - roundCorner);
+      this.v._length = 0;
 
-        if (this.d === 2 || this.d === 1) {
-          this.v.setTripleAt(p0 + v0, p1 - v1 + round, p0 + v0, p1 - v1 + round, p0 + v0, p1 - v1 + cPoint, 0, true);
-          this.v.setTripleAt(p0 + v0, p1 + v1 - round, p0 + v0, p1 + v1 - cPoint, p0 + v0, p1 + v1 - round, 1, true);
-          if (round !== 0) {
-            this.v.setTripleAt(p0 + v0 - round, p1 + v1, p0 + v0 - round, p1 + v1, p0 + v0 - cPoint, p1 + v1, 2, true);
-            this.v.setTripleAt(p0 - v0 + round, p1 + v1, p0 - v0 + cPoint, p1 + v1, p0 - v0 + round, p1 + v1, 3, true);
-            this.v.setTripleAt(p0 - v0, p1 + v1 - round, p0 - v0, p1 + v1 - round, p0 - v0, p1 + v1 - cPoint, 4, true);
-            this.v.setTripleAt(p0 - v0, p1 - v1 + round, p0 - v0, p1 - v1 + cPoint, p0 - v0, p1 - v1 + round, 5, true);
-            this.v.setTripleAt(p0 - v0 + round, p1 - v1, p0 - v0 + round, p1 - v1, p0 - v0 + cPoint, p1 - v1, 6, true);
-            this.v.setTripleAt(p0 + v0 - round, p1 - v1, p0 + v0 - cPoint, p1 - v1, p0 + v0 - round, p1 - v1, 7, true);
-          } else {
-            this.v.setTripleAt(p0 - v0, p1 + v1, p0 - v0 + cPoint, p1 + v1, p0 - v0, p1 + v1, 2);
-            this.v.setTripleAt(p0 - v0, p1 - v1, p0 - v0, p1 - v1 + cPoint, p0 - v0, p1 - v1, 3);
-          }
+      if (this.d === 2 || this.d === 1) {
+        this.v.setTripleAt(p0 + v0, p1 - v1 + round, p0 + v0, p1 - v1 + round, p0 + v0, p1 - v1 + cPoint, 0, true);
+        this.v.setTripleAt(p0 + v0, p1 + v1 - round, p0 + v0, p1 + v1 - cPoint, p0 + v0, p1 + v1 - round, 1, true);
+        if (round !== 0) {
+          this.v.setTripleAt(p0 + v0 - round, p1 + v1, p0 + v0 - round, p1 + v1, p0 + v0 - cPoint, p1 + v1, 2, true);
+          this.v.setTripleAt(p0 - v0 + round, p1 + v1, p0 - v0 + cPoint, p1 + v1, p0 - v0 + round, p1 + v1, 3, true);
+          this.v.setTripleAt(p0 - v0, p1 + v1 - round, p0 - v0, p1 + v1 - round, p0 - v0, p1 + v1 - cPoint, 4, true);
+          this.v.setTripleAt(p0 - v0, p1 - v1 + round, p0 - v0, p1 - v1 + cPoint, p0 - v0, p1 - v1 + round, 5, true);
+          this.v.setTripleAt(p0 - v0 + round, p1 - v1, p0 - v0 + round, p1 - v1, p0 - v0 + cPoint, p1 - v1, 6, true);
+          this.v.setTripleAt(p0 + v0 - round, p1 - v1, p0 + v0 - cPoint, p1 - v1, p0 + v0 - round, p1 - v1, 7, true);
         } else {
-          this.v.setTripleAt(p0 + v0, p1 - v1 + round, p0 + v0, p1 - v1 + cPoint, p0 + v0, p1 - v1 + round, 0, true);
-          if (round !== 0) {
-            this.v.setTripleAt(p0 + v0 - round, p1 - v1, p0 + v0 - round, p1 - v1, p0 + v0 - cPoint, p1 - v1, 1, true);
-            this.v.setTripleAt(p0 - v0 + round, p1 - v1, p0 - v0 + cPoint, p1 - v1, p0 - v0 + round, p1 - v1, 2, true);
-            this.v.setTripleAt(p0 - v0, p1 - v1 + round, p0 - v0, p1 - v1 + round, p0 - v0, p1 - v1 + cPoint, 3, true);
-            this.v.setTripleAt(p0 - v0, p1 + v1 - round, p0 - v0, p1 + v1 - cPoint, p0 - v0, p1 + v1 - round, 4, true);
-            this.v.setTripleAt(p0 - v0 + round, p1 + v1, p0 - v0 + round, p1 + v1, p0 - v0 + cPoint, p1 + v1, 5, true);
-            this.v.setTripleAt(p0 + v0 - round, p1 + v1, p0 + v0 - cPoint, p1 + v1, p0 + v0 - round, p1 + v1, 6, true);
-            this.v.setTripleAt(p0 + v0, p1 + v1 - round, p0 + v0, p1 + v1 - round, p0 + v0, p1 + v1 - cPoint, 7, true);
-          } else {
-            this.v.setTripleAt(p0 - v0, p1 - v1, p0 - v0 + cPoint, p1 - v1, p0 - v0, p1 - v1, 1, true);
-            this.v.setTripleAt(p0 - v0, p1 + v1, p0 - v0, p1 + v1 - cPoint, p0 - v0, p1 + v1, 2, true);
-            this.v.setTripleAt(p0 + v0, p1 + v1, p0 + v0 - cPoint, p1 + v1, p0 + v0, p1 + v1, 3, true);
-          }
+          this.v.setTripleAt(p0 - v0, p1 + v1, p0 - v0 + cPoint, p1 + v1, p0 - v0, p1 + v1, 2);
+          this.v.setTripleAt(p0 - v0, p1 - v1, p0 - v0, p1 - v1 + cPoint, p0 - v0, p1 - v1, 3);
         }
-      },
-      getValue: function () {
-        if (this.elem.globalData.frameId === this.frameId) {
-          return;
+      } else {
+        this.v.setTripleAt(p0 + v0, p1 - v1 + round, p0 + v0, p1 - v1 + cPoint, p0 + v0, p1 - v1 + round, 0, true);
+        if (round !== 0) {
+          this.v.setTripleAt(p0 + v0 - round, p1 - v1, p0 + v0 - round, p1 - v1, p0 + v0 - cPoint, p1 - v1, 1, true);
+          this.v.setTripleAt(p0 - v0 + round, p1 - v1, p0 - v0 + cPoint, p1 - v1, p0 - v0 + round, p1 - v1, 2, true);
+          this.v.setTripleAt(p0 - v0, p1 - v1 + round, p0 - v0, p1 - v1 + round, p0 - v0, p1 - v1 + cPoint, 3, true);
+          this.v.setTripleAt(p0 - v0, p1 + v1 - round, p0 - v0, p1 + v1 - cPoint, p0 - v0, p1 + v1 - round, 4, true);
+          this.v.setTripleAt(p0 - v0 + round, p1 + v1, p0 - v0 + round, p1 + v1, p0 - v0 + cPoint, p1 + v1, 5, true);
+          this.v.setTripleAt(p0 + v0 - round, p1 + v1, p0 + v0 - cPoint, p1 + v1, p0 + v0 - round, p1 + v1, 6, true);
+          this.v.setTripleAt(p0 + v0, p1 + v1 - round, p0 + v0, p1 + v1 - round, p0 + v0, p1 + v1 - cPoint, 7, true);
+        } else {
+          this.v.setTripleAt(p0 - v0, p1 - v1, p0 - v0 + cPoint, p1 - v1, p0 - v0, p1 - v1, 1, true);
+          this.v.setTripleAt(p0 - v0, p1 + v1, p0 - v0, p1 + v1 - cPoint, p0 - v0, p1 + v1, 2, true);
+          this.v.setTripleAt(p0 + v0, p1 + v1, p0 + v0 - cPoint, p1 + v1, p0 + v0, p1 + v1, 3, true);
         }
-        this.frameId = this.elem.globalData.frameId;
-        this.iterateDynamicProperties();
-        if (this._mdf) {
-          this.convertRectToPath();
-        }
-      },
-      reset: resetShape,
-    };
-    extendPrototype([DynamicPropertyContainer], RectShapePropertyFactory);
+      }
+    }
 
-    return RectShapePropertyFactory;
-  })();
+    getValue() {
+      if (this.elem.globalData.frameId === this.frameId) {
+        return;
+      }
+      this.frameId = this.elem.globalData.frameId;
+      this.iterateDynamicProperties();
+      if (this._mdf) {
+        this.convertRectToPath();
+      }
+    }
+
+    reset() {
+      this.paths = this.localShapeCollection;
+    }
+  }
 
   function getShapeProp(elem, data, type) {
     let prop;
