@@ -1,10 +1,10 @@
-// @ts-nocheck
+/* eslint-disable @typescript-eslint/no-explicit-any -- worker: replaces AnimationItem prototype methods */
 import AnimationItem from './AnimationItem';
 import CanvasRenderer from '../renderers/CanvasRenderer';
 import dataManager from '../utils/DataManager';
 import { getExpressionsPlugin } from '../utils/common';
 
-AnimationItem.prototype.setParams = function (params) {
+(AnimationItem.prototype as any).setParams = function (this: any, params: any) {
   if (params.context) {
     this.context = params.context;
   }
@@ -38,17 +38,17 @@ AnimationItem.prototype.setParams = function (params) {
     : true;
   this.assetsPath = null;
   if (params.animationData) {
-    dataManager.completeAnimation(params.animationData, this.configAnimation);
+    dataManager.completeAnimation(params.animationData, this.configAnimation, undefined);
   } else if (params.path) {
     throw new Error('Canvas worker renderer cannot load animation from url');
   }
 };
 
-AnimationItem.prototype.setData = function () {
+(AnimationItem.prototype as any).setData = function (this: any) {
   throw new Error('Cannot set data on wrapper for canvas worker renderer');
 };
 
-AnimationItem.prototype.includeLayers = function (data) {
+(AnimationItem.prototype as any).includeLayers = function (this: any, data: any) {
   if (data.op > this.animationData.op) {
     this.animationData.op = data.op;
     this.totalFrames = Math.floor(data.op - this.animationData.ip);
@@ -70,7 +70,7 @@ AnimationItem.prototype.includeLayers = function (data) {
     }
   }
   this.animationData.__complete = false;
-  dataManager.completeAnimation(this.animationData);
+  dataManager.completeAnimation(this.animationData, this.configAnimation, undefined);
   this.renderer.includeLayers(data.layers);
   const expressionsPlugin = getExpressionsPlugin();
   if (expressionsPlugin) {
@@ -79,7 +79,7 @@ AnimationItem.prototype.includeLayers = function (data) {
   this.loadNextSegment();
 };
 
-AnimationItem.prototype.loadNextSegment = function () {
+(AnimationItem.prototype as any).loadNextSegment = function (this: any) {
   const segments = this.animationData.segments;
   if (!segments || segments.length === 0 || !this.autoloadSegments) {
     this.timeCompleted = this.totalFrames;
@@ -88,7 +88,7 @@ AnimationItem.prototype.loadNextSegment = function () {
   throw new Error('Cannot load multiple segments in worker.');
 };
 
-AnimationItem.prototype.loadSegments = function () {
+(AnimationItem.prototype as any).loadSegments = function (this: any) {
   const segments = this.animationData.segments;
   if (!segments) {
     this.timeCompleted = this.totalFrames;
@@ -96,11 +96,11 @@ AnimationItem.prototype.loadSegments = function () {
   this.loadNextSegment();
 };
 
-AnimationItem.prototype.imagesLoaded = null;
+(AnimationItem.prototype as any).imagesLoaded = null;
 
-AnimationItem.prototype.preloadImages = null;
+(AnimationItem.prototype as any).preloadImages = null;
 
-AnimationItem.prototype.configAnimation = function (animData) {
+(AnimationItem.prototype as any).configAnimation = function (this: any, animData: any) {
   if (!this.renderer) {
     return;
   }
@@ -121,9 +121,9 @@ AnimationItem.prototype.configAnimation = function (animData) {
   this.checkLoaded();
 };
 
-AnimationItem.prototype.waitForFontsLoaded = null;
+(AnimationItem.prototype as any).waitForFontsLoaded = null;
 
-AnimationItem.prototype.checkLoaded = function () {
+(AnimationItem.prototype as any).checkLoaded = function (this: any) {
   if (!this.isLoaded) {
     this.isLoaded = true;
     const expressionsPlugin = getExpressionsPlugin();
@@ -135,7 +135,7 @@ AnimationItem.prototype.checkLoaded = function () {
   }
 };
 
-AnimationItem.prototype.destroy = function (name) {
+(AnimationItem.prototype as any).destroy = function (this: any, name: any) {
   if ((name && this.name !== name) || !this.renderer) {
     return;
   }
@@ -149,4 +149,4 @@ AnimationItem.prototype.destroy = function (name) {
   this.renderer = null;
 };
 
-AnimationItem.prototype.getPath = null;
+(AnimationItem.prototype as any).getPath = null;

@@ -1,4 +1,3 @@
-// @ts-nocheck
 const svgNS = 'http://www.w3.org/2000/svg';
 
 let locationHref = '';
@@ -6,12 +5,12 @@ let _useWebWorker = false;
 
 const initialDefaultFrame = -999999;
 
-const setWebWorker = (flag) => {
+const setWebWorker = (flag: unknown) => {
   _useWebWorker = !!flag;
 };
 const getWebWorker = () => _useWebWorker;
 
-const setLocationHref = (value) => {
+const setLocationHref = (value: string) => {
   locationHref = value;
 };
 const getLocationHref = () => locationHref;
