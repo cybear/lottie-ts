@@ -1,29 +1,45 @@
 // @ts-nocheck
 import PropertyFactory from '../utils/PropertyFactory';
 
-function SliderEffect(data, elem, container) {
-  this.p = PropertyFactory.getProp(elem, data.v, 0, 0, container);
+class SliderEffect {
+  constructor(data, elem, container) {
+    this.p = PropertyFactory.getProp(elem, data.v, 0, 0, container);
+  }
 }
-function AngleEffect(data, elem, container) {
-  this.p = PropertyFactory.getProp(elem, data.v, 0, 0, container);
+class AngleEffect {
+  constructor(data, elem, container) {
+    this.p = PropertyFactory.getProp(elem, data.v, 0, 0, container);
+  }
 }
-function ColorEffect(data, elem, container) {
-  this.p = PropertyFactory.getProp(elem, data.v, 1, 0, container);
+class ColorEffect {
+  constructor(data, elem, container) {
+    this.p = PropertyFactory.getProp(elem, data.v, 1, 0, container);
+  }
 }
-function PointEffect(data, elem, container) {
-  this.p = PropertyFactory.getProp(elem, data.v, 1, 0, container);
+class PointEffect {
+  constructor(data, elem, container) {
+    this.p = PropertyFactory.getProp(elem, data.v, 1, 0, container);
+  }
 }
-function LayerIndexEffect(data, elem, container) {
-  this.p = PropertyFactory.getProp(elem, data.v, 0, 0, container);
+class LayerIndexEffect {
+  constructor(data, elem, container) {
+    this.p = PropertyFactory.getProp(elem, data.v, 0, 0, container);
+  }
 }
-function MaskIndexEffect(data, elem, container) {
-  this.p = PropertyFactory.getProp(elem, data.v, 0, 0, container);
+class MaskIndexEffect {
+  constructor(data, elem, container) {
+    this.p = PropertyFactory.getProp(elem, data.v, 0, 0, container);
+  }
 }
-function CheckboxEffect(data, elem, container) {
-  this.p = PropertyFactory.getProp(elem, data.v, 0, 0, container);
+class CheckboxEffect {
+  constructor(data, elem, container) {
+    this.p = PropertyFactory.getProp(elem, data.v, 0, 0, container);
+  }
 }
-function NoValueEffect() {
-  this.p = {};
+class NoValueEffect {
+  constructor() {
+    this.p = {};
+  }
 }
 
 export {

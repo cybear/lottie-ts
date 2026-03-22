@@ -1,6 +1,6 @@
 # Prototype / `extendPrototype` inventory and class migration strategy
 
-This document supports Track A (strict typing) and Track B (ES classes) modernization. *Last updated: 2025-03-22 — adds `EffectsManager`, text (`TextProperty`, `LetterProps`), `CVMaskElement`, and the empty `SVGEffects` stub class; see Track B table below.*
+This document supports Track A (strict typing) and Track B (ES classes) modernization. *Last updated: 2025-03-22 — adds shape pipeline data types (`SVGShapeData`, `CVShapeData`, `SVGStyleData`, `SVGTransformData`, `ShapeGroupData`, `ShapeTransformManager`, `ProcessedElement`, `ShapeElementData`) and effect leaf classes in `effects/SliderEffect.ts`; see Track B table.*
 
 Regenerate the call-site table with:
 
@@ -190,6 +190,8 @@ These are `class` constructors whose **`prototype`** methods are still merged on
 | Text | `TextProperty` (shared `defaultBoxWidth` on `prototype`), `LetterProps` |
 | SVG stub | `SVGEffects` in `SVGEffectsPlaceholder.ts` (no-op class for tree-shaken / placeholder bundles) |
 | Shape geometry helpers | `ShapeCollection`, `ShapePath` |
+| Shape element data (SVG/CV pipeline) | `SVGShapeData`, `CVShapeData` (`setAsAnimated` from `SVGShapeData.prototype`), `SVGStyleData`, `SVGTransformData`, `ShapeGroupData`, `ShapeTransformManager`, `ProcessedElement`, `ShapeElementData` |
+| Effect value holders | `SliderEffect`, `AngleEffect`, `ColorEffect`, `PointEffect`, `LayerIndexEffect`, `MaskIndexEffect`, `CheckboxEffect`, `NoValueEffect` (`effects/SliderEffect.ts`) |
 | Dynamic / modifiers | `DynamicPropertyContainer`, `ShapeModifier` (+ concrete modifiers), `ShapeProperty`, `KeyframedShapeProperty`, `ShapeExpressions` (expression decorator) |
 | Worker bundle | `ProxyElement`, `CanvasElement` |
 

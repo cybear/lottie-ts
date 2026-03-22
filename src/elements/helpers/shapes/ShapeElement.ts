@@ -1,4 +1,4 @@
 // @ts-nocheck
-function ShapeElementData() {}
+class ShapeElementData {}
 
 export default ShapeElementData;
