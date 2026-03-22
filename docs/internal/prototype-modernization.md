@@ -223,7 +223,7 @@ These are `class` constructors whose **`prototype`** methods are still merged on
 
 **Shape property factories (`ExpressionPropertyDecorator`):** **`extendPrototype([ShapeExpressions], ShapePropertyConstructorFunction)`** (and the keyframed twin) still applies **`ShapeExpressions`** to **constructor functions** defined inside the decorator’s closure, not to a top-level `class` export; leaving that avoids a large factory refactor with little typing gain.
 
-**Vitest / Rolldown / Vite:** **`package.json` `engines`** includes **`^21.7.0`** as the Node **21** floor (**`util.styleText`** and **`util.parseEnv`** landed in **21.7**). **`patch-package`** runs on **`postinstall`** and applies **`patches/rolldown+*.patch`** (**`styleText`** fallback for Rolldown) and **`patches/vite+*.patch`** (**`parseEnv`** polyfill for Vite’s **`dist/node/chunks/node.js`**) so **`npm test`** can load on **21.5** and similar. After upgrading Rolldown or Vite, if a patch fails, re-edit **`node_modules`** and run **`npx patch-package rolldown`** or **`npx patch-package vite`**. CI still targets **20.19 / 22.12 / 24 / 25**; prefer those or **≥21.7** on Node **21**.
+**Vitest / Rolldown / Vite:** The dev toolchain (Vitest → Vite / Rolldown) expects **`node:util`** features present on supported Node (**`styleText`**, **`parseEnv`**, etc.). **`package.json` `engines`** omits Node **21** entirely; use **20.19+**, **22.12+**, or **24+** (matching CI). We do not patch vendor bundles for older Node.
 
 ### Comp elements: why `BaseRenderer` is first
 

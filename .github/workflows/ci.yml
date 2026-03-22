@@ -9,7 +9,7 @@ jobs:
 
     strategy:
       matrix:
-        # Align with package.json engines and Vitest (Node 22 needs ≥22.12). Vitest’s own `engines` omit Node 21; use ≥21.7 locally if you must stay on 21.
+        # Align with package.json engines (no Node 21) and Vitest (Node 22 needs ≥22.12).
         node-version: ['20.19', '22.12', '24', '25']
 
     steps:
