@@ -24,7 +24,7 @@ interface TextShapeEntry {
 }
 
 /** Subset of `TextProperty` document fields used when positioning glyphs. */
-interface TextDocumentLayoutSlice {
+export interface TextDocumentLayoutSlice {
   ps?: [number, number];
   ascent: number;
   ls: number;

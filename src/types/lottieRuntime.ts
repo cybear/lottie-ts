@@ -52,6 +52,42 @@ export interface GlobalData {
  */
 export type ElementData = Record<string, unknown>;
 
+/**
+ * Canvas renderer surface bound to `CVContextData` / native context (`CanvasRenderer` when `clearCanvas`).
+ * Used by canvas layer elements for draw calls.
+ */
+export interface CanvasRenderer2D {
+  save(force?: boolean): void;
+  restore(force?: boolean): void;
+  ctxTransform(props: number[]): void;
+  ctxOpacity(op: number): void;
+  ctxFillStyle(value: string | CanvasGradient | CanvasPattern): void;
+  ctxStrokeStyle(value: string | CanvasGradient | CanvasPattern): void;
+  ctxLineWidth(value: number): void;
+  ctxLineCap(value: CanvasLineCap): void;
+  ctxLineJoin(value: CanvasLineJoin): void;
+  ctxMiterLimit(value: number): void;
+  ctxFill(rule?: CanvasFillRule): void;
+  ctxFillRect(x: number, y: number, w: number, h: number): void;
+  ctxStroke(): void;
+}
+
+/** `globalData` on canvas image layers (`getAssetData` + `imageLoader` + 2D renderer). */
+export type GlobalDataCanvasImage = GlobalData & {
+  getAssetData: (refId: string) => ImageAssetData;
+  imageLoader: ImageLoaderLike;
+  renderer: CanvasRenderer2D;
+  canvasContext: CanvasRenderingContext2D;
+  renderConfig: RenderConfig;
+};
+
+/** `globalData` on canvas solid / shape / text layers (2D renderer + context). */
+export type GlobalDataCanvasLayer = GlobalData & {
+  renderer: CanvasRenderer2D;
+  canvasContext: CanvasRenderingContext2D;
+  currentGlobalAlpha?: number;
+};
+
 /** Options on `globalData.renderConfig` used by `RenderableElement` and renderer constructors. */
 export interface RenderConfig {
   hideOnTransparent?: boolean;
@@ -213,6 +249,17 @@ export interface SlotManagerLike {
 export interface ImageLoaderLike {
   getAsset(asset: unknown): unknown;
 }
+
+/** Subset of `FontManager` used by canvas text rendering. */
+export interface FontManagerLike {
+  getFontByName(name: string): { fStyle: string; fFamily: string };
+  getCharData(char: string, style: string, family: string): { data?: { shapes?: Array<{ it: unknown[] }> } } | null;
+}
+
+/** `globalData` for canvas text layers. */
+export type GlobalDataCanvasText = GlobalDataCanvasLayer & {
+  fontManager: FontManagerLike;
+};
 
 export interface AudioPlayerLike {
   play(): void;

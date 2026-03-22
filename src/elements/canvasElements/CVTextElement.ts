@@ -1,4 +1,3 @@
-// @ts-nocheck
 import { extendPrototype } from '../../utils/functionExtensions';
 import { createSizedArray } from '../../utils/helpers/arrays';
 import createTag from '../../utils/helpers/html_elements';
@@ -9,9 +8,71 @@ import HierarchyElement from '../helpers/HierarchyElement';
 import FrameElement from '../helpers/FrameElement';
 import ITextElement from '../TextElement';
 import CVBaseElement from './CVBaseElement';
+import Matrix from '../../3rd_party/transformation-matrix';
+import type { GlobalData, GlobalDataCanvasText, TextLayerData } from '../../types/lottieRuntime';
+import type TextProperty from '../../utils/text/TextProperty';
+import type { TextDocumentLayoutSlice } from '../TextElement';
+
+type MatrixInstance = InstanceType<typeof Matrix>;
+
+interface TextLetterEntry {
+  n?: boolean;
+  l?: number;
+  line?: number;
+}
+
+interface RenderedLetterCanvas {
+  p?: number[];
+  o?: number;
+  fc?: string;
+  sc?: string;
+  sw?: number;
+}
+
+/** `TextProperty` is still `@ts-nocheck`; canvas text reads `currentData` at runtime. */
+type TextPropertyWithDoc = TextProperty & {
+  currentData: TextDocumentLayoutSlice & {
+    l: TextLetterEntry[];
+    fc?: number[];
+    sc?: number[];
+    sw?: number;
+    f: string;
+    finalSize: number;
+    finalText: string;
+    yOffset: number;
+    tr: number;
+  };
+};
 
 class CVTextElement {
-  constructor(data, globalData, comp) {
+  declare textSpans: Array<{ elem: number[][] }>;
+  declare yOffset: number;
+  declare fillColorAnim: boolean;
+  declare strokeColorAnim: boolean;
+  declare strokeWidthAnim: boolean;
+  declare stroke: boolean;
+  declare fill: boolean;
+  declare justifyOffset: number;
+  declare currentRender: unknown;
+  declare renderType: string;
+  declare values: { fill: string; stroke: string; sWidth: number; fValue: string };
+  declare initElement: (data: TextLayerData, globalData: GlobalData, comp: unknown) => void;
+  declare textProperty: TextProperty;
+  declare textAnimator: {
+    getMeasures: (data: unknown, flag: boolean) => void;
+    renderedLetters: RenderedLetterCanvas[];
+  };
+  declare mHelper: MatrixInstance;
+  declare data: TextLayerData;
+  declare globalData: GlobalDataCanvasText;
+  declare canvasContext: CanvasRenderingContext2D;
+  declare lettersChangedFlag: boolean;
+  declare applyTextPropertiesToMatrix: ITextElement['applyTextPropertiesToMatrix'];
+  declare buildColor: ITextElement['buildColor'];
+  declare validateText: () => void;
+  declare tHelper: CanvasRenderingContext2D;
+
+  constructor(data: TextLayerData, globalData: GlobalDataCanvasText, comp: unknown) {
     this.textSpans = [];
     this.yOffset = 0;
     this.fillColorAnim = false;
@@ -28,13 +89,12 @@ class CVTextElement {
       sWidth: 0,
       fValue: '',
     };
+    this.mHelper = new Matrix() as MatrixInstance;
     this.initElement(data, globalData, comp);
   }
 
   buildNewText() {
-    const documentData = this.textProperty.currentData;
-    this.renderedLetters = createSizedArray(documentData.l ? documentData.l.length : 0);
-
+    const documentData = (this.textProperty as TextPropertyWithDoc).currentData;
     let hasFill = false;
     if (documentData.fc) {
       hasFill = true;
@@ -47,28 +107,33 @@ class CVTextElement {
     if (documentData.sc) {
       hasStroke = true;
       this.values.stroke = this.buildColor(documentData.sc);
-      this.values.sWidth = documentData.sw;
+      this.values.sWidth = documentData.sw!;
     }
     const fontData = this.globalData.fontManager.getFontByName(documentData.f);
-    let i;
-    const letters = documentData.l;
+    let i: number;
+    const letters = documentData.l!;
     const matrixHelper = this.mHelper;
     this.stroke = hasStroke;
     this.values.fValue =
       documentData.finalSize + 'px ' + this.globalData.fontManager.getFontByName(documentData.f).fFamily;
     const len = documentData.finalText.length;
-    // this.tHelper.font = this.values.fValue;
-    let charData;
-    let shapeData;
-    let k;
-    let kLen;
-    let shapes;
-    let j;
-    let jLen;
-    let pathNodes;
-    let commands;
-    let pathArr;
-    const singleShape = this.data.singleShape;
+    let charData: { data?: { shapes?: Array<{ it: unknown[] }> } } | null;
+    let shapeData: { shapes?: Array<{ it: unknown[] }> };
+    let k: number;
+    let kLen: number;
+    let shapes: unknown[];
+    let j: number;
+    let jLen: number;
+    let pathNodes: {
+      v: number[][];
+      o: number[][];
+      i: number[][];
+      _length: number;
+      c?: boolean;
+    };
+    let commands: number[][];
+    let pathArr: number[];
+    const singleShape = this.data.singleShape as boolean;
     const trackingOffset = documentData.tr * 0.001 * documentData.finalSize;
     let xPos = 0;
     let yPos = 0;
@@ -88,18 +153,25 @@ class CVTextElement {
         yPos += firstLine ? 1 : 0;
         firstLine = false;
       }
-      shapes = shapeData.shapes ? shapeData.shapes[0].it : [];
+      shapes = shapeData.shapes ? (shapeData.shapes[0] as { it: unknown[] }).it : [];
       jLen = shapes.length;
       matrixHelper.scale(documentData.finalSize / 100, documentData.finalSize / 100);
       if (singleShape) {
-        this.applyTextPropertiesToMatrix(documentData, matrixHelper, letters[i].line, xPos, yPos);
+        this.applyTextPropertiesToMatrix(
+          documentData as TextDocumentLayoutSlice,
+          matrixHelper,
+          letters[i].line!,
+          xPos,
+          yPos,
+        );
       }
-      commands = createSizedArray(jLen - 1);
+      commands = createSizedArray(jLen - 1) as number[][];
       let commandsCounter = 0;
       for (j = 0; j < jLen; j += 1) {
-        if (shapes[j].ty === 'sh') {
-          kLen = shapes[j].ks.k.i.length;
-          pathNodes = shapes[j].ks.k;
+        const shapeItem = shapes[j] as { ty: string; ks: { k: typeof pathNodes } };
+        if (shapeItem.ty === 'sh') {
+          kLen = shapeItem.ks.k.i.length;
+          pathNodes = shapeItem.ks.k;
           pathArr = [];
           for (k = 1; k < kLen; k += 1) {
             if (k === 1) {
@@ -130,7 +202,7 @@ class CVTextElement {
         }
       }
       if (singleShape) {
-        xPos += letters[i].l;
+        xPos += letters[i].l!;
         xPos += trackingOffset;
       }
       if (this.textSpans[cnt]) {
@@ -147,52 +219,47 @@ class CVTextElement {
     const ctx = this.canvasContext;
     ctx.font = this.values.fValue;
     this.globalData.renderer.ctxLineCap('butt');
-    // ctx.lineCap = 'butt';
     this.globalData.renderer.ctxLineJoin('miter');
-    // ctx.lineJoin = 'miter';
     this.globalData.renderer.ctxMiterLimit(4);
-    // ctx.miterLimit = 4;
 
     if (!this.data.singleShape) {
-      this.textAnimator.getMeasures(this.textProperty.currentData, this.lettersChangedFlag);
+      this.textAnimator.getMeasures((this.textProperty as TextPropertyWithDoc).currentData, this.lettersChangedFlag);
     }
 
-    let i;
-    let j;
-    let jLen;
-    let k;
-    let kLen;
+    let i: number;
+    let j: number;
+    let jLen: number;
+    let k: number;
+    let kLen: number;
     const renderedLetters = this.textAnimator.renderedLetters;
 
-    const letters = this.textProperty.currentData.l;
+    const letters = (this.textProperty as TextPropertyWithDoc).currentData.l;
 
     const len = letters.length;
-    let renderedLetter;
-    let lastFill = null;
-    let lastStroke = null;
-    let lastStrokeW = null;
-    let commands;
-    let pathArr;
+    let renderedLetter: RenderedLetterCanvas | undefined;
+    let lastFill: string | null = null;
+    let lastStroke: string | null = null;
+    let lastStrokeW: number | null = null;
+    let commands: number[][];
+    let pathArr: number[];
     const renderer = this.globalData.renderer;
     for (i = 0; i < len; i += 1) {
       if (!letters[i].n) {
         renderedLetter = renderedLetters[i];
         if (renderedLetter) {
           renderer.save();
-          renderer.ctxTransform(renderedLetter.p);
-          renderer.ctxOpacity(renderedLetter.o);
+          renderer.ctxTransform(renderedLetter.p!);
+          renderer.ctxOpacity(renderedLetter.o!);
         }
         if (this.fill) {
           if (renderedLetter && renderedLetter.fc) {
             if (lastFill !== renderedLetter.fc) {
               renderer.ctxFillStyle(renderedLetter.fc);
               lastFill = renderedLetter.fc;
-              // ctx.fillStyle = renderedLetter.fc;
             }
           } else if (lastFill !== this.values.fill) {
             lastFill = this.values.fill;
             renderer.ctxFillStyle(this.values.fill);
-            // ctx.fillStyle = this.values.fill;
           }
           commands = this.textSpans[i].elem;
           jLen = commands.length;
@@ -214,31 +281,25 @@ class CVTextElement {
           }
           this.globalData.canvasContext.closePath();
           renderer.ctxFill();
-          // this.globalData.canvasContext.fill();
-          /// ctx.fillText(this.textSpans[i].val,0,0);
         }
         if (this.stroke) {
           if (renderedLetter && renderedLetter.sw) {
             if (lastStrokeW !== renderedLetter.sw) {
               lastStrokeW = renderedLetter.sw;
               renderer.ctxLineWidth(renderedLetter.sw);
-              // ctx.lineWidth = renderedLetter.sw;
             }
           } else if (lastStrokeW !== this.values.sWidth) {
             lastStrokeW = this.values.sWidth;
             renderer.ctxLineWidth(this.values.sWidth);
-            // ctx.lineWidth = this.values.sWidth;
           }
           if (renderedLetter && renderedLetter.sc) {
             if (lastStroke !== renderedLetter.sc) {
               lastStroke = renderedLetter.sc;
               renderer.ctxStrokeStyle(renderedLetter.sc);
-              // ctx.strokeStyle = renderedLetter.sc;
             }
           } else if (lastStroke !== this.values.stroke) {
             lastStroke = this.values.stroke;
             renderer.ctxStrokeStyle(this.values.stroke);
-            // ctx.strokeStyle = this.values.stroke;
           }
           commands = this.textSpans[i].elem;
           jLen = commands.length;
@@ -260,8 +321,6 @@ class CVTextElement {
           }
           this.globalData.canvasContext.closePath();
           renderer.ctxStroke();
-          // this.globalData.canvasContext.stroke();
-          /// ctx.strokeText(letters[i].val,0,0);
         }
         if (renderedLetter) {
           this.globalData.renderer.restore();
@@ -272,7 +331,7 @@ class CVTextElement {
 }
 
 /** Shared 2D context for font metrics (one per module, same as former prototype field). */
-const cvTextMeasureContext = createTag('canvas').getContext('2d');
+const cvTextMeasureContext = (createTag('canvas') as HTMLCanvasElement).getContext('2d')!;
 
 extendPrototype(
   [BaseElement, TransformElement, CVBaseElement, HierarchyElement, FrameElement, RenderableElement, ITextElement],

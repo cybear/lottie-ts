@@ -3,15 +3,22 @@ import createTag from '../utils/helpers/html_elements';
 import type {
   AnimationItemRendererPartial,
   AnimationRootData,
+  ElementData,
   GlobalData,
+  GlobalDataCanvasImage,
+  GlobalDataCanvasLayer,
+  GlobalDataCanvasText,
+  RefIdLayerData,
   RendererElementInstance,
   RendererElementSlot,
   RendererLayerData,
   RenderConfig,
+  SolidColorLayerData,
+  TextLayerData,
 } from '../types/lottieRuntime';
 import SVGRendererBase from './SVGRendererBase';
 import BaseRenderer from './BaseRenderer';
-import CVShapeElement from '../elements/canvasElements/CVShapeElement';
+import CVShapeElement, { type ShapeJsonNode } from '../elements/canvasElements/CVShapeElement';
 import CVTextElement from '../elements/canvasElements/CVTextElement';
 import CVImageElement from '../elements/canvasElements/CVImageElement';
 import CVSolidElement from '../elements/canvasElements/CVSolidElement';
@@ -50,19 +57,35 @@ abstract class CanvasRendererBase extends BaseRenderer {
   abstract createComp(data: RendererLayerData): RendererElementInstance;
 
   createShape(data: RendererLayerData): RendererElementInstance {
-    return new CVShapeElement(data, this.globalData, this) as unknown as RendererElementInstance;
+    return new CVShapeElement(
+      data as unknown as ElementData & { shapes: ShapeJsonNode[] },
+      this.globalData as unknown as GlobalDataCanvasLayer,
+      this,
+    ) as unknown as RendererElementInstance;
   }
 
   createText(data: RendererLayerData): RendererElementInstance {
-    return new CVTextElement(data, this.globalData, this) as unknown as RendererElementInstance;
+    return new CVTextElement(
+      data as unknown as TextLayerData,
+      this.globalData as unknown as GlobalDataCanvasText,
+      this,
+    ) as unknown as RendererElementInstance;
   }
 
   createImage(data: RendererLayerData): RendererElementInstance {
-    return new CVImageElement(data, this.globalData, this) as unknown as RendererElementInstance;
+    return new CVImageElement(
+      data as unknown as RefIdLayerData,
+      this.globalData as unknown as GlobalDataCanvasImage,
+      this,
+    ) as unknown as RendererElementInstance;
   }
 
   createSolid(data: RendererLayerData): RendererElementInstance {
-    return new CVSolidElement(data, this.globalData, this) as unknown as RendererElementInstance;
+    return new CVSolidElement(
+      data as unknown as SolidColorLayerData,
+      this.globalData as unknown as GlobalDataCanvasLayer,
+      this,
+    ) as unknown as RendererElementInstance;
   }
 
   createNull(data: RendererLayerData): RendererElementInstance {

@@ -1,4 +1,3 @@
-// @ts-nocheck
 import { extendPrototype } from '../../utils/functionExtensions';
 import RenderableElement from '../helpers/RenderableElement';
 import BaseElement from '../BaseElement';
@@ -8,19 +7,21 @@ import FrameElement from '../helpers/FrameElement';
 import CVBaseElement from './CVBaseElement';
 import IImageElement from '../ImageElement';
 import SVGShapeElement from '../svgElements/SVGShapeElement';
+import type { GlobalData, GlobalDataCanvasLayer, SolidColorLayerData } from '../../types/lottieRuntime';
 
 class CVSolidElement {
-  constructor(data, globalData, comp) {
+  declare initElement: (data: SolidColorLayerData, globalData: GlobalData, comp: unknown) => void;
+  declare prepareFrame: (num: number) => void;
+  declare globalData: GlobalDataCanvasLayer;
+  declare data: SolidColorLayerData;
+
+  constructor(data: SolidColorLayerData, globalData: GlobalDataCanvasLayer, comp: unknown) {
     this.initElement(data, globalData, comp);
   }
 
   renderInnerContent() {
-    // var ctx = this.canvasContext;
     this.globalData.renderer.ctxFillStyle(this.data.sc);
-    // ctx.fillStyle = this.data.sc;
     this.globalData.renderer.ctxFillRect(0, 0, this.data.sw, this.data.sh);
-    // ctx.fillRect(0, 0, this.data.sw, this.data.sh);
-    //
   }
 }
 extendPrototype(
@@ -28,8 +29,11 @@ extendPrototype(
   CVSolidElement,
 );
 
-// Same borrow pattern as CVImageElement: DOM init path + image-style prepareFrame.
-CVSolidElement.prototype.initElement = SVGShapeElement.prototype.initElement;
-CVSolidElement.prototype.prepareFrame = IImageElement.prototype.prepareFrame;
+CVSolidElement.prototype.initElement = (
+  SVGShapeElement.prototype as unknown as { initElement: CVSolidElement['initElement'] }
+).initElement;
+CVSolidElement.prototype.prepareFrame = (
+  IImageElement.prototype as unknown as { prepareFrame: CVSolidElement['prepareFrame'] }
+).prepareFrame;
 
 export default CVSolidElement;

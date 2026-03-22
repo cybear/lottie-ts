@@ -1,4 +1,3 @@
-// @ts-nocheck
 import { extendPrototype } from '../../utils/functionExtensions';
 import createTag from '../../utils/helpers/html_elements';
 import RenderableElement from '../helpers/RenderableElement';
@@ -9,11 +8,36 @@ import FrameElement from '../helpers/FrameElement';
 import CVBaseElement from './CVBaseElement';
 import IImageElement from '../ImageElement';
 import SVGShapeElement from '../svgElements/SVGShapeElement';
+import type { GlobalData, GlobalDataCanvasImage, ImageAssetData, RefIdLayerData } from '../../types/lottieRuntime';
+
+type CanvasImageSourceLike = CanvasImageSource;
+
+function readCanvasImageSize(img: CanvasImageSource): { width: number; height: number } {
+  if (
+    img instanceof HTMLImageElement ||
+    img instanceof HTMLVideoElement ||
+    img instanceof HTMLCanvasElement ||
+    (typeof ImageBitmap !== 'undefined' && img instanceof ImageBitmap) ||
+    (typeof OffscreenCanvas !== 'undefined' && img instanceof OffscreenCanvas)
+  ) {
+    return { width: img.width, height: img.height };
+  }
+  const vf = img as VideoFrame;
+  return { width: vf.displayWidth, height: vf.displayHeight };
+}
 
 class CVImageElement {
-  constructor(data, globalData, comp) {
-    this.assetData = globalData.getAssetData(data.refId);
-    this.img = globalData.imageLoader.getAsset(this.assetData);
+  declare assetData: ImageAssetData;
+  declare img: CanvasImageSourceLike;
+  declare initElement: (data: RefIdLayerData, globalData: GlobalData, comp: unknown) => void;
+  declare prepareFrame: (num: number) => void;
+  declare canvasContext: CanvasRenderingContext2D;
+  declare globalData: GlobalDataCanvasImage;
+  declare data: RefIdLayerData;
+
+  constructor(data: RefIdLayerData, globalData: GlobalDataCanvasImage, comp: unknown) {
+    this.assetData = globalData.getAssetData(data.refId) as ImageAssetData;
+    this.img = globalData.imageLoader.getAsset(this.assetData) as CanvasImageSourceLike;
     this.initElement(data, globalData, comp);
   }
 
@@ -22,18 +46,16 @@ class CVImageElement {
   }
 
   createContent() {
-    if (this.img.width && (this.assetData.w !== this.img.width || this.assetData.h !== this.img.height)) {
-      const canvas = createTag('canvas');
+    const { width: imgW, height: imgH } = readCanvasImageSize(this.img);
+    if (imgW && (this.assetData.w !== imgW || this.assetData.h !== imgH)) {
+      const canvas = createTag('canvas') as HTMLCanvasElement;
       canvas.width = this.assetData.w;
       canvas.height = this.assetData.h;
-      const ctx = canvas.getContext('2d');
-
-      const imgW = this.img.width;
-      const imgH = this.img.height;
+      const ctx = canvas.getContext('2d')!;
       const imgRel = imgW / imgH;
       const canvasRel = this.assetData.w / this.assetData.h;
-      let widthCrop;
-      let heightCrop;
+      let widthCrop: number;
+      let heightCrop: number;
       const par = this.assetData.pr || this.globalData.renderConfig.imagePreserveAspectRatio;
       if ((imgRel > canvasRel && par === 'xMidYMid slice') || (imgRel < canvasRel && par !== 'xMidYMid slice')) {
         heightCrop = imgH;
@@ -58,7 +80,7 @@ class CVImageElement {
   }
 
   destroy() {
-    this.img = null;
+    this.img = null as unknown as CanvasImageSourceLike;
   }
 }
 
@@ -73,7 +95,11 @@ extendPrototype(
 CVImageElement.prototype.createContent = cvImageCreateContent;
 CVImageElement.prototype.destroy = cvImageDestroy;
 
-CVImageElement.prototype.initElement = SVGShapeElement.prototype.initElement;
-CVImageElement.prototype.prepareFrame = IImageElement.prototype.prepareFrame;
+CVImageElement.prototype.initElement = (
+  SVGShapeElement.prototype as unknown as { initElement: CVImageElement['initElement'] }
+).initElement;
+CVImageElement.prototype.prepareFrame = (
+  IImageElement.prototype as unknown as { prepareFrame: CVImageElement['prepareFrame'] }
+).prepareFrame;
 
 export default CVImageElement;
