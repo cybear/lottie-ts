@@ -159,6 +159,22 @@ export interface RenderableComponentEntry {
 /** Layer JSON subset: optional `parent` index for `HierarchyElement.checkParenting`. */
 export type LayerParentData = ElementData & { parent?: number };
 
+/** One entry in `data.masksProperties` (`BaseElement.checkMasks`). */
+export interface MaskPropertyEntry {
+  mode: string;
+  cl?: boolean;
+}
+
+/** Layer fields used by `BaseElement` (init, masks, blend mode, expressions). */
+export type BaseInitLayerData = ElementData & {
+  hasMask?: boolean;
+  masksProperties?: MaskPropertyEntry[];
+  ty?: number;
+  xt?: boolean;
+  bm?: number;
+  sr?: number;
+};
+
 /**
  * Renderer / comp host that resolves layer parenting (`buildElementParenting`).
  */

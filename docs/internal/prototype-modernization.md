@@ -269,7 +269,7 @@ After each slice, run `npm test`, `npm run test:e2e`, and compare baselines wher
 
 ### Track A (incremental, started)
 
-- **`src/types/lottieRuntime.ts`:** `GlobalData` expanded (`CompSize`, `_mdf`, frame fields, `defs`, asset helpers, optional canvas/renderer fields, index signature for extra renderer state). `LayerDynamicProperty` models `dynamicProperties` entries. Also: `RenderConfig` (incl. `imagePreserveAspectRatio`), `SolidColorLayerData`, `ImageAssetData`, `ShapeModifierLike`, `AudioLayerData`, `TextLayerData`, `RefIdLayerData`, `CompLayerData`, `CompChildElement`, `SlotManagerLike`, `ImageLoaderLike`, `AudioPlayerLike`, `AudioControllerLike`, `LayerInOutData`, `FinalTransformOpacitySlice`, `RenderableComponentEntry`, `LayerParentData`, `ParentingHost`.
+- **`src/types/lottieRuntime.ts`:** `GlobalData` expanded (`CompSize`, `_mdf`, frame fields, `defs`, asset helpers, optional canvas/renderer fields, index signature for extra renderer state). `LayerDynamicProperty` models `dynamicProperties` entries. Also: `RenderConfig` (incl. `imagePreserveAspectRatio`), `SolidColorLayerData`, `ImageAssetData`, `ShapeModifierLike`, `AudioLayerData`, `TextLayerData`, `RefIdLayerData`, `CompLayerData`, `CompChildElement`, `SlotManagerLike`, `ImageLoaderLike`, `AudioPlayerLike`, `AudioControllerLike`, `LayerInOutData`, `FinalTransformOpacitySlice`, `RenderableComponentEntry`, `LayerParentData`, `ParentingHost`, `MaskPropertyEntry`, `BaseInitLayerData`.
 - **`FrameElement`:** `@ts-nocheck` removed; uses `GlobalData` and `LayerDynamicProperty` for `prepareProperties` / `addDynamicProperty`.
 - **`HierarchyElement`:** `@ts-nocheck` removed; `LayerParentData` + `ParentingHost` for `checkParenting` / `setHierarchy`.
 - **`RenderableElement`:** `@ts-nocheck` removed; `hide` / `show` declared; typed against `GlobalData`, `LayerInOutData`, `RenderableComponentEntry`, `FinalTransformOpacitySlice`.
@@ -286,3 +286,13 @@ After each slice, run `npm test`, `npm run test:e2e`, and compare baselines wher
 - **`ITextElement` (`TextElement.ts`):** `@ts-nocheck` removed; `TextLayerData`, text/matrix helper interfaces, `TextProperty` frame flags via intersection; `prototype.emptyProp` via typed assertion.
 - **`ICompElement` (`CompElement.ts`):** `@ts-nocheck` removed; `CompLayerData`, `CompChildElement`, time-remap typing, mixin `declare`s for comp state.
 - **`ShapeGroupData`:** `@ts-nocheck` removed; `it` / `prevViewData` / `gr` typed.
+- **`shapePathBuilder`:** `@ts-nocheck` removed; exports `BezierPathNodes` / `ShapePathMatrixHelper`; `ITextElement` casts path nodes at the call site.
+- **`SVGShapeData`:** `@ts-nocheck` removed; `ShapeTransformerLike` + typed shape payload.
+- **`SVGNoStyleData`:** `@ts-nocheck` removed; `DynamicPropertyContainer` subclass with typed `container` / `style`.
+- **`EffectsManagerPlaceholder`:** `@ts-nocheck` removed; typed `effectElements` stub.
+- **`EffectsManager` (real):** constructor accepts optional third `_dynamicProperties` (ignored) so `BaseElement`’s three-argument call matches the signature.
+- **`BaseElement`:** `@ts-nocheck` removed; `BaseInitLayerData`, expression-interface subset, `mix-blend-mode` via `setProperty`.
+- **`CVShapeData`:** `@ts-nocheck` removed; canvas style rows + `ShapePropertyFactory` cast for `getShapeProp`.
+- **`ShapeElementData` (`helpers/shapes/ShapeElement.ts`):** `@ts-nocheck` removed; empty marker class.
+- **`SVGTransformData`:** `@ts-nocheck` removed; typed `mProps` / `op` / `_isAnimated` (numeric truthiness preserved).
+- **`TransformElement`:** `@ts-nocheck` removed; `Matrix` / hierarchy / local-transform / comp-walk typing; `mHelper` stays on `prototype`.

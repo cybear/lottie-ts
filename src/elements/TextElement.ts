@@ -2,7 +2,7 @@ import type { GlobalData, LayerDynamicProperty, TextLayerData } from '../types/l
 import LetterProps from '../utils/text/LetterProps';
 import TextProperty from '../utils/text/TextProperty';
 import TextAnimatorProperty from '../utils/text/TextAnimatorProperty';
-import buildShapeString from '../utils/shapes/shapePathBuilder';
+import buildShapeString, { type BezierPathNodes } from '../utils/shapes/shapePathBuilder';
 
 interface MatrixPointHelper {
   applyToPointStringified(x: number, y: number): string;
@@ -91,7 +91,7 @@ class ITextElement {
     for (j = 0; j < jLen; j += 1) {
       if (shapes[j].ty === 'sh') {
         pathNodes = shapes[j].ks.k;
-        shapeStr += buildShapeString(pathNodes, pathNodes.i.length, true, matrixHelper);
+        shapeStr += buildShapeString(pathNodes as BezierPathNodes, pathNodes.i.length, true, matrixHelper);
       }
     }
     return shapeStr;

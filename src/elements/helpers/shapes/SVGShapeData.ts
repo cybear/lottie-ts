@@ -1,6 +1,18 @@
-// @ts-nocheck
+/** Transformer entry with animated matrix props (shape pipeline). */
+export interface ShapeTransformerLike {
+  mProps: { dynamicProperties: unknown[] };
+}
+
 class SVGShapeData {
-  constructor(transformers, level, shape) {
+  caches: unknown[];
+  styles: unknown[];
+  transformers: ShapeTransformerLike[];
+  lStr: string;
+  sh: { k?: unknown };
+  lvl: number;
+  _isAnimated: boolean;
+
+  constructor(transformers: ShapeTransformerLike[], level: number, shape: { k?: unknown }) {
     this.caches = [];
     this.styles = [];
     this.transformers = transformers;

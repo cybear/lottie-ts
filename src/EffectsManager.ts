@@ -12,7 +12,7 @@ import {
 import DynamicPropertyContainer from './utils/helpers/dynamicProperties';
 
 class EffectsManager {
-  constructor(data, element) {
+  constructor(data, element, _dynamicProperties) {
     const effects = data.ef || [];
     this.effectElements = [];
     let i;

@@ -1,6 +1,21 @@
-// @ts-nocheck
+interface TransformMPropsLike {
+  dynamicProperties: unknown[];
+}
+
+interface TransformOpLike {
+  effectsSequence: unknown[];
+}
+
 class SVGTransformData {
-  constructor(mProps, op, container) {
+  transform: {
+    mProps: TransformMPropsLike;
+    op: TransformOpLike;
+    container: unknown;
+  };
+  elements: unknown[];
+  _isAnimated: number;
+
+  constructor(mProps: TransformMPropsLike, op: TransformOpLike, container: unknown) {
     this.transform = {
       mProps: mProps,
       op: op,

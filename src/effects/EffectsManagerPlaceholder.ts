@@ -1,5 +1,6 @@
-// @ts-nocheck
 class EffectsManager {
+  effectElements: unknown[];
+
   constructor() {
     this.effectElements = [];
   }
