@@ -2,6 +2,7 @@
 import { extendPrototype } from '../../utils/functionExtensions';
 import { createSizedArray } from '../../utils/helpers/arrays';
 import PropertyFactory from '../../utils/PropertyFactory';
+import BaseRenderer from '../../renderers/BaseRenderer';
 import HybridRendererBase from '../../renderers/HybridRendererBase';
 import HBaseElement from './HBaseElement';
 import ICompElement from '../CompElement';
@@ -17,7 +18,7 @@ function HCompElement(data, globalData, comp) {
   this.tm = data.tm ? PropertyFactory.getProp(this, data.tm, 0, globalData.frameRate, this) : { _placeholder: true };
 }
 
-extendPrototype([HybridRendererBase, ICompElement, HBaseElement], HCompElement);
+extendPrototype([BaseRenderer, HybridRendererBase, ICompElement, HBaseElement], HCompElement);
 HCompElement.prototype._createBaseContainerElements = HCompElement.prototype.createContainerElements;
 
 HCompElement.prototype.createContainerElements = function () {
