@@ -1,6 +1,6 @@
 # Prototype / `extendPrototype` inventory and class migration strategy
 
-This document supports Track A (strict typing) and Track B (ES classes) modernization. *Last updated: 2025-03-22 — includes trait/renderer-base/effects/mask/shape-helper class conversions; regenerate counts as needed.*
+This document supports Track A (strict typing) and Track B (ES classes) modernization. *Last updated: 2025-03-22 — adds `EffectsManager`, text (`TextProperty`, `LetterProps`), `CVMaskElement`, and the empty `SVGEffects` stub class; see Track B table below.*
 
 Regenerate the call-site table with:
 
@@ -185,12 +185,15 @@ These are `class` constructors whose **`prototype`** methods are still merged on
 | Shape / text traits | `IShapeElement` (`ShapeElement.ts`), `ITextElement` (`TextElement.ts`) |
 | Renderer-family bases | `SVGBaseElement`, `CVBaseElement`, `HBaseElement` |
 | Effects on layers | `SVGEffects`, `CVEffects` |
-| Masking | `MaskElement` |
+| Effect data tree | `EffectsManager` (root; nested groups still `GroupEffect extends DynamicPropertyContainer`) |
+| Masking | `MaskElement`, `CVMaskElement` (`getMaskProperty` aliased from `MaskElement.prototype`) |
+| Text | `TextProperty` (shared `defaultBoxWidth` on `prototype`), `LetterProps` |
+| SVG stub | `SVGEffects` in `SVGEffectsPlaceholder.ts` (no-op class for tree-shaken / placeholder bundles) |
 | Shape geometry helpers | `ShapeCollection`, `ShapePath` |
 | Dynamic / modifiers | `DynamicPropertyContainer`, `ShapeModifier` (+ concrete modifiers), `ShapeProperty`, `KeyframedShapeProperty`, `ShapeExpressions` (expression decorator) |
 | Worker bundle | `ProxyElement`, `CanvasElement` |
 
-**Shared prototype data** (single instance per constructor) remains assigned **after** the `class` body where the old code relied on it: e.g. `TransformElement.prototype.mHelper`, `CVBaseElement.prototype.mHelper`, `ITextElement.prototype.emptyProp`. For nested canvas compositions, **`CanvasRendererBase.prototype.createNull`** is copied from `SVGRendererBase.prototype.createNull`, not defined as a subclass field.
+**Shared prototype data** (single instance per constructor) remains assigned **after** the `class` body where the old code relied on it: e.g. `TransformElement.prototype.mHelper`, `CVBaseElement.prototype.mHelper`, `ITextElement.prototype.emptyProp`, **`TextProperty.prototype.defaultBoxWidth`**. **`CVMaskElement.prototype.getMaskProperty`** is copied from **`MaskElement.prototype`**. For nested canvas compositions, **`CanvasRendererBase.prototype.createNull`** is copied from `SVGRendererBase.prototype.createNull`, not defined as a subclass field.
 
 ### Comp elements: why `BaseRenderer` is first
 

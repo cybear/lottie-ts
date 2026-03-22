@@ -11,15 +11,17 @@ import {
 } from './effects/SliderEffect';
 import DynamicPropertyContainer from './utils/helpers/dynamicProperties';
 
-function EffectsManager(data, element) {
-  const effects = data.ef || [];
-  this.effectElements = [];
-  let i;
-  const len = effects.length;
-  let effectItem;
-  for (i = 0; i < len; i += 1) {
-    effectItem = new GroupEffect(effects[i], element);
-    this.effectElements.push(effectItem);
+class EffectsManager {
+  constructor(data, element) {
+    const effects = data.ef || [];
+    this.effectElements = [];
+    let i;
+    const len = effects.length;
+    let effectItem;
+    for (i = 0; i < len; i += 1) {
+      effectItem = new GroupEffect(effects[i], element);
+      this.effectElements.push(effectItem);
+    }
   }
 }
 
