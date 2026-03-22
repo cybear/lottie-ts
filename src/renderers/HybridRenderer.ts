@@ -9,15 +9,12 @@ import type {
 } from '../types/lottieRuntime';
 
 class HybridRenderer extends HybridRendererBase {
-  declare renderConfig: RenderConfig;
-  declare supports3d: boolean;
-
   constructor(animationItem: AnimationItemRendererPartial, config?: Partial<RenderConfig>) {
     super(animationItem, config);
     this.renderConfig.runExpressions = !config || config.runExpressions === undefined || config.runExpressions;
   }
 
-  createComp(data: RendererLayerData): RendererElementInstance {
+  createComp(data: RendererLayerData, ..._args: unknown[]): RendererElementInstance {
     if (!this.supports3d) {
       return new SVGCompElement(data, this.globalData, this) as unknown as RendererElementInstance;
     }
