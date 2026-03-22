@@ -1,6 +1,6 @@
 # Prototype / `extendPrototype` inventory and class migration strategy
 
-This document supports Track A (strict typing) and Track B (ES classes) modernization. *Last updated: 2025-03-22 — adds `PropertyFactory` property types as ES classes (`ValueProperty`, `MultiDimensionalProperty`, `KeyframedValueProperty`, `KeyframedMultidimensionalProperty`; file uses `@ts-nocheck` until fields are typed), `PolynomialBezier` as a class with static `shapeSegment` / `shapeSegmentInverted`, `TextAnimatorDataProperty`, and `EffectsManager` placeholder.*
+This document supports Track A (strict typing) and Track B (ES classes) modernization. *Last updated: 2025-03-22 — adds hybrid `HEffects`, `AudioController` (factory → `new AudioController()`), and small `AudioElement` data holder in `utils/audio` (not the Lottie layer in `elements/AudioElement.ts`).*
 
 Regenerate the call-site table with:
 
@@ -184,6 +184,8 @@ These are `class` constructors whose **`prototype`** methods are still merged on
 | Core traits | `BaseElement`, `TransformElement`, `HierarchyElement`, `FrameElement`, `RenderableElement` |
 | Shape / text traits | `IShapeElement` (`ShapeElement.ts`), `ITextElement` (`TextElement.ts`) |
 | Renderer-family bases | `SVGBaseElement`, `CVBaseElement`, `HBaseElement` |
+| Hybrid HTML effects stub | `HEffects` (`elements/htmlElements/HEffects.ts`) |
+| Audio runtime | `AudioController` (`utils/audio/AudioController.ts`); `AudioElement` audio-data wrapper (`utils/audio/AudioElement.ts`, distinct from the layer class) |
 | Effects on layers | `SVGEffects`, `CVEffects` |
 | Effect data tree | `EffectsManager` + `GroupEffect` (`EffectsManager.ts`); empty placeholder class (`EffectsManagerPlaceholder.ts`) |
 | Masking | `MaskElement`, `CVMaskElement` (`getMaskProperty` aliased from `MaskElement.prototype`) |

@@ -4,8 +4,12 @@ interface AudioData {
 }
 
 // TODO: fix Overwrite
-function AudioElement(this: { audioData: AudioData }, data: AudioData) {
-  this.audioData = data;
+class AudioElement {
+  audioData: AudioData;
+
+  constructor(data: AudioData) {
+    this.audioData = data;
+  }
 }
 
 export default AudioElement;
