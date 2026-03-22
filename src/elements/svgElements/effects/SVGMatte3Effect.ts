@@ -1,22 +1,51 @@
-// @ts-nocheck
 import { createElementID } from '../../../utils/common';
 import createNS from '../../../utils/helpers/svg_elements';
+import type { GlobalData, GroupEffectLike } from '../../../types/lottieRuntime';
 
-const _svgMatteSymbols = [];
+const _svgMatteSymbols: unknown[] = [];
+
+interface Matte3LayerEntry {
+  data: { ind?: number; hd?: boolean };
+  layerElement: SVGElement;
+  layerId: string;
+  setMatte(id: string): void;
+  show(): void;
+}
+
+interface SvgMatte3LayerHost {
+  matteElement: SVGGElement;
+  layerElement: SVGGElement;
+  transformedElement: SVGElement;
+  baseElement: SVGElement;
+  globalData: GlobalData;
+  comp: { elements: Array<Matte3LayerEntry | null | undefined> };
+  setMatte(id: string): void;
+}
 
 class SVGMatte3Effect {
-  constructor(filterElem, filterManager, elem) {
+  initialized: boolean;
+  declare filterManager: GroupEffectLike;
+  declare filterElem: SVGElement;
+  declare elem: SvgMatte3LayerHost;
+
+  constructor(
+    _filterElem: SVGElement,
+    filterManager: GroupEffectLike,
+    elem: SvgMatte3LayerHost,
+    _id?: string,
+    _source?: string,
+  ) {
     this.initialized = false;
     this.filterManager = filterManager;
-    this.filterElem = filterElem;
+    this.filterElem = _filterElem;
     this.elem = elem;
-    elem.matteElement = createNS('g');
+    elem.matteElement = createNS('g') as SVGGElement;
     elem.matteElement.appendChild(elem.layerElement);
     elem.matteElement.appendChild(elem.transformedElement);
     elem.baseElement = elem.matteElement;
   }
 
-  findSymbol(mask) {
+  findSymbol(mask: unknown) {
     let i = 0;
     const len = _svgMatteSymbols.length;
     while (i < len) {
@@ -28,7 +57,7 @@ class SVGMatte3Effect {
     return null;
   }
 
-  replaceInParent(mask, symbolId) {
+  replaceInParent(mask: Matte3LayerEntry, symbolId: string) {
     const parentNode = mask.layerElement.parentNode;
     if (!parentNode) {
       return;
@@ -42,7 +71,7 @@ class SVGMatte3Effect {
       }
       i += 1;
     }
-    let nextChild;
+    let nextChild: Element | undefined;
     if (i <= len - 2) {
       nextChild = children[i + 1];
     }
@@ -55,14 +84,14 @@ class SVGMatte3Effect {
     }
   }
 
-  setElementAsMask(elem, mask) {
+  setElementAsMask(elem: SvgMatte3LayerHost, mask: Matte3LayerEntry) {
     if (!this.findSymbol(mask)) {
       const symbolId = createElementID();
       const masker = createNS('mask');
       masker.setAttribute('id', mask.layerId);
       masker.setAttribute('mask-type', 'alpha');
       _svgMatteSymbols.push(mask);
-      const defs = elem.globalData.defs;
+      const defs = elem.globalData.defs as SVGDefsElement;
       defs.appendChild(masker);
       const symbol = createNS('symbol');
       symbol.setAttribute('id', symbolId);
@@ -79,13 +108,13 @@ class SVGMatte3Effect {
   }
 
   initialize() {
-    const ind = this.filterManager.effectElements[0].p.v;
+    const ind = this.filterManager.effectElements[0].p.v as number;
     const elements = this.elem.comp.elements;
     let i = 0;
     const len = elements.length;
     while (i < len) {
-      if (elements[i] && elements[i].data.ind === ind) {
-        this.setElementAsMask(this.elem, elements[i]);
+      if (elements[i] && elements[i]!.data.ind === ind) {
+        this.setElementAsMask(this.elem, elements[i]!);
       }
       i += 1;
     }

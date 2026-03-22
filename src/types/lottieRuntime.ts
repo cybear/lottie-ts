@@ -270,6 +270,28 @@ export type EffectJsonEntry = ElementData & {
   ef?: EffectJsonEntry[];
 };
 
+/** Animated property bag on one row of `GroupEffect.effectElements` / slider helpers. */
+export interface EffectAnimatedProp {
+  v: number | number[];
+  k?: unknown;
+  _mdf?: boolean;
+}
+
+export interface EffectValueRow {
+  p: EffectAnimatedProp;
+}
+
+/**
+ * `GroupEffect` surface used by SVG filter constructors, `TransformEffect`, and canvas transform.
+ * `container` is the host layer (`DynamicPropertyContainer.container`).
+ */
+export interface GroupEffectLike {
+  _mdf: boolean;
+  effectElements: EffectValueRow[];
+  container?: unknown;
+  data?: ElementData;
+}
+
 /** Layer fields used by `BaseElement` (init, masks, blend mode, expressions). */
 export type BaseInitLayerData = ElementData & {
   hasMask?: boolean;

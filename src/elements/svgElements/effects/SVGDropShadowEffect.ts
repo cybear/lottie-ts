@@ -1,13 +1,32 @@
-// @ts-nocheck
 import { degToRads, rgbToHex } from '../../../utils/common';
 import createNS from '../../../utils/helpers/svg_elements';
 import SVGComposableEffect from './SVGComposableEffect';
+import type { GlobalData, GroupEffectLike, RenderConfig } from '../../../types/lottieRuntime';
+import type { SVGEffectsLayerHost } from '../SVGEffects';
+
+type FilterSize = NonNullable<RenderConfig['filterSize']>;
+
+interface DropShadowLayerContainer {
+  globalData: GlobalData;
+}
 
 class SVGDropShadowEffect extends SVGComposableEffect {
-  constructor(filter, filterManager, elem, id, source) {
+  declare filterManager: GroupEffectLike;
+  declare feGaussianBlur: SVGElement;
+  declare feOffset: SVGElement;
+  declare feFlood: SVGElement;
+
+  constructor(
+    filter: SVGElement,
+    filterManager: GroupEffectLike,
+    _elem: SVGEffectsLayerHost,
+    id: string,
+    source: string,
+  ) {
     super();
-    const globalFilterSize = filterManager.container.globalData.renderConfig.filterSize;
-    const filterSize = filterManager.data.fs || globalFilterSize;
+    const container = filterManager.container as DropShadowLayerContainer;
+    const globalFilterSize = container.globalData.renderConfig!.filterSize! as FilterSize;
+    const filterSize = (filterManager.data?.fs as Partial<FilterSize> | undefined) || globalFilterSize;
     filter.setAttribute('x', filterSize.x || globalFilterSize.x);
     filter.setAttribute('y', filterSize.y || globalFilterSize.y);
     filter.setAttribute('width', filterSize.width || globalFilterSize.width);
@@ -46,28 +65,31 @@ class SVGDropShadowEffect extends SVGComposableEffect {
     filter.appendChild(feMerge);
   }
 
-  renderFrame(forceRender) {
+  renderFrame(forceRender: boolean) {
     if (forceRender || this.filterManager._mdf) {
       if (forceRender || this.filterManager.effectElements[4].p._mdf) {
-        this.feGaussianBlur.setAttribute('stdDeviation', this.filterManager.effectElements[4].p.v / 4);
+        this.feGaussianBlur.setAttribute(
+          'stdDeviation',
+          String((this.filterManager.effectElements[4].p.v as number) / 4),
+        );
       }
       if (forceRender || this.filterManager.effectElements[0].p._mdf) {
-        const col = this.filterManager.effectElements[0].p.v;
+        const col = this.filterManager.effectElements[0].p.v as number[];
         this.feFlood.setAttribute(
           'flood-color',
           rgbToHex(Math.round(col[0] * 255), Math.round(col[1] * 255), Math.round(col[2] * 255)),
         );
       }
       if (forceRender || this.filterManager.effectElements[1].p._mdf) {
-        this.feFlood.setAttribute('flood-opacity', this.filterManager.effectElements[1].p.v / 255);
+        this.feFlood.setAttribute('flood-opacity', String((this.filterManager.effectElements[1].p.v as number) / 255));
       }
       if (forceRender || this.filterManager.effectElements[2].p._mdf || this.filterManager.effectElements[3].p._mdf) {
-        const distance = this.filterManager.effectElements[3].p.v;
-        const angle = (this.filterManager.effectElements[2].p.v - 90) * degToRads;
+        const distance = this.filterManager.effectElements[3].p.v as number;
+        const angle = ((this.filterManager.effectElements[2].p.v as number) - 90) * degToRads;
         const x = distance * Math.cos(angle);
         const y = distance * Math.sin(angle);
-        this.feOffset.setAttribute('dx', x);
-        this.feOffset.setAttribute('dy', y);
+        this.feOffset.setAttribute('dx', String(x));
+        this.feOffset.setAttribute('dy', String(y));
       }
     }
   }

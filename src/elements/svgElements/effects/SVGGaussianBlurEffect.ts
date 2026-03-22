@@ -1,9 +1,11 @@
-// @ts-nocheck
 import createNS from '../../../utils/helpers/svg_elements';
+import type { GroupEffectLike } from '../../../types/lottieRuntime';
 
 class SVGGaussianBlurEffect {
-  constructor(filter, filterManager, elem, id) {
-    // Outset the filter region by 100% on all sides to accommodate blur expansion.
+  declare filterManager: GroupEffectLike;
+  declare feGaussianBlur: SVGElement;
+
+  constructor(filter: SVGElement, filterManager: GroupEffectLike, _elem: unknown, id: string, _source?: string) {
     filter.setAttribute('x', '-100%');
     filter.setAttribute('y', '-100%');
     filter.setAttribute('width', '300%');
@@ -16,28 +18,17 @@ class SVGGaussianBlurEffect {
     this.feGaussianBlur = feGaussianBlur;
   }
 
-  renderFrame(forceRender) {
+  renderFrame(forceRender: boolean) {
     if (forceRender || this.filterManager._mdf) {
-      // Empirical value, matching AE's blur appearance.
       const kBlurrinessToSigma = 0.3;
-      const sigma = this.filterManager.effectElements[0].p.v * kBlurrinessToSigma;
+      const sigma = (this.filterManager.effectElements[0].p.v as number) * kBlurrinessToSigma;
 
-      // Dimensions mapping:
-      //
-      //   1 -> horizontal & vertical
-      //   2 -> horizontal only
-      //   3 -> vertical only
-      //
-      const dimensions = this.filterManager.effectElements[1].p.v;
+      const dimensions = this.filterManager.effectElements[1].p.v as number;
       const sigmaX = dimensions == 3 ? 0 : sigma; // eslint-disable-line eqeqeq
       const sigmaY = dimensions == 2 ? 0 : sigma; // eslint-disable-line eqeqeq
 
       this.feGaussianBlur.setAttribute('stdDeviation', sigmaX + ' ' + sigmaY);
 
-      // Repeat edges mapping:
-      //
-      //   0 -> off -> duplicate
-      //   1 -> on  -> wrap
       const edgeMode = this.filterManager.effectElements[2].p.v == 1 ? 'wrap' : 'duplicate'; // eslint-disable-line eqeqeq
       this.feGaussianBlur.setAttribute('edgeMode', edgeMode);
     }
