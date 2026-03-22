@@ -15,17 +15,21 @@ class FootageElement {
   }
 
   prepareFrame() {}
+
+  getBaseElement() {
+    return null;
+  }
+
+  renderFrame() {}
+
+  destroy() {}
+
+  getFootageData() {
+    return this.footageData;
+  }
 }
 
 extendPrototype([RenderableElement, BaseElement, FrameElement], FootageElement);
-
-FootageElement.prototype.getBaseElement = function () {
-  return null;
-};
-
-FootageElement.prototype.renderFrame = function () {};
-
-FootageElement.prototype.destroy = function () {};
 
 FootageElement.prototype.initExpressions = function () {
   const expressionsInterfaces = getExpressionInterfaces();
@@ -34,10 +38,6 @@ FootageElement.prototype.initExpressions = function () {
   }
   const FootageInterface = expressionsInterfaces('footage');
   this.layerInterface = FootageInterface(this);
-};
-
-FootageElement.prototype.getFootageData = function () {
-  return this.footageData;
 };
 
 export default FootageElement;

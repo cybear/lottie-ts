@@ -6,7 +6,25 @@ import HierarchyElement from './helpers/HierarchyElement';
 import FrameElement from './helpers/FrameElement';
 import RenderableDOMElement from './helpers/RenderableDOMElement';
 
-class ICompElement {}
+class ICompElement {
+  setElements(elems) {
+    this.elements = elems;
+  }
+
+  getElements() {
+    return this.elements;
+  }
+
+  destroyElements() {
+    let i;
+    const len = this.layers.length;
+    for (i = 0; i < len; i += 1) {
+      if (this.elements[i]) {
+        this.elements[i].destroy();
+      }
+    }
+  }
+}
 
 extendPrototype([BaseElement, TransformElement, HierarchyElement, FrameElement, RenderableDOMElement], ICompElement);
 
@@ -76,24 +94,6 @@ ICompElement.prototype.renderInnerContent = function () {
   for (i = 0; i < len; i += 1) {
     if (this.completeLayers || this.elements[i]) {
       this.elements[i].renderFrame();
-    }
-  }
-};
-
-ICompElement.prototype.setElements = function (elems) {
-  this.elements = elems;
-};
-
-ICompElement.prototype.getElements = function () {
-  return this.elements;
-};
-
-ICompElement.prototype.destroyElements = function () {
-  let i;
-  const len = this.layers.length;
-  for (i = 0; i < len; i += 1) {
-    if (this.elements[i]) {
-      this.elements[i].destroy();
     }
   }
 };

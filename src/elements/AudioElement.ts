@@ -40,59 +40,59 @@ class AudioElement {
       this.audio.volume(totalVolume);
     }
   }
+
+  renderFrame() {
+    if (this.isInRange && this._canPlay) {
+      if (!this._isPlaying) {
+        this.audio.play();
+        this.audio.seek(this._currentTime / this.globalData.frameRate);
+        this._isPlaying = true;
+      } else if (
+        !this.audio.playing() ||
+        Math.abs(this._currentTime / this.globalData.frameRate - this.audio.seek()) > 0.1
+      ) {
+        this.audio.seek(this._currentTime / this.globalData.frameRate);
+      }
+    }
+  }
+
+  show() {
+    // this.audio.play()
+  }
+
+  hide() {
+    this.audio.pause();
+    this._isPlaying = false;
+  }
+
+  pause() {
+    this.audio.pause();
+    this._isPlaying = false;
+    this._canPlay = false;
+  }
+
+  resume() {
+    this._canPlay = true;
+  }
+
+  setRate(rateValue) {
+    this.audio.rate(rateValue);
+  }
+
+  volume(volumeValue) {
+    this._volumeMultiplier = volumeValue;
+    this._previousVolume = volumeValue * this._volume;
+    this.audio.volume(this._previousVolume);
+  }
+
+  getBaseElement() {
+    return null;
+  }
+
+  destroy() {}
 }
 
 extendPrototype([RenderableElement, BaseElement, FrameElement], AudioElement);
-
-AudioElement.prototype.renderFrame = function () {
-  if (this.isInRange && this._canPlay) {
-    if (!this._isPlaying) {
-      this.audio.play();
-      this.audio.seek(this._currentTime / this.globalData.frameRate);
-      this._isPlaying = true;
-    } else if (
-      !this.audio.playing() ||
-      Math.abs(this._currentTime / this.globalData.frameRate - this.audio.seek()) > 0.1
-    ) {
-      this.audio.seek(this._currentTime / this.globalData.frameRate);
-    }
-  }
-};
-
-AudioElement.prototype.show = function () {
-  // this.audio.play()
-};
-
-AudioElement.prototype.hide = function () {
-  this.audio.pause();
-  this._isPlaying = false;
-};
-
-AudioElement.prototype.pause = function () {
-  this.audio.pause();
-  this._isPlaying = false;
-  this._canPlay = false;
-};
-
-AudioElement.prototype.resume = function () {
-  this._canPlay = true;
-};
-
-AudioElement.prototype.setRate = function (rateValue) {
-  this.audio.rate(rateValue);
-};
-
-AudioElement.prototype.volume = function (volumeValue) {
-  this._volumeMultiplier = volumeValue;
-  this._previousVolume = volumeValue * this._volume;
-  this.audio.volume(this._previousVolume);
-};
-
-AudioElement.prototype.getBaseElement = function () {
-  return null;
-};
-
-AudioElement.prototype.destroy = function () {};
 
 AudioElement.prototype.sourceRectAtTime = function () {};
 

@@ -1,6 +1,6 @@
 # Prototype / `extendPrototype` inventory and class migration strategy
 
-This document supports Track A (strict typing) and Track B (ES classes) modernization. *Last updated: 2025-03-22 — `HCameraElement`, `HSolidElement`, and `IImageElement` keep `extendPrototype` but layer-specific logic lives in the `class` body; `IImageElement.prototype.sourceRectAtTime` stays post-mixin so it wins over `BaseElement`’s stub.*
+This document supports Track A (strict typing) and Track B (ES classes) modernization. *Last updated: 2025-03-22 — `FootageElement` / `AudioElement` move most overrides into the `class`; `initExpressions` (Footage) and `sourceRectAtTime` + `initExpressions` (Audio) stay post-`extendPrototype` so they replace `BaseElement` / `RenderableElement`. `ICompElement` adds `setElements` / `getElements` / `destroyElements` on the class; comp lifecycle methods stay post-mixin because `RenderableDOMElement` defines the same names.*
 
 Regenerate the call-site table with:
 
