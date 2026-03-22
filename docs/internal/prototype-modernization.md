@@ -1,6 +1,6 @@
 # Prototype / `extendPrototype` inventory and class migration strategy
 
-This document supports Track A (strict typing) and Track B (ES classes) modernization. *Last updated: 2025-03-22 — adds hybrid `HEffects`, `AudioController` (factory → `new AudioController()`), and small `AudioElement` data holder in `utils/audio` (not the Lottie layer in `elements/AudioElement.ts`).*
+This document supports Track A (strict typing) and Track B (ES classes) modernization. *Last updated: 2025-03-22 — `ImagePreloader` is an ES `class` (replaces IIFE + `prototype` factory); hybrid `HEffects`, `AudioController`, and `utils/audio/AudioElement` also converted.*
 
 Regenerate the call-site table with:
 
@@ -199,6 +199,7 @@ These are `class` constructors whose **`prototype`** methods are still merged on
 | Dynamic / modifiers | `DynamicPropertyContainer`, `ShapeModifier` (+ concrete modifiers), `ShapeProperty`, `KeyframedShapeProperty`, `ShapeExpressions` (expression decorator) |
 | Worker bundle | `ProxyElement`, `CanvasElement` |
 | Slots | `SlotManager` (`slotFactory` → `new SlotManager`) |
+| Image loading | `ImagePreloader` ([`imagePreloader.ts`](../../src/utils/imagePreloader.ts)) |
 | Canvas render state | `CVContextData`, internal `CanvasContext` (`CVContextData.ts`) |
 | SVG filter primitives | `SVGFillFilter`, `SVGTritoneFilter`, `SVGProLevelsFilter`, `SVGGaussianBlurEffect`, `SVGMatte3Effect`, `SVGStrokeEffect` (compose with existing `SVGComposableEffect` / `SVGTintFilter` / `SVGDropShadowEffect` / `SVGTransformEffect`) |
 
