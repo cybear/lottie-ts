@@ -1,4 +1,4 @@
-// @ts-nocheck
+/* eslint-disable @typescript-eslint/no-explicit-any -- SVG style / mask graph mirrors PropertyFactory */
 import { extendPrototype } from '../../utils/functionExtensions';
 import { getLocationHref } from '../../main';
 import ShapePropertyFactory from '../../utils/shapes/ShapeProperty';
@@ -14,7 +14,7 @@ import IShapeElement from '../ShapeElement';
 import TransformPropertyFactory from '../../utils/TransformProperty';
 import { ShapeModifiers } from '../../utils/shapes/ShapeModifiers';
 import { lineCapEnum, lineJoinEnum } from '../../utils/helpers/shapeEnums';
-import SVGShapeData from '../helpers/shapes/SVGShapeData';
+import SVGShapeData, { type ShapeTransformerLike } from '../helpers/shapes/SVGShapeData';
 import SVGStyleData from '../helpers/shapes/SVGStyleData';
 import SVGStrokeStyleData from '../helpers/shapes/SVGStrokeStyleData';
 import SVGFillStyleData from '../helpers/shapes/SVGFillStyleData';
@@ -24,28 +24,51 @@ import SVGGradientStrokeStyleData from '../helpers/shapes/SVGGradientStrokeStyle
 import ShapeGroupData from '../helpers/shapes/ShapeGroupData';
 import SVGTransformData from '../helpers/shapes/SVGTransformData';
 import SVGElementsRenderer from '../helpers/shapes/SVGElementsRenderer';
+import type { ElementData, GlobalDataSvgShape, ShapeJsonNode, ShapeModifierLike } from '../../types/lottieRuntime';
+import type { LayerDynamicProperty } from '../../types/lottieRuntime';
+import type ProcessedElement from '../helpers/shapes/ProcessedElement';
+
+type ShapeModifierRuntime = ShapeModifierLike & {
+  init: (...args: unknown[]) => void;
+  closed?: boolean;
+};
 
 class SVGShapeElement {
-  constructor(data, globalData, comp) {
-    // List of drawable elements
+  declare initElement: (data: ElementData, globalData: GlobalDataSvgShape, comp: unknown) => void;
+  declare layerElement: SVGGElement;
+  declare globalData: GlobalDataSvgShape;
+  declare data: ElementData & { shapes: ShapeJsonNode[] };
+  declare dynamicProperties: LayerDynamicProperty[];
+  declare destroyBaseElement: () => void;
+  declare addShapeToModifiers: (data: unknown) => void;
+  declare renderModifiers: () => void;
+  declare searchProcessedElement: (elem: unknown) => number;
+  declare addProcessedElement: (elem: unknown, pos: number) => void;
+
+  shapes: InstanceType<typeof SVGShapeData>[];
+  shapesData: ShapeJsonNode[];
+  stylesList: any[];
+  shapeModifiers: ShapeModifierLike[];
+  itemsData: any[];
+  processedElements: ProcessedElement[];
+  animatedContents: Array<{
+    fn: (d: unknown, el: unknown, first: boolean) => void;
+    element: unknown;
+    data: unknown;
+  }>;
+  prevViewData: any[];
+  _isFirstFrame!: boolean;
+
+  constructor(data: ElementData & { shapes: ShapeJsonNode[] }, globalData: GlobalDataSvgShape, comp: unknown) {
     this.shapes = [];
-    // Full shape data
     this.shapesData = data.shapes;
-    // List of styles that will be applied to shapes
     this.stylesList = [];
-    // List of modifiers that will be applied to shapes
     this.shapeModifiers = [];
-    // List of items in shape tree
     this.itemsData = [];
-    // List of items in previous shape tree
     this.processedElements = [];
-    // List of animated components
     this.animatedContents = [];
     this.initElement(data, globalData, comp);
-    // Moving any property that doesn't get too much access after initialization because of v8 way of handling more than 10 properties.
-    // List of elements that have been created
     this.prevViewData = [];
-    // Moving any property that doesn't get too much access after initialization because of v8 way of handling more than 10 properties.
   }
 
   createContent() {
@@ -53,25 +76,22 @@ class SVGShapeElement {
     this.filterUniqueShapes();
   }
 
-  /*
-This method searches for multiple shapes that affect a single element and one of them is animated
-*/
   filterUniqueShapes() {
-    let i;
+    let i: number;
     const len = this.shapes.length;
-    let shape;
-    let j;
+    let shape: InstanceType<typeof SVGShapeData>;
+    let j: number;
     const jLen = this.stylesList.length;
-    let style;
-    const tempShapes = [];
+    let styleRef: any;
+    const tempShapes: InstanceType<typeof SVGShapeData>[] = [];
     let areAnimated = false;
     for (j = 0; j < jLen; j += 1) {
-      style = this.stylesList[j];
+      styleRef = this.stylesList[j];
       areAnimated = false;
       tempShapes.length = 0;
       for (i = 0; i < len; i += 1) {
         shape = this.shapes[i];
-        if (shape.styles.indexOf(style) !== -1) {
+        if (shape.styles.indexOf(styleRef) !== -1) {
           tempShapes.push(shape);
           areAnimated = shape._isAnimated || areAnimated;
         }
@@ -82,27 +102,27 @@ This method searches for multiple shapes that affect a single element and one of
     }
   }
 
-  setShapesAsAnimated(shapes) {
-    let i;
+  setShapesAsAnimated(shapes: InstanceType<typeof SVGShapeData>[]) {
+    let i: number;
     const len = shapes.length;
     for (i = 0; i < len; i += 1) {
       shapes[i].setAsAnimated();
     }
   }
 
-  createStyleElement(data, level) {
-    // TODO: prevent drawing of hidden styles
-    let elementData;
-    const styleOb = new SVGStyleData(data, level);
+  createStyleElement(data: ShapeJsonNode, level: number) {
+    let elementData: any;
+    const styleData = data as any;
+    const styleOb = new SVGStyleData(styleData, level);
 
     const pathElement = styleOb.pElem;
     if (data.ty === 'st') {
-      elementData = new SVGStrokeStyleData(this, data, styleOb);
+      elementData = new SVGStrokeStyleData(this, styleData, styleOb);
     } else if (data.ty === 'fl') {
-      elementData = new SVGFillStyleData(this, data, styleOb);
+      elementData = new SVGFillStyleData(this, styleData, styleOb);
     } else if (data.ty === 'gf' || data.ty === 'gs') {
       const GradientConstructor = data.ty === 'gf' ? SVGGradientFillStyleData : SVGGradientStrokeStyleData;
-      elementData = new GradientConstructor(this, data, styleOb);
+      elementData = new GradientConstructor(this, styleData, styleOb);
       this.globalData.defs.appendChild(elementData.gf);
       if (elementData.maskId) {
         this.globalData.defs.appendChild(elementData.ms);
@@ -110,15 +130,15 @@ This method searches for multiple shapes that affect a single element and one of
         pathElement.setAttribute('mask', 'url(' + getLocationHref() + '#' + elementData.maskId + ')');
       }
     } else if (data.ty === 'no') {
-      elementData = new SVGNoStyleData(this, data, styleOb);
+      elementData = new SVGNoStyleData(this, styleData, styleOb);
     }
 
     if (data.ty === 'st' || data.ty === 'gs') {
-      pathElement.setAttribute('stroke-linecap', lineCapEnum[data.lc || 2]);
-      pathElement.setAttribute('stroke-linejoin', lineJoinEnum[data.lj || 2]);
+      pathElement.setAttribute('stroke-linecap', lineCapEnum[Number(data.lc) || 2]);
+      pathElement.setAttribute('stroke-linejoin', lineJoinEnum[Number(data.lj) || 2]);
       pathElement.setAttribute('fill-opacity', '0');
       if (data.lj === 1) {
-        pathElement.setAttribute('stroke-miterlimit', data.ml);
+        pathElement.setAttribute('stroke-miterlimit', String(data.ml));
       }
     }
 
@@ -127,41 +147,41 @@ This method searches for multiple shapes that affect a single element and one of
     }
 
     if (data.ln) {
-      pathElement.setAttribute('id', data.ln);
+      pathElement.setAttribute('id', String(data.ln));
     }
     if (data.cl) {
-      pathElement.setAttribute('class', data.cl);
+      pathElement.setAttribute('class', String(data.cl));
     }
     if (data.bm) {
-      pathElement.style['mix-blend-mode'] = getBlendMode(data.bm);
+      pathElement.style.setProperty('mix-blend-mode', getBlendMode(data.bm as number));
     }
     this.stylesList.push(styleOb);
     this.addToAnimatedContents(data, elementData);
     return elementData;
   }
 
-  createGroupElement(data) {
+  createGroupElement(data: ShapeJsonNode) {
     const elementData = new ShapeGroupData();
     if (data.ln) {
-      elementData.gr.setAttribute('id', data.ln);
+      elementData.gr.setAttribute('id', String(data.ln));
     }
     if (data.cl) {
-      elementData.gr.setAttribute('class', data.cl);
+      elementData.gr.setAttribute('class', String(data.cl));
     }
     if (data.bm) {
-      elementData.gr.style['mix-blend-mode'] = getBlendMode(data.bm);
+      elementData.gr.style.setProperty('mix-blend-mode', getBlendMode(data.bm as number));
     }
     return elementData;
   }
 
-  createTransformElement(data, container) {
+  createTransformElement(data: ShapeJsonNode, container: SVGElement) {
     const transformProperty = TransformPropertyFactory.getTransformProperty(this, data, this);
     const elementData = new SVGTransformData(transformProperty, transformProperty.o, container);
     this.addToAnimatedContents(data, elementData);
     return elementData;
   }
 
-  createShapeElement(data, ownTransformers, level) {
+  createShapeElement(data: ShapeJsonNode, ownTransformers: unknown[], level: number) {
     let ty = 4;
     if (data.ty === 'rc') {
       ty = 5;
@@ -170,15 +190,21 @@ This method searches for multiple shapes that affect a single element and one of
     } else if (data.ty === 'sr') {
       ty = 7;
     }
-    const shapeProperty = ShapePropertyFactory.getShapeProp(this, data, ty, this);
-    const elementData = new SVGShapeData(ownTransformers, level, shapeProperty);
+    const shapeProperty = (
+      ShapePropertyFactory as { getShapeProp: (a: unknown, b: unknown, c: number, d: unknown) => unknown }
+    ).getShapeProp(this, data, ty, this);
+    const elementData = new SVGShapeData(
+      ownTransformers as ShapeTransformerLike[],
+      level,
+      shapeProperty as { k?: unknown },
+    );
     this.shapes.push(elementData);
     this.addShapeToModifiers(elementData);
     this.addToAnimatedContents(data, elementData);
     return elementData;
   }
 
-  addToAnimatedContents(data, element) {
+  addToAnimatedContents(data: ShapeJsonNode, element: unknown) {
     let i = 0;
     const len = this.animatedContents.length;
     while (i < len) {
@@ -187,16 +213,20 @@ This method searches for multiple shapes that affect a single element and one of
       }
       i += 1;
     }
+    const fn = SVGElementsRenderer.createRenderFunction(data);
+    if (!fn) {
+      return;
+    }
     this.animatedContents.push({
-      fn: SVGElementsRenderer.createRenderFunction(data),
+      fn: fn as (d: unknown, el: unknown, first: boolean) => void,
       element: element,
       data: data,
     });
   }
 
-  setElementStyles(elementData) {
+  setElementStyles(elementData: { styles: any[] }) {
     const arr = elementData.styles;
-    let j;
+    let j: number;
     const jLen = this.stylesList.length;
     for (j = 0; j < jLen; j += 1) {
       if (arr.indexOf(this.stylesList[j]) === -1 && !this.stylesList[j].closed) {
@@ -207,7 +237,7 @@ This method searches for multiple shapes that affect a single element and one of
 
   reloadShapes() {
     this._isFirstFrame = true;
-    let i;
+    let i: number;
     let len = this.itemsData.length;
     for (i = 0; i < len; i += 1) {
       this.prevViewData[i] = this.itemsData[i];
@@ -221,17 +251,25 @@ This method searches for multiple shapes that affect a single element and one of
     this.renderModifiers();
   }
 
-  searchShapes(arr, itemsData, prevViewData, container, level, transformers, render) {
-    const ownTransformers = [].concat(transformers);
-    let i;
+  searchShapes(
+    arr: ShapeJsonNode[],
+    itemsData: any[],
+    prevViewData: any[],
+    container: SVGElement,
+    level: number,
+    transformers: unknown[],
+    render: boolean,
+  ) {
+    const ownTransformers: unknown[] = transformers.slice();
+    let i: number;
     let len = arr.length - 1;
-    let j;
-    let jLen;
-    const ownStyles = [];
-    const ownModifiers = [];
-    let currentTransform;
-    let modifier;
-    let processedPos;
+    let j: number;
+    let jLen: number;
+    const ownStyles: { closed?: boolean }[] = [];
+    const ownModifiers: ShapeModifierRuntime[] = [];
+    let currentTransform: unknown;
+    let modifier: ShapeModifierRuntime;
+    let processedPos: number;
     for (i = len; i >= 0; i -= 1) {
       processedPos = this.searchProcessedElement(arr[i]);
       if (!processedPos) {
@@ -243,7 +281,7 @@ This method searches for multiple shapes that affect a single element and one of
         if (!processedPos) {
           itemsData[i] = this.createStyleElement(arr[i], level);
         } else {
-          itemsData[i].style.closed = arr[i].hd;
+          itemsData[i].style.closed = !!arr[i].hd;
         }
         if (arr[i]._render) {
           if (itemsData[i].style.pElem.parentNode !== container) {
@@ -261,7 +299,7 @@ This method searches for multiple shapes that affect a single element and one of
           }
         }
         this.searchShapes(
-          arr[i].it,
+          arr[i].it ?? [],
           itemsData[i].it,
           itemsData[i].prevViewData,
           itemsData[i].gr,
@@ -294,24 +332,24 @@ This method searches for multiple shapes that affect a single element and one of
         arr[i].ty === 'op'
       ) {
         if (!processedPos) {
-          modifier = ShapeModifiers.getModifier(arr[i].ty);
+          modifier = ShapeModifiers.getModifier(arr[i].ty) as ShapeModifierRuntime;
           modifier.init(this, arr[i]);
           itemsData[i] = modifier;
           this.shapeModifiers.push(modifier);
         } else {
-          modifier = itemsData[i];
+          modifier = itemsData[i] as ShapeModifierRuntime;
           modifier.closed = false;
         }
         ownModifiers.push(modifier);
       } else if (arr[i].ty === 'rp') {
         if (!processedPos) {
-          modifier = ShapeModifiers.getModifier(arr[i].ty);
+          modifier = ShapeModifiers.getModifier(arr[i].ty) as ShapeModifierRuntime;
           itemsData[i] = modifier;
           modifier.init(this, arr, i, itemsData);
           this.shapeModifiers.push(modifier);
           render = false;
         } else {
-          modifier = itemsData[i];
+          modifier = itemsData[i] as ShapeModifierRuntime;
           modifier.closed = true;
         }
         ownModifiers.push(modifier);
@@ -329,12 +367,15 @@ This method searches for multiple shapes that affect a single element and one of
   }
 
   renderShape() {
-    let i;
+    let i: number;
     const len = this.animatedContents.length;
-    let animatedContent;
+    let animatedContent: (typeof this.animatedContents)[0];
     for (i = 0; i < len; i += 1) {
       animatedContent = this.animatedContents[i];
-      if ((this._isFirstFrame || animatedContent.element._isAnimated) && animatedContent.data !== true) {
+      if (
+        (this._isFirstFrame || (animatedContent.element as { _isAnimated?: boolean })._isAnimated) &&
+        animatedContent.data !== true
+      ) {
         animatedContent.fn(animatedContent.data, animatedContent.element, this._isFirstFrame);
       }
     }
@@ -346,7 +387,7 @@ This method searches for multiple shapes that affect a single element and one of
 
   renderInnerContent() {
     this.renderModifiers();
-    let i;
+    let i: number;
     const len = this.stylesList.length;
     for (i = 0; i < len; i += 1) {
       this.stylesList[i].reset();
@@ -356,7 +397,6 @@ This method searches for multiple shapes that affect a single element and one of
       if (this.stylesList[i]._mdf || this._isFirstFrame) {
         if (this.stylesList[i].msElem) {
           this.stylesList[i].msElem.setAttribute('d', this.stylesList[i].d);
-          // Adding M0 0 fixes same mask bug on all browsers
           this.stylesList[i].d = 'M0 0' + this.stylesList[i].d;
         }
         this.stylesList[i].pElem.setAttribute('d', this.stylesList[i].d || 'M0 0');
@@ -366,8 +406,8 @@ This method searches for multiple shapes that affect a single element and one of
 
   destroy() {
     this.destroyBaseElement();
-    this.shapesData = null;
-    this.itemsData = null;
+    (this as { shapesData: ShapeJsonNode[] | null }).shapesData = null;
+    (this as { itemsData: any[] | null }).itemsData = null;
   }
 }
 
@@ -382,6 +422,8 @@ extendPrototype(
 SVGShapeElement.prototype.renderInnerContent = svgShapeRenderInnerContent;
 SVGShapeElement.prototype.destroy = svgShapeDestroy;
 
-SVGShapeElement.prototype.identityMatrix = new Matrix();
+(
+  SVGShapeElement as unknown as { prototype: { identityMatrix: InstanceType<typeof Matrix> } }
+).prototype.identityMatrix = new Matrix();
 
 export default SVGShapeElement;

@@ -1,4 +1,5 @@
 import type { GlobalData, LayerDynamicProperty, TextLayerData } from '../types/lottieRuntime';
+import type { TextPropertyHostElement } from '../utils/text/TextProperty';
 import LetterProps from '../utils/text/LetterProps';
 import TextProperty from '../utils/text/TextProperty';
 import TextAnimatorProperty from '../utils/text/TextAnimatorProperty';
@@ -34,7 +35,7 @@ export interface TextDocumentLayoutSlice {
   lineWidths: number[];
 }
 
-/** Internal flags on `TextProperty` (class is still `@ts-nocheck`). */
+/** Internal flags on `TextProperty` for `validateText`. */
 type TextPropertyFrameFlags = TextProperty & { _mdf: boolean; _isFirstFrame: boolean };
 
 class ITextElement {
@@ -64,7 +65,7 @@ class ITextElement {
     this.lettersChangedFlag = true;
     this.initFrame();
     this.initBaseData(data, globalData, comp);
-    this.textProperty = new TextProperty(this, data.t);
+    this.textProperty = new TextProperty(this as unknown as TextPropertyHostElement, data.t);
     this.textAnimator = new TextAnimatorProperty(data.t, this.renderType, this);
     this.initTransform(data, globalData, comp);
     this.initHierarchy();
@@ -98,7 +99,7 @@ class ITextElement {
   }
 
   updateDocumentData(newData: unknown, index: number) {
-    this.textProperty.updateDocumentData(newData, index);
+    this.textProperty.updateDocumentData(newData as Record<string, unknown>, index);
   }
 
   canResizeFont(_canResize: boolean) {

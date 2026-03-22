@@ -7,12 +7,16 @@ import type {
   AnimationRootData,
   ElementData,
   GlobalData,
+  GlobalDataDomText,
+  GlobalDataSvgShape,
   RefIdLayerData,
   RendererElementInstance,
   RendererElementSlot,
   RendererLayerData,
   RenderConfig,
+  ShapeJsonNode,
   SolidColorLayerData,
+  TextLayerData,
 } from '../types/lottieRuntime';
 import BaseRenderer from './BaseRenderer';
 import IImageElement from '../elements/ImageElement';
@@ -40,11 +44,19 @@ abstract class SVGRendererBase extends BaseRenderer {
   }
 
   createShape(data: RendererLayerData): RendererElementInstance {
-    return new SVGShapeElement(data, this.globalData, this) as unknown as RendererElementInstance;
+    return new SVGShapeElement(
+      data as unknown as ElementData & { shapes: ShapeJsonNode[] },
+      this.globalData as unknown as GlobalDataSvgShape,
+      this,
+    ) as unknown as RendererElementInstance;
   }
 
   createText(data: RendererLayerData): RendererElementInstance {
-    return new SVGTextLottieElement(data, this.globalData, this) as unknown as RendererElementInstance;
+    return new SVGTextLottieElement(
+      data as unknown as TextLayerData,
+      this.globalData as unknown as GlobalDataDomText,
+      this,
+    ) as unknown as RendererElementInstance;
   }
 
   createImage(data: RendererLayerData): RendererElementInstance {

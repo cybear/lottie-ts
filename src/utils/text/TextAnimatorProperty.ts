@@ -1,4 +1,5 @@
 // @ts-nocheck
+/* eslint-disable @typescript-eslint/no-explicit-any -- text animator path + bez math */
 import { addSaturationToRGB, addBrightnessToRGB, addHueToRGB } from '../common';
 import DynamicPropertyContainer from '../helpers/dynamicProperties';
 import { createSizedArray } from '../helpers/arrays';
@@ -10,9 +11,21 @@ import LetterProps from './LetterProps';
 
 class TextAnimatorProperty extends DynamicPropertyContainer {
   mHelper = new Matrix();
-  defaultPropsArray = [];
+  defaultPropsArray: any[] = [];
 
-  constructor(textData, renderType, elem) {
+  _isFirstFrame!: boolean;
+  _hasMaskedPath!: boolean;
+  _frameId!: number;
+  _textData!: any;
+  _renderType!: string;
+  _elem!: any;
+  _animatorsData!: any[];
+  _pathData!: any;
+  _moreOptions!: { alignment: any };
+  renderedLetters!: any[];
+  lettersChangedFlag!: boolean;
+
+  constructor(textData: any, renderType: string, elem: any) {
     super();
     this._isFirstFrame = true;
     this._hasMaskedPath = false;

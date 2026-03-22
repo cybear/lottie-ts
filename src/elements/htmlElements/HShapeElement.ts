@@ -1,4 +1,4 @@
-// @ts-nocheck
+/* eslint-disable @typescript-eslint/no-explicit-any -- HTML shape bbox + inherited SVG shape graph */
 import { bmPow, bmMax, bmMin, bmSqrt } from '../../utils/common';
 import { extendPrototype } from '../../utils/functionExtensions';
 import createNS from '../../utils/helpers/svg_elements';
@@ -10,9 +10,47 @@ import FrameElement from '../helpers/FrameElement';
 import HBaseElement from './HBaseElement';
 import HSolidElement from './HSolidElement';
 import SVGShapeElement from '../svgElements/SVGShapeElement';
+import type { ElementData, GlobalDataSvgShape, ShapeJsonNode } from '../../types/lottieRuntime';
+import type SVGShapeData from '../helpers/shapes/SVGShapeData';
 
 class HShapeElement {
-  constructor(data, globalData, comp) {
+  declare initElement: (data: ElementData, globalData: GlobalDataSvgShape, comp: unknown) => void;
+  declare data: ElementData & { shapes: ShapeJsonNode[]; hasMask?: boolean };
+  declare globalData: GlobalDataSvgShape;
+  declare comp: HBaseElement['comp'];
+  declare layerElement: globalThis.SVGGElement;
+  declare svgElement: SVGSVGElement;
+  declare baseElement: HTMLElement;
+  declare hidden: boolean;
+  declare _isFirstFrame: boolean;
+  declare _mdf: boolean;
+  declare searchShapes: (
+    data: ShapeJsonNode[],
+    items: unknown[],
+    prev: unknown[],
+    container: SVGElement,
+    level: number,
+    transformers: unknown[],
+    tag: boolean,
+  ) => void;
+  declare filterUniqueShapes: () => void;
+
+  shapes: InstanceType<typeof SVGShapeData>[];
+  shapesData: ShapeJsonNode[];
+  stylesList: any[];
+  shapeModifiers: any[];
+  itemsData: any[];
+  processedElements: any[];
+  animatedContents: any[];
+  shapesContainer!: SVGGElement;
+  prevViewData: any[];
+  currentBBox: { x: number; y: number; h: number; w: number };
+  shapeCont!: SVGSVGElement | SVGElement;
+  shapeBoundingBox!: { left: number; right: number; top: number; bottom: number };
+  tempBoundingBox!: { x: number; xMax: number; y: number; yMax: number; width: number; height: number };
+  _renderShapeFrame!: () => void;
+
+  constructor(data: ElementData & { shapes: ShapeJsonNode[] }, globalData: GlobalDataSvgShape, comp: unknown) {
     // List of drawable elements
     this.shapes = [];
     // Full shape data
@@ -27,7 +65,7 @@ class HShapeElement {
     this.processedElements = [];
     // List of animated components
     this.animatedContents = [];
-    this.shapesContainer = createNS('g');
+    this.shapesContainer = createNS('g') as SVGGElement;
     this.initElement(data, globalData, comp);
     // Moving any property that doesn't get too much access after initialization because of v8 way of handling more than 10 properties.
     // List of elements that have been created
@@ -40,7 +78,10 @@ class HShapeElement {
     };
   }
 
-  getTransformedPoint(transformers, point) {
+  getTransformedPoint(
+    transformers: Array<{ mProps: { v: { applyToPointArray: (x: number, y: number, z: number) => number[] } } }>,
+    point: number[],
+  ) {
     let i;
     const len = transformers.length;
     for (i = 0; i < len; i += 1) {
@@ -49,7 +90,7 @@ class HShapeElement {
     return point;
   }
 
-  calculateShapeBoundingBox(item, boundingBox) {
+  calculateShapeBoundingBox(item: any, boundingBox: any) {
     const shape = item.sh.v;
     const transformers = item.transformers;
     let i;
@@ -77,7 +118,7 @@ class HShapeElement {
     }
   }
 
-  checkBounds(vPoint, oPoint, nextIPoint, nextVPoint, boundingBox) {
+  checkBounds(vPoint: number[], oPoint: number[], nextIPoint: number[], nextVPoint: number[], boundingBox: any) {
     this.getBoundsOfCurve(vPoint, oPoint, nextIPoint, nextVPoint);
     const bounds = this.shapeBoundingBox;
     boundingBox.x = bmMin(bounds.left, boundingBox.x);
@@ -86,7 +127,7 @@ class HShapeElement {
     boundingBox.yMax = bmMax(bounds.bottom, boundingBox.yMax);
   }
 
-  getBoundsOfCurve(p0, p1, p2, p3) {
+  getBoundsOfCurve(p0: number[], p1: number[], p2: number[], p3: number[]) {
     const bounds = [
       [p0[0], p3[0]],
       [p0[1], p3[1]],
@@ -128,7 +169,7 @@ class HShapeElement {
     this.shapeBoundingBox.bottom = bmMax(...bounds[1]);
   }
 
-  calculateF(t, p0, p1, p2, p3, i) {
+  calculateF(t: number, p0: number[], p1: number[], p2: number[], p3: number[], i: number) {
     return (
       bmPow(1 - t, 3) * p0[i] +
       3 * bmPow(1 - t, 2) * t * p1[i] +
@@ -137,7 +178,7 @@ class HShapeElement {
     );
   }
 
-  calculateBoundingBox(itemsData, boundingBox) {
+  calculateBoundingBox(itemsData: any[], boundingBox: any) {
     let i;
     const len = itemsData.length;
     for (i = 0; i < len; i += 1) {
@@ -151,7 +192,7 @@ class HShapeElement {
     }
   }
 
-  expandStrokeBoundingBox(widthProperty, boundingBox) {
+  expandStrokeBoundingBox(widthProperty: any, boundingBox: any) {
     let width = 0;
     if (widthProperty.keyframes) {
       for (let i = 0; i < widthProperty.keyframes.length; i += 1) {
@@ -171,26 +212,26 @@ class HShapeElement {
     boundingBox.yMax += width;
   }
 
-  currentBoxContains(box) {
+  currentBoxContains(box: { x: number; y: number; width: number; height: number }) {
     return (
       this.currentBBox.x <= box.x &&
       this.currentBBox.y <= box.y &&
-      this.currentBBox.width + this.currentBBox.x >= box.x + box.width &&
-      this.currentBBox.height + this.currentBBox.y >= box.y + box.height
+      this.currentBBox.w + this.currentBBox.x >= box.x + box.width &&
+      this.currentBBox.h + this.currentBBox.y >= box.y + box.height
     );
   }
 
   createContent() {
-    let cont;
-    this.baseElement.style.fontSize = 0;
+    let cont: SVGSVGElement;
+    this.baseElement.style.fontSize = '0';
     if (this.data.hasMask) {
       this.layerElement.appendChild(this.shapesContainer);
       cont = this.svgElement;
     } else {
-      cont = createNS('svg');
-      const size = this.comp.data ? this.comp.data : this.globalData.compSize;
-      cont.setAttribute('width', size.w);
-      cont.setAttribute('height', size.h);
+      cont = createNS('svg') as SVGSVGElement;
+      const size = (this.comp.data ?? this.globalData.compSize) as { w: number; h: number };
+      cont.setAttribute('width', String(size.w));
+      cont.setAttribute('height', String(size.h));
       cont.appendChild(this.shapesContainer);
       this.layerElement.appendChild(cont);
     }
@@ -220,12 +261,12 @@ class HShapeElement {
       let changed = false;
       if (this.currentBBox.w !== tempBoundingBox.width) {
         this.currentBBox.w = tempBoundingBox.width;
-        this.shapeCont.setAttribute('width', tempBoundingBox.width);
+        this.shapeCont.setAttribute('width', String(tempBoundingBox.width));
         changed = true;
       }
       if (this.currentBBox.h !== tempBoundingBox.height) {
         this.currentBBox.h = tempBoundingBox.height;
-        this.shapeCont.setAttribute('height', tempBoundingBox.height);
+        this.shapeCont.setAttribute('height', String(tempBoundingBox.height));
         changed = true;
       }
       if (changed || this.currentBBox.x !== tempBoundingBox.x || this.currentBBox.y !== tempBoundingBox.y) {
@@ -268,14 +309,18 @@ HShapeElement.prototype._renderShapeFrame = HShapeElement.prototype.renderInnerC
 HShapeElement.prototype.createContent = hShapeCreateContent;
 HShapeElement.prototype.renderInnerContent = hShapeRenderInnerContent;
 
-HShapeElement.prototype.shapeBoundingBox = {
+const hShapeProto = HShapeElement.prototype as unknown as {
+  shapeBoundingBox: { left: number; right: number; top: number; bottom: number };
+  tempBoundingBox: { x: number; xMax: number; y: number; yMax: number; width: number; height: number };
+};
+hShapeProto.shapeBoundingBox = {
   left: 0,
   right: 0,
   top: 0,
   bottom: 0,
 };
 
-HShapeElement.prototype.tempBoundingBox = {
+hShapeProto.tempBoundingBox = {
   x: 0,
   xMax: 0,
   y: 0,

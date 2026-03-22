@@ -53,6 +53,19 @@ export interface GlobalData {
 export type ElementData = Record<string, unknown>;
 
 /**
+ * Recursive shape tree node (SVG + canvas shape layers / modifiers).
+ */
+export type ShapeJsonNode = ElementData & {
+  ty: string;
+  it?: ShapeJsonNode[];
+  hd?: boolean;
+  /** Canvas shape pipeline */
+  _shouldRender?: boolean;
+  /** SVG shape pipeline */
+  _render?: boolean;
+};
+
+/**
  * Canvas renderer surface bound to `CVContextData` / native context (`CanvasRenderer` when `clearCanvas`).
  * Used by canvas layer elements for draw calls.
  */
@@ -92,6 +105,12 @@ export type GlobalDataCanvasLayer = GlobalData & {
   renderer: CanvasRenderer2D;
   canvasContext: CanvasRenderingContext2D;
   currentGlobalAlpha?: number;
+};
+
+/** SVG / hybrid 2D shape layers: `<defs>` is required once the shape tree is built. */
+export type GlobalDataSvgShape = GlobalData & {
+  defs: SVGDefsElement;
+  frameRate?: number;
 };
 
 /** Options on `globalData.renderConfig` used by `RenderableElement` and renderer constructors. */
@@ -231,7 +250,7 @@ export interface HybridCompWithThreeD {
 }
 
 /** Text layer JSON (`t` holds text document + animators). */
-export type TextLayerData = LayerInOutData & { t: unknown };
+export type TextLayerData = LayerInOutData & { t: unknown; singleShape?: boolean };
 
 /** Image / footage layers that reference `assets` via `refId`. */
 export type RefIdLayerData = LayerInOutData & { refId: string };
@@ -268,14 +287,25 @@ export interface ImageLoaderLike {
   getAsset(asset: unknown): unknown;
 }
 
-/** Subset of `FontManager` used by canvas text rendering. */
+/** Subset of `FontManager` used by canvas / DOM text rendering. */
 export interface FontManagerLike {
-  getFontByName(name: string): { fStyle: string; fFamily: string };
-  getCharData(char: string, style: string, family: string): { data?: { shapes?: Array<{ it: unknown[] }> } } | null;
+  getFontByName(name: string): { fStyle: string; fFamily: string; fClass?: string; ascent?: number };
+  chars?: boolean;
+  measureText?(char: string, fontName: string, size: number): number;
+  getCharData(
+    char: string,
+    style: string,
+    family: string,
+  ): { t?: number; w?: number; data?: { shapes?: Array<{ it: unknown[] }> } } | null;
 }
 
 /** `globalData` for canvas text layers. */
 export type GlobalDataCanvasText = GlobalDataCanvasLayer & {
+  fontManager: FontManagerLike;
+};
+
+/** SVG / HTML text layers (`fontManager` required for layout). */
+export type GlobalDataDomText = GlobalData & {
   fontManager: FontManagerLike;
 };
 

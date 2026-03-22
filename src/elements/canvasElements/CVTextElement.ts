@@ -29,7 +29,7 @@ interface RenderedLetterCanvas {
   sw?: number;
 }
 
-/** `TextProperty` is still `@ts-nocheck`; canvas text reads `currentData` at runtime. */
+/** Canvas text reads `currentData` with a narrow slice (full document remains loosely typed). */
 type TextPropertyWithDoc = TextProperty & {
   currentData: TextDocumentLayoutSlice & {
     l: TextLetterEntry[];

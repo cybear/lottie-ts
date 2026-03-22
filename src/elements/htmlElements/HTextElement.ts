@@ -1,4 +1,4 @@
-// @ts-nocheck
+/* eslint-disable @typescript-eslint/no-explicit-any -- hybrid HTML/SVG text paths */
 import { extendPrototype } from '../../utils/functionExtensions';
 import { createSizedArray } from '../../utils/helpers/arrays';
 import createNS from '../../utils/helpers/svg_elements';
@@ -12,9 +12,46 @@ import ITextElement from '../TextElement';
 import HBaseElement from './HBaseElement';
 import { lineCapEnum, lineJoinEnum } from '../../utils/helpers/shapeEnums';
 import { styleDiv } from '../../utils/common';
+import Matrix from '../../3rd_party/transformation-matrix';
+import type { GlobalDataDomText, TextLayerData } from '../../types/lottieRuntime';
+import type TextProperty from '../../utils/text/TextProperty';
+import type TextAnimatorProperty from '../../utils/text/TextAnimatorProperty';
+
+type MatrixInstance = InstanceType<typeof Matrix>;
 
 class HTextElement {
-  constructor(data, globalData, comp) {
+  declare initElement: (data: TextLayerData, globalData: GlobalDataDomText, comp: unknown) => void;
+  declare data: TextLayerData;
+  declare globalData: GlobalDataDomText;
+  declare comp: { renderedFrame: number; data: { w: number; h: number } };
+  declare layerElement: HTMLElement;
+  declare innerElem: HTMLElement | SVGElement;
+  declare svgElement: SVGSVGElement;
+  declare maskedElement: HTMLElement | SVGElement;
+  declare mHelper: MatrixInstance;
+  declare textProperty: TextProperty;
+  declare textAnimator: TextAnimatorProperty;
+  declare validateText: () => void;
+  declare buildColor: ITextElement['buildColor'];
+  declare createPathShape: ITextElement['createPathShape'];
+  declare checkMasks: () => boolean;
+  declare checkParenting: () => void;
+  declare finalTransform: { _matMdf: boolean; mProp: { p: { v: number[] } } };
+  declare hidden: boolean;
+  declare _isFirstFrame: boolean;
+  declare _mdf: boolean;
+
+  textSpans: Array<HTMLElement | SVGElement>;
+  textPaths: Array<HTMLElement | SVGElement>;
+  currentBBox: { x: number; y: number; h: number; w: number };
+  renderType: string;
+  isMasked: boolean;
+  compW!: number;
+  compH!: number;
+  renderedLetters!: unknown[];
+  lettersChangedFlag!: boolean;
+
+  constructor(data: TextLayerData, globalData: GlobalDataDomText, comp: unknown) {
     this.textSpans = [];
     this.textPaths = [];
     this.currentBBox = {
@@ -34,9 +71,9 @@ class HTextElement {
       this.renderType = 'svg';
       this.compW = this.comp.data.w;
       this.compH = this.comp.data.h;
-      this.svgElement.setAttribute('width', this.compW);
-      this.svgElement.setAttribute('height', this.compH);
-      const g = createNS('g');
+      this.svgElement.setAttribute('width', String(this.compW));
+      this.svgElement.setAttribute('height', String(this.compH));
+      const g = createNS('g') as SVGGElement;
       this.maskedElement.appendChild(g);
       this.innerElem = g;
     } else {
@@ -63,7 +100,7 @@ class HTextElement {
       innerElemStyle.fontSize = documentData.finalSize + 'px';
       innerElemStyle.lineHeight = documentData.finalSize + 'px';
       if (fontData.fClass) {
-        this.innerElem.className = fontData.fClass;
+        this.innerElem.setAttribute('class', fontData.fClass);
       } else {
         innerElemStyle.fontFamily = fontData.fFamily;
         const fWeight = documentData.fWeight;
@@ -74,11 +111,11 @@ class HTextElement {
     }
     let i;
 
-    const letters = documentData.l;
+    const letters = documentData.l ?? [];
     const len = letters.length;
-    let tSpan;
-    let tParent;
-    let tCont;
+    let tSpan: SVGElement | HTMLElement;
+    let tParent: HTMLElement | SVGElement | undefined;
+    let tCont: SVGSVGElement | undefined;
     const matrixHelper = this.mHelper;
     let shapes;
     let shapeStr = '';
@@ -87,21 +124,21 @@ class HTextElement {
       if (this.globalData.fontManager.chars) {
         if (!this.textPaths[cnt]) {
           tSpan = createNS('path');
-          tSpan.setAttribute('stroke-linecap', lineCapEnum[1]);
-          tSpan.setAttribute('stroke-linejoin', lineJoinEnum[2]);
-          tSpan.setAttribute('stroke-miterlimit', '4');
+          tSpan.setAttribute('stroke-linecap', String(lineCapEnum[1]));
+          tSpan.setAttribute('stroke-linejoin', String(lineJoinEnum[2]));
+          tSpan.setAttribute('stroke-miterlimit', String(4));
         } else {
           tSpan = this.textPaths[cnt];
         }
         if (!this.isMasked) {
           if (this.textSpans[cnt]) {
             tParent = this.textSpans[cnt];
-            tCont = tParent.children[0];
+            tCont = tParent.children[0] as SVGSVGElement;
           } else {
             tParent = createTag('div');
-            tParent.style.lineHeight = 0;
-            tCont = createNS('svg');
-            tCont.appendChild(tSpan);
+            tParent.style.lineHeight = '0';
+            tCont = createNS('svg') as SVGSVGElement;
+            tCont!.appendChild(tSpan);
             styleDiv(tParent);
           }
         }
@@ -136,17 +173,17 @@ class HTextElement {
         if (shapeData && shapeData.shapes && shapeData.shapes.length) {
           shapes = shapeData.shapes[0].it;
           matrixHelper.scale(documentData.finalSize / 100, documentData.finalSize / 100);
-          shapeStr = this.createPathShape(matrixHelper, shapes);
+          shapeStr = this.createPathShape(matrixHelper, shapes as any);
           tSpan.setAttribute('d', shapeStr);
         }
         if (!this.isMasked) {
-          this.innerElem.appendChild(tParent);
-          if (shapeData && shapeData.shapes) {
+          this.innerElem.appendChild(tParent!);
+          if (shapeData && shapeData.shapes && tCont) {
             // document.body.appendChild is needed to get exact measure of shape
             document.body.appendChild(tCont);
             const boundingBox = tCont.getBBox();
-            tCont.setAttribute('width', boundingBox.width + 2);
-            tCont.setAttribute('height', boundingBox.height + 2);
+            tCont.setAttribute('width', String(boundingBox.width + 2));
+            tCont.setAttribute('height', String(boundingBox.height + 2));
             tCont.setAttribute(
               'viewBox',
               boundingBox.x -
@@ -164,11 +201,13 @@ class HTextElement {
             tContStyle.webkitTransform = tContTranslation;
 
             letters[i].yOffset = boundingBox.y - 1;
-          } else {
-            tCont.setAttribute('width', 1);
-            tCont.setAttribute('height', 1);
+          } else if (tCont) {
+            tCont.setAttribute('width', '1');
+            tCont.setAttribute('height', '1');
           }
-          tParent.appendChild(tCont);
+          if (tCont) {
+            tParent!.appendChild(tCont);
+          }
         } else {
           this.innerElem.appendChild(tSpan);
         }
@@ -176,7 +215,7 @@ class HTextElement {
         tSpan.textContent = letters[i].val;
         tSpan.setAttributeNS('http://www.w3.org/XML/1998/namespace', 'xml:space', 'preserve');
         if (!this.isMasked) {
-          this.innerElem.appendChild(tParent);
+          this.innerElem.appendChild(tParent!);
           //
           const tStyle = tSpan.style;
           const tSpanTranslation = 'translate3d(0,' + -documentData.finalSize / 1.2 + 'px,0)';
@@ -188,7 +227,7 @@ class HTextElement {
       }
       //
       if (!this.isMasked) {
-        this.textSpans[cnt] = tParent;
+        this.textSpans[cnt] = tParent!;
       } else {
         this.textSpans[cnt] = tSpan;
       }
@@ -274,16 +313,17 @@ class HTextElement {
       }
     }
 
-    if (this.innerElem.getBBox && !this.hidden && (this._isFirstFrame || this._mdf)) {
-      const boundingBox = this.innerElem.getBBox();
+    const innerG = this.innerElem as unknown as SVGGraphicsElement;
+    if (typeof innerG.getBBox === 'function' && !this.hidden && (this._isFirstFrame || this._mdf)) {
+      const boundingBox = innerG.getBBox();
 
       if (this.currentBBox.w !== boundingBox.width) {
         this.currentBBox.w = boundingBox.width;
-        this.svgElement.setAttribute('width', boundingBox.width);
+        this.svgElement.setAttribute('width', String(boundingBox.width));
       }
       if (this.currentBBox.h !== boundingBox.height) {
         this.currentBBox.h = boundingBox.height;
-        this.svgElement.setAttribute('height', boundingBox.height);
+        this.svgElement.setAttribute('height', String(boundingBox.height));
       }
 
       const margin = 1;

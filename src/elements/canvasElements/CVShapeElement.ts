@@ -18,7 +18,13 @@ import TransformPropertyFactory from '../../utils/TransformProperty';
 import CVShapeData from '../helpers/shapes/CVShapeData';
 import { ShapeModifiers } from '../../utils/shapes/ShapeModifiers';
 import { lineCapEnum, lineJoinEnum } from '../../utils/helpers/shapeEnums';
-import type { ElementData, GlobalData, GlobalDataCanvasLayer, ShapeModifierLike } from '../../types/lottieRuntime';
+import type {
+  ElementData,
+  GlobalData,
+  GlobalDataCanvasLayer,
+  ShapeJsonNode,
+  ShapeModifierLike,
+} from '../../types/lottieRuntime';
 import type { LayerDynamicProperty } from '../../types/lottieRuntime';
 import type ProcessedElement from '../helpers/shapes/ProcessedElement';
 
@@ -29,12 +35,7 @@ type ShapeModifierRuntime = ShapeModifierLike & {
   closed?: boolean;
 };
 
-export type ShapeJsonNode = ElementData & {
-  ty: string;
-  it?: ShapeJsonNode[];
-  hd?: boolean;
-  _shouldRender?: boolean;
-};
+export type { ShapeJsonNode };
 
 class CVShapeElement {
   declare shapes: InstanceType<typeof CVShapeData>[];

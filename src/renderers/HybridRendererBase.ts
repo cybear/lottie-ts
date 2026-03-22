@@ -18,14 +18,18 @@ import type {
   CameraLayerData,
   ElementData,
   GlobalData,
+  GlobalDataDomText,
   GlobalDataImageHost,
+  GlobalDataSvgShape,
   ProjectInterfaceLike,
   RefIdLayerData,
   RendererElementInstance,
   RendererElementSlot,
   RendererLayerData,
   RenderConfig,
+  ShapeJsonNode,
   SolidColorLayerData,
+  TextLayerData,
 } from '../types/lottieRuntime';
 
 export interface HybridThreeDContainer {
@@ -137,17 +141,28 @@ abstract class HybridRendererBase extends BaseRenderer {
   }
 
   createShape(data: RendererLayerData): RendererElementInstance {
+    const shapeData = data as unknown as ElementData & { shapes: ShapeJsonNode[] };
     if (!this.supports3d) {
-      return new SVGShapeElement(data, this.globalData, this) as unknown as RendererElementInstance;
+      return new SVGShapeElement(
+        shapeData,
+        this.globalData as unknown as GlobalDataSvgShape,
+        this,
+      ) as unknown as RendererElementInstance;
     }
-    return new HShapeElement(data, this.globalData, this) as unknown as RendererElementInstance;
+    return new HShapeElement(
+      shapeData,
+      this.globalData as unknown as GlobalDataSvgShape,
+      this,
+    ) as unknown as RendererElementInstance;
   }
 
   createText(data: RendererLayerData): RendererElementInstance {
+    const textData = data as unknown as TextLayerData;
+    const gText = this.globalData as unknown as GlobalDataDomText;
     if (!this.supports3d) {
-      return new SVGTextLottieElement(data, this.globalData, this) as unknown as RendererElementInstance;
+      return new SVGTextLottieElement(textData, gText, this) as unknown as RendererElementInstance;
     }
-    return new HTextElement(data, this.globalData, this) as unknown as RendererElementInstance;
+    return new HTextElement(textData, gText, this) as unknown as RendererElementInstance;
   }
 
   createCamera(data: RendererLayerData): RendererElementInstance {

@@ -15,10 +15,11 @@ import type {
   RenderConfig,
   SolidColorLayerData,
   TextLayerData,
+  ShapeJsonNode,
 } from '../types/lottieRuntime';
 import SVGRendererBase from './SVGRendererBase';
 import BaseRenderer from './BaseRenderer';
-import CVShapeElement, { type ShapeJsonNode } from '../elements/canvasElements/CVShapeElement';
+import CVShapeElement from '../elements/canvasElements/CVShapeElement';
 import CVTextElement from '../elements/canvasElements/CVTextElement';
 import CVImageElement from '../elements/canvasElements/CVImageElement';
 import CVSolidElement from '../elements/canvasElements/CVSolidElement';
