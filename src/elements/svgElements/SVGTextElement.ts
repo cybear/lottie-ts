@@ -9,7 +9,7 @@ import HierarchyElement from '../helpers/HierarchyElement';
 import FrameElement from '../helpers/FrameElement';
 import RenderableDOMElement from '../helpers/RenderableDOMElement';
 import ITextElement from '../TextElement';
-import SVGCompElement from './SVGCompElement'; // eslint-disable-line
+import { getSVGCompElement } from './svgElementRefs';
 import SVGShapeElement from './SVGShapeElement';
 
 const emptyShapeData = {
@@ -198,7 +198,7 @@ SVGTextLottieElement.prototype.buildNewText = function () {
         let glyphElement;
         // t === 1 means the character has been replaced with an animated shaped
         if (charData.t === 1) {
-          glyphElement = new SVGCompElement(charData.data, this.globalData, this);
+          glyphElement = new (getSVGCompElement())(charData.data, this.globalData, this);
         } else {
           let data = emptyShapeData;
           if (charData.data && charData.data.shapes) {

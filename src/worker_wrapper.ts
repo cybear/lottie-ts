@@ -97,16 +97,6 @@ function workerContent() {
 
   const styleProperties = ['width', 'height', 'display', 'transform', 'opacity', 'contentVisibility', 'mix-blend-mode'];
 
-  function convertArguments(args) {
-    const arr = [];
-    let i;
-    const len = args.length;
-    for (i = 0; i < len; i += 1) {
-      arr.push(args[i]);
-    }
-    return arr;
-  }
-
   function Style(element) {
     this.element = element;
   }
@@ -262,8 +252,6 @@ function workerContent() {
     }
     return new ProxyElement(type, namespace);
   }
-
-  const window = self; // eslint-disable-line no-redeclare, no-unused-vars
 
   const document = {
     // eslint-disable-line no-redeclare

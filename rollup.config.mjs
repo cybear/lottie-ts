@@ -46,6 +46,12 @@ const noTreeShakingForStandalonePlugin = () => {
 
 const destinationBuildFolder = 'build/player/';
 
+/** Lottie expressions require dynamic evaluation; Rollup flags eval by design. */
+function onwarn(warning, warn) {
+  if (warning.code === 'EVAL') return;
+  warn(warning);
+}
+
 const builds = [
   {
     input: 'src/modules/full.ts',
@@ -185,11 +191,13 @@ const UMDModule = {
     compact: false,
   },
   treeshake: false,
+  onwarn,
 };
 
 const ESMModule = {
   plugins: esmPlugins,
   treeshake: false,
+  onwarn,
   output: [
     {
       format: 'esm',

@@ -523,7 +523,7 @@ const dataManager = (function () {
               try {
                 // This crashes on Android WebView prior to KitKat
                 xhr.responseType = 'json';
-              } catch (err) {} // eslint-disable-line no-empty
+              } catch {} // eslint-disable-line no-empty
               xhr.onreadystatechange = function () {
                 if (xhr.readyState === 4) {
                   if (xhr.status === 200) {
@@ -544,7 +544,7 @@ const dataManager = (function () {
               try {
                 // Hack to workaround banner validation
                 xhr.open(['G', 'E', 'T'].join(''), path, true);
-              } catch (error) {
+              } catch {
                 // Hack to workaround banner validation
                 xhr.open(['G', 'E', 'T'].join(''), fullPath + '/' + path, true);
               }

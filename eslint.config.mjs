@@ -29,7 +29,11 @@ export default tseslint.config(
       '@typescript-eslint/no-explicit-any': 'warn',
       '@typescript-eslint/no-unused-vars': [
         'warn',
-        { argsIgnorePattern: '^_', varsIgnorePattern: '^_' },
+        {
+          argsIgnorePattern: '^_',
+          varsIgnorePattern: '^_',
+          caughtErrorsIgnorePattern: '^_',
+        },
       ],
       '@typescript-eslint/ban-ts-comment': 'off',
       '@typescript-eslint/no-this-alias': 'off',
@@ -45,6 +49,18 @@ export default tseslint.config(
     rules: {
       'no-var': 'off',
       'prefer-const': 'off',
+    },
+  },
+  {
+    files: [
+      'src/utils/DataManager.ts',
+      'src/utils/PropertyFactory.ts',
+      'src/utils/FontManager.ts',
+      'src/utils/TransformProperty.ts',
+    ],
+    rules: {
+      // Legacy Lottie JSON / prototype mixins are intentionally untyped.
+      '@typescript-eslint/no-explicit-any': 'off',
     },
   },
 );

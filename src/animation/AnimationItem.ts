@@ -735,7 +735,7 @@ AnimationItem.prototype.updateDocumentData = function (path, documentData, index
   try {
     const element = this.renderer.getElementByPath(path);
     element.updateDocumentData(documentData, index);
-  } catch (error) {
+  } catch {
     // TODO: decide how to handle catch case
   }
 };

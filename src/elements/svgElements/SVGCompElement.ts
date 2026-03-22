@@ -5,6 +5,7 @@ import PropertyFactory from '../../utils/PropertyFactory';
 import SVGRendererBase from '../../renderers/SVGRendererBase'; // eslint-disable-line
 import SVGBaseElement from './SVGBaseElement';
 import ICompElement from '../CompElement';
+import { registerSVGCompElement } from './svgElementRefs';
 
 function SVGCompElement(data, globalData, comp) {
   this.layers = data.layers;
@@ -21,5 +22,7 @@ extendPrototype([SVGRendererBase, ICompElement, SVGBaseElement], SVGCompElement)
 SVGCompElement.prototype.createComp = function (data) {
   return new SVGCompElement(data, this.globalData, this);
 };
+
+registerSVGCompElement(SVGCompElement);
 
 export default SVGCompElement;

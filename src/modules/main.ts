@@ -159,7 +159,7 @@ try {
   ) {
     window.bodymovin = lottie;
   }
-} catch (err) {
+} catch {
   //
 }
 export default lottie;

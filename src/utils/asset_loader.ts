@@ -26,7 +26,7 @@ const assetLoader = (function () {
     try {
       // This crashes on Android WebView prior to KitKat
       xhr.responseType = 'json';
-    } catch (err) {} // eslint-disable-line no-empty
+    } catch {} // eslint-disable-line no-empty
     xhr.onreadystatechange = function () {
       if (xhr.readyState === 4) {
         if (xhr.status === 200) {

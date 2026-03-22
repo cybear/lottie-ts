@@ -1,5 +1,4 @@
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-type Constructor = { prototype: Record<string, any> };
+type Constructor = { prototype: Record<string, unknown> };
 
 function extendPrototype(sources: Constructor[], destination: Constructor): void {
   const len = sources.length;
@@ -17,11 +16,10 @@ function getDescriptor(object: object, prop: string): PropertyDescriptor | undef
   return Object.getOwnPropertyDescriptor(object, prop);
 }
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-function createProxyFunction(prototype: Record<string, any>): new () => Record<string, any> {
+function createProxyFunction(prototype: Record<string, unknown>): new () => Record<string, unknown> {
   function ProxyFunction() {}
   ProxyFunction.prototype = prototype;
-  return ProxyFunction as unknown as new () => Record<string, any>;
+  return ProxyFunction as unknown as new () => Record<string, unknown>;
 }
 
 export { extendPrototype, getDescriptor, createProxyFunction };
