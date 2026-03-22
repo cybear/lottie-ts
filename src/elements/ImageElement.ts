@@ -38,14 +38,19 @@ class IImageElement {
 
     this.layerElement.appendChild(this.innerElem);
   }
+
+  sourceRectAtTime() {
+    return this.sourceRect;
+  }
 }
+
+const imageSourceRectAtTime = IImageElement.prototype.sourceRectAtTime;
+
 extendPrototype(
   [BaseElement, TransformElement, SVGBaseElement, HierarchyElement, FrameElement, RenderableDOMElement],
   IImageElement,
 );
 
-IImageElement.prototype.sourceRectAtTime = function () {
-  return this.sourceRect;
-};
+IImageElement.prototype.sourceRectAtTime = imageSourceRectAtTime;
 
 export default IImageElement;

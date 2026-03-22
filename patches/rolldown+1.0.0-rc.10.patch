@@ -1,0 +1,15 @@
+diff --git a/node_modules/rolldown/dist/shared/rolldown-build-yQC7KN8K.mjs b/node_modules/rolldown/dist/shared/rolldown-build-yQC7KN8K.mjs
+index dcba5ca..6665212 100644
+--- a/node_modules/rolldown/dist/shared/rolldown-build-yQC7KN8K.mjs
++++ b/node_modules/rolldown/dist/shared/rolldown-build-yQC7KN8K.mjs
+@@ -6,7 +6,9 @@ import { i as unimplemented } from "./misc-DJYbNKZX.mjs";
+ import { i as unwrapBindingResult } from "./error-BO4SlZV_.mjs";
+ import { Worker } from "node:worker_threads";
+ import path, { sep } from "node:path";
+-import { formatWithOptions, styleText } from "node:util";
++import * as nodeUtil from "node:util";
++const formatWithOptions = nodeUtil.formatWithOptions;
++const styleText = nodeUtil.styleText ?? ((_, text) => text);
+ import process$1 from "node:process";
+ import * as tty from "node:tty";
+ import os from "node:os";

@@ -90,12 +90,18 @@ class AudioElement {
   }
 
   destroy() {}
+
+  sourceRectAtTime() {}
+
+  initExpressions() {}
 }
+
+const audioSourceRectAtTime = AudioElement.prototype.sourceRectAtTime;
+const audioInitExpressions = AudioElement.prototype.initExpressions;
 
 extendPrototype([RenderableElement, BaseElement, FrameElement], AudioElement);
 
-AudioElement.prototype.sourceRectAtTime = function () {};
-
-AudioElement.prototype.initExpressions = function () {};
+AudioElement.prototype.sourceRectAtTime = audioSourceRectAtTime;
+AudioElement.prototype.initExpressions = audioInitExpressions;
 
 export default AudioElement;
