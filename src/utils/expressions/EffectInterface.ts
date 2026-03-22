@@ -1,4 +1,4 @@
-// @ts-nocheck
+/* eslint-disable @typescript-eslint/no-explicit-any -- effect tree proxies for expressions */
 import ExpressionPropertyInterface from './ExpressionValueFactory';
 import propertyGroupFactory from './PropertyGroupFactory';
 import PropertyInterface from './PropertyInterface';
@@ -8,9 +8,9 @@ const EffectsExpressionInterface = (function () {
     createEffectsInterface: createEffectsInterface,
   };
 
-  function createEffectsInterface(elem, propertyGroup) {
+  function createEffectsInterface(elem: any, propertyGroup: any) {
     if (elem.effectsManager) {
-      const effectElements = [];
+      const effectElements: any[] = [];
       const effectsData = elem.data.ef;
       let i;
       let len = elem.effectsManager.effectElements.length;
@@ -21,7 +21,7 @@ const EffectsExpressionInterface = (function () {
       }
 
       const effects = elem.data.ef || [];
-      const groupInterface = function (name) {
+      const groupInterface: any = function (name: string | number) {
         i = 0;
         len = effects.length;
         while (i < len) {
@@ -42,8 +42,9 @@ const EffectsExpressionInterface = (function () {
     return null;
   }
 
-  function createGroupInterface(data, elements, propertyGroup, elem) {
-    function groupInterface(name) {
+  function createGroupInterface(data: any, elements: any, propertyGroup: any, elem: any) {
+    const effectElements: any[] = [];
+    const groupInterface: any = function (name: string | number) {
       const effects = data.ef;
       let i = 0;
       const len = effects.length;
@@ -57,10 +58,9 @@ const EffectsExpressionInterface = (function () {
         i += 1;
       }
       throw new Error();
-    }
+    };
     const _propertyGroup = propertyGroupFactory(groupInterface, propertyGroup);
 
-    const effectElements = [];
     let i;
     const len = data.ef.length;
     for (i = 0; i < len; i += 1) {
@@ -94,7 +94,7 @@ const EffectsExpressionInterface = (function () {
     return groupInterface;
   }
 
-  function createValueInterface(element, type, elem, propertyGroup) {
+  function createValueInterface(element: any, type: number, elem: any, propertyGroup: any) {
     const expressionProperty = ExpressionPropertyInterface(element.p);
     function interfaceFunction() {
       if (type === 10) {

@@ -1,7 +1,7 @@
 import CompExpressionInterface from './CompInterface';
 import ExpressionManagerImport from './ExpressionManager';
 
-/** `ExpressionManager` module is still `@ts-nocheck`; surface API for callers. */
+/** Narrow surface for `ExpressionManager` until that module drops `@ts-nocheck`. */
 type ExpressionManagerApi = {
   resetFrame: () => void;
   initiateExpression: (elem: unknown, data: unknown, prop: unknown) => () => void;

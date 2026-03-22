@@ -1,11 +1,11 @@
-// @ts-nocheck
+/* eslint-disable @typescript-eslint/no-explicit-any -- layer space/transform helpers for expressions */
 import { getDescriptor } from '../functionExtensions';
 import Matrix from '../../3rd_party/transformation-matrix';
 import MaskManagerInterface from './MaskInterface';
 import TransformExpressionInterface from './TransformInterface';
 
 const LayerExpressionInterface = (function () {
-  function getMatrix(time) {
+  function getMatrix(this: any, time?: number) {
     const toWorldMat = new Matrix();
     if (time !== undefined) {
       const propMatrix = this._elem.finalTransform.mProp.getValueAtTime(time);
@@ -17,7 +17,7 @@ const LayerExpressionInterface = (function () {
     return toWorldMat;
   }
 
-  function toWorldVec(arr, time) {
+  function toWorldVec(this: any, arr: number[], time?: number) {
     const toWorldMat = this.getMatrix(time);
     toWorldMat.props[12] = 0;
     toWorldMat.props[13] = 0;
@@ -25,12 +25,12 @@ const LayerExpressionInterface = (function () {
     return this.applyPoint(toWorldMat, arr);
   }
 
-  function toWorld(arr, time) {
+  function toWorld(this: any, arr: number[], time?: number) {
     const toWorldMat = this.getMatrix(time);
     return this.applyPoint(toWorldMat, arr);
   }
 
-  function fromWorldVec(arr, time) {
+  function fromWorldVec(this: any, arr: number[], time?: number) {
     const toWorldMat = this.getMatrix(time);
     toWorldMat.props[12] = 0;
     toWorldMat.props[13] = 0;
@@ -38,12 +38,12 @@ const LayerExpressionInterface = (function () {
     return this.invertPoint(toWorldMat, arr);
   }
 
-  function fromWorld(arr, time) {
+  function fromWorld(this: any, arr: number[], time?: number) {
     const toWorldMat = this.getMatrix(time);
     return this.invertPoint(toWorldMat, arr);
   }
 
-  function applyPoint(matrix, arr) {
+  function applyPoint(this: any, matrix: InstanceType<typeof Matrix>, arr: number[]) {
     if (this._elem.hierarchy && this._elem.hierarchy.length) {
       let i;
       const len = this._elem.hierarchy.length;
@@ -54,7 +54,7 @@ const LayerExpressionInterface = (function () {
     return matrix.applyToPointArray(arr[0], arr[1], arr[2] || 0);
   }
 
-  function invertPoint(matrix, arr) {
+  function invertPoint(this: any, matrix: InstanceType<typeof Matrix>, arr: number[]) {
     if (this._elem.hierarchy && this._elem.hierarchy.length) {
       let i;
       const len = this._elem.hierarchy.length;
@@ -65,7 +65,7 @@ const LayerExpressionInterface = (function () {
     return matrix.inversePoint(arr);
   }
 
-  function fromComp(arr) {
+  function fromComp(this: any, arr: number[]) {
     const toWorldMat = new Matrix();
     toWorldMat.reset();
     this._elem.finalTransform.mProp.applyToMatrix(toWorldMat);
@@ -84,15 +84,8 @@ const LayerExpressionInterface = (function () {
     return [1, 1, 1, 1];
   }
 
-  return function (elem) {
-    function _registerMaskInterface(maskManager) {
-      _thisLayerFunction.mask = new MaskManagerInterface(maskManager, elem);
-    }
-    function _registerEffectsInterface(effects) {
-      _thisLayerFunction.effect = effects;
-    }
-
-    function _thisLayerFunction(name) {
+  return function (elem: any) {
+    const _thisLayerFunction: any = function (name: string | number) {
       switch (name) {
         case 'ADBE Root Vectors Group':
         case 'Contents':
@@ -114,7 +107,14 @@ const LayerExpressionInterface = (function () {
         default:
           return null;
       }
+    };
+    function _registerMaskInterface(maskManager: any) {
+      _thisLayerFunction.mask = new (MaskManagerInterface as any)(maskManager, elem);
     }
+    function _registerEffectsInterface(effects: any) {
+      _thisLayerFunction.effect = effects;
+    }
+
     _thisLayerFunction.getMatrix = getMatrix;
     _thisLayerFunction.invertPoint = invertPoint;
     _thisLayerFunction.applyPoint = applyPoint;
@@ -128,7 +128,8 @@ const LayerExpressionInterface = (function () {
     _thisLayerFunction.sourceRectAtTime = elem.sourceRectAtTime.bind(elem);
     _thisLayerFunction._elem = elem;
     const transformInterface = TransformExpressionInterface(elem.finalTransform.mProp);
-    const anchorPointDescriptor = getDescriptor(transformInterface, 'anchorPoint');
+    const ti = transformInterface as object;
+    const anchorPointDescriptor = getDescriptor(ti, 'anchorPoint')!;
     Object.defineProperties(_thisLayerFunction, {
       hasParent: {
         get: function () {
@@ -140,10 +141,10 @@ const LayerExpressionInterface = (function () {
           return elem.hierarchy[0].layerInterface;
         },
       },
-      rotation: getDescriptor(transformInterface, 'rotation'),
-      scale: getDescriptor(transformInterface, 'scale'),
-      position: getDescriptor(transformInterface, 'position'),
-      opacity: getDescriptor(transformInterface, 'opacity'),
+      rotation: getDescriptor(ti, 'rotation')!,
+      scale: getDescriptor(ti, 'scale')!,
+      position: getDescriptor(ti, 'position')!,
+      opacity: getDescriptor(ti, 'opacity')!,
       anchorPoint: anchorPointDescriptor,
       anchor_point: anchorPointDescriptor,
       transform: {

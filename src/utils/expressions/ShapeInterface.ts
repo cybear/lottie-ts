@@ -1,11 +1,11 @@
-// @ts-nocheck
+/* eslint-disable @typescript-eslint/no-explicit-any -- shape tree proxies for expressions */
 import ExpressionPropertyInterface from './ExpressionValueFactory';
 import propertyGroupFactory from './PropertyGroupFactory';
 import PropertyInterface from './PropertyInterface';
 import ShapePathInterface from './shapes/ShapePathInterface';
 
 const ShapeExpressionInterface = (function () {
-  function iterateElements(shapes, view, propertyGroup) {
+  function iterateElements(shapes: any, view: any, propertyGroup: any) {
     const arr = [];
     let i;
     const len = shapes ? shapes.length : 0;
@@ -41,8 +41,8 @@ const ShapeExpressionInterface = (function () {
     return arr;
   }
 
-  function contentsInterfaceFactory(shape, view, propertyGroup) {
-    const interfaceFunction = function _interfaceFunction(value) {
+  function contentsInterfaceFactory(shape: any, view: any, propertyGroup: any) {
+    const interfaceFunction = function _interfaceFunction(value: any) {
       let i = 0;
       const len = interfaces.length;
       while (i < len) {
@@ -78,8 +78,8 @@ const ShapeExpressionInterface = (function () {
     return interfaceFunction;
   }
 
-  function groupInterfaceFactory(shape, view, propertyGroup) {
-    const interfaceFunction = function _interfaceFunction(value) {
+  function groupInterfaceFactory(shape: any, view: any, propertyGroup: any) {
+    const interfaceFunction = function _interfaceFunction(value: any) {
       switch (value) {
         case 'ADBE Vectors Group':
         case 'Contents':
@@ -114,8 +114,8 @@ const ShapeExpressionInterface = (function () {
     return interfaceFunction;
   }
 
-  function fillInterfaceFactory(shape, view, propertyGroup) {
-    function interfaceFunction(val) {
+  function fillInterfaceFactory(shape: any, view: any, propertyGroup: any) {
+    const interfaceFunction: any = function (val: any) {
       if (val === 'Color' || val === 'color') {
         return interfaceFunction.color;
       }
@@ -123,7 +123,7 @@ const ShapeExpressionInterface = (function () {
         return interfaceFunction.opacity;
       }
       return null;
-    }
+    };
     Object.defineProperties(interfaceFunction, {
       color: {
         get: ExpressionPropertyInterface(view.c),
@@ -140,8 +140,8 @@ const ShapeExpressionInterface = (function () {
     return interfaceFunction;
   }
 
-  function gradientFillInterfaceFactory(shape, view, propertyGroup) {
-    function interfaceFunction(val) {
+  function gradientFillInterfaceFactory(shape: any, view: any, propertyGroup: any) {
+    const interfaceFunction: any = function (val: any) {
       if (val === 'Start Point' || val === 'start point') {
         return interfaceFunction.startPoint;
       }
@@ -152,7 +152,7 @@ const ShapeExpressionInterface = (function () {
         return interfaceFunction.opacity;
       }
       return null;
-    }
+    };
     Object.defineProperties(interfaceFunction, {
       startPoint: {
         get: ExpressionPropertyInterface(view.s),
@@ -177,18 +177,30 @@ const ShapeExpressionInterface = (function () {
     view.o.setGroupProperty(PropertyInterface('Opacity', propertyGroup));
     return interfaceFunction;
   }
-  function defaultInterfaceFactory() {
+  function defaultInterfaceFactory(_shape: any, _view: any, _propertyGroup: any) {
     function interfaceFunction() {
       return null;
     }
     return interfaceFunction;
   }
 
-  function strokeInterfaceFactory(shape, view, propertyGroup) {
+  function strokeInterfaceFactory(shape: any, view: any, propertyGroup: any) {
+    const interfaceFunction: any = function (val: any) {
+      if (val === 'Color' || val === 'color') {
+        return interfaceFunction.color;
+      }
+      if (val === 'Opacity' || val === 'opacity') {
+        return interfaceFunction.opacity;
+      }
+      if (val === 'Stroke Width' || val === 'stroke width') {
+        return interfaceFunction.strokeWidth;
+      }
+      return null;
+    };
     const _propertyGroup = propertyGroupFactory(interfaceFunction, propertyGroup);
     const dashOb = {};
     const _dashPropertyGroup = propertyGroupFactory(dashOb, _propertyGroup);
-    function addPropertyToDashOb(i) {
+    function addPropertyToDashOb(i: number) {
       Object.defineProperty(dashOb, shape.d[i].nm, {
         get: ExpressionPropertyInterface(view.d.dataProps[i].p),
       });
@@ -200,18 +212,6 @@ const ShapeExpressionInterface = (function () {
       view.d.dataProps[i].p.setGroupProperty(_dashPropertyGroup);
     }
 
-    function interfaceFunction(val) {
-      if (val === 'Color' || val === 'color') {
-        return interfaceFunction.color;
-      }
-      if (val === 'Opacity' || val === 'opacity') {
-        return interfaceFunction.opacity;
-      }
-      if (val === 'Stroke Width' || val === 'stroke width') {
-        return interfaceFunction.strokeWidth;
-      }
-      return null;
-    }
     Object.defineProperties(interfaceFunction, {
       color: {
         get: ExpressionPropertyInterface(view.c),
@@ -237,8 +237,8 @@ const ShapeExpressionInterface = (function () {
     return interfaceFunction;
   }
 
-  function trimInterfaceFactory(shape, view, propertyGroup) {
-    function interfaceFunction(val) {
+  function trimInterfaceFactory(shape: any, view: any, propertyGroup: any) {
+    const interfaceFunction: any = function (val: any) {
       if (val === shape.e.ix || val === 'End' || val === 'end') {
         return interfaceFunction.end;
       }
@@ -249,7 +249,7 @@ const ShapeExpressionInterface = (function () {
         return interfaceFunction.offset;
       }
       return null;
-    }
+    };
 
     const _propertyGroup = propertyGroupFactory(interfaceFunction, propertyGroup);
     interfaceFunction.propertyIndex = shape.ix;
@@ -276,8 +276,8 @@ const ShapeExpressionInterface = (function () {
     return interfaceFunction;
   }
 
-  function transformInterfaceFactory(shape, view, propertyGroup) {
-    function interfaceFunction(value) {
+  function transformInterfaceFactory(shape: any, view: any, propertyGroup: any) {
+    const interfaceFunction: any = function (value: any) {
       if (shape.a.ix === value || value === 'Anchor Point') {
         return interfaceFunction.anchorPoint;
       }
@@ -300,7 +300,7 @@ const ShapeExpressionInterface = (function () {
         return interfaceFunction.skewAxis;
       }
       return null;
-    }
+    };
     const _propertyGroup = propertyGroupFactory(interfaceFunction, propertyGroup);
     view.transform.mProps.o.setGroupProperty(PropertyInterface('Opacity', _propertyGroup));
     view.transform.mProps.p.setGroupProperty(PropertyInterface('Position', _propertyGroup));
@@ -342,8 +342,8 @@ const ShapeExpressionInterface = (function () {
     return interfaceFunction;
   }
 
-  function ellipseInterfaceFactory(shape, view, propertyGroup) {
-    function interfaceFunction(value) {
+  function ellipseInterfaceFactory(shape: any, view: any, propertyGroup: any) {
+    const interfaceFunction: any = function (value: any) {
       if (shape.p.ix === value) {
         return interfaceFunction.position;
       }
@@ -351,7 +351,7 @@ const ShapeExpressionInterface = (function () {
         return interfaceFunction.size;
       }
       return null;
-    }
+    };
     const _propertyGroup = propertyGroupFactory(interfaceFunction, propertyGroup);
     interfaceFunction.propertyIndex = shape.ix;
     const prop = view.sh.ty === 'tm' ? view.sh.prop : view.sh;
@@ -371,8 +371,8 @@ const ShapeExpressionInterface = (function () {
     return interfaceFunction;
   }
 
-  function starInterfaceFactory(shape, view, propertyGroup) {
-    function interfaceFunction(value) {
+  function starInterfaceFactory(shape: any, view: any, propertyGroup: any) {
+    const interfaceFunction: any = function (value: any) {
       if (shape.p.ix === value) {
         return interfaceFunction.position;
       }
@@ -395,7 +395,7 @@ const ShapeExpressionInterface = (function () {
         return interfaceFunction.innerRoundness;
       }
       return null;
-    }
+    };
 
     const _propertyGroup = propertyGroupFactory(interfaceFunction, propertyGroup);
     const prop = view.sh.ty === 'tm' ? view.sh.prop : view.sh;
@@ -438,8 +438,8 @@ const ShapeExpressionInterface = (function () {
     return interfaceFunction;
   }
 
-  function rectInterfaceFactory(shape, view, propertyGroup) {
-    function interfaceFunction(value) {
+  function rectInterfaceFactory(shape: any, view: any, propertyGroup: any) {
+    const interfaceFunction: any = function (value: any) {
       if (shape.p.ix === value) {
         return interfaceFunction.position;
       }
@@ -450,7 +450,7 @@ const ShapeExpressionInterface = (function () {
         return interfaceFunction.size;
       }
       return null;
-    }
+    };
     const _propertyGroup = propertyGroupFactory(interfaceFunction, propertyGroup);
 
     const prop = view.sh.ty === 'tm' ? view.sh.prop : view.sh;
@@ -475,13 +475,13 @@ const ShapeExpressionInterface = (function () {
     return interfaceFunction;
   }
 
-  function roundedInterfaceFactory(shape, view, propertyGroup) {
-    function interfaceFunction(value) {
+  function roundedInterfaceFactory(shape: any, view: any, propertyGroup: any) {
+    const interfaceFunction: any = function (value: any) {
       if (shape.r.ix === value || value === 'Round Corners 1') {
         return interfaceFunction.radius;
       }
       return null;
-    }
+    };
 
     const _propertyGroup = propertyGroupFactory(interfaceFunction, propertyGroup);
     const prop = view;
@@ -498,8 +498,8 @@ const ShapeExpressionInterface = (function () {
     return interfaceFunction;
   }
 
-  function repeaterInterfaceFactory(shape, view, propertyGroup) {
-    function interfaceFunction(value) {
+  function repeaterInterfaceFactory(shape: any, view: any, propertyGroup: any) {
+    const interfaceFunction: any = function (value: any) {
       if (shape.c.ix === value || value === 'Copies') {
         return interfaceFunction.copies;
       }
@@ -507,7 +507,7 @@ const ShapeExpressionInterface = (function () {
         return interfaceFunction.offset;
       }
       return null;
-    }
+    };
 
     const _propertyGroup = propertyGroupFactory(interfaceFunction, propertyGroup);
     const prop = view;
@@ -527,8 +527,8 @@ const ShapeExpressionInterface = (function () {
     return interfaceFunction;
   }
 
-  return function (shapes, view, propertyGroup) {
-    function _interfaceFunction(value) {
+  return function (shapes: any, view: any, propertyGroup: any) {
+    function _interfaceFunction(value: any) {
       if (typeof value === 'number') {
         value = value === undefined ? 1 : value;
         if (value === 0) {
