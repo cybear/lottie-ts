@@ -254,3 +254,25 @@ For `SVGCompElement`, `CVCompElement`, and `HCompElement`, the mixin array start
 ### Verification
 
 After each slice, run `npm test`, `npm run test:e2e`, and compare baselines where visual tests apply. Order-sensitive behavior (effect of mixin sequence) must be explicitly tested or diffed when flattening.
+
+---
+
+## Remaining work (Track B & Track A)
+
+- **`RenderableDOMElement`:** IIFE + `createProxyFunction` stack; a larger refactor with high regression risk (full unit + e2e).
+- **`ExpressionPropertyDecorator`:** `extendPrototype` onto in-closure constructors; leave until a dedicated shape-factory rewrite is justified.
+- **`CVMaskElement.getMaskProperty`:** Still aliased from `MaskElement.prototype`; canvas `viewData` entries are shape props, not `{ prop }` wrappers—verify masked-path text on canvas before replacing the alias.
+- **Broad `@ts-nocheck` removal:** Most of `src/` still opts out; peel off **small vertical slices** (trait → layer family → utils) with `tsc --noEmit` after each file or small group.
+- **Runtime types (`src/types/`):** Grow **`GlobalData`**, **`comp`**, and JSON shapes (`ElementData` / per-`ty` layers) as callers are typed; avoid one giant “full Lottie schema” PR.
+- **Worker bundle:** `worker_wrapper.ts` mirrors DOM/canvas behavior; structural changes should stay in sync or share a tiny shared module if tree-shaking allows.
+- **Docs table drift:** Regenerate the `extendPrototype` inventory table (`rg "extendPrototype\(" src --glob '*.ts' -l`) when call sites move.
+
+### Track A (incremental, started)
+
+- **`src/types/lottieRuntime.ts`:** `GlobalData` expanded (`CompSize`, `_mdf`, frame fields, `defs`, asset helpers, optional canvas/renderer fields, index signature for extra renderer state). `LayerDynamicProperty` models `dynamicProperties` entries. Also: `RenderConfig`, `LayerInOutData`, `FinalTransformOpacitySlice`, `RenderableComponentEntry`, `LayerParentData`, `ParentingHost`.
+- **`FrameElement`:** `@ts-nocheck` removed; uses `GlobalData` and `LayerDynamicProperty` for `prepareProperties` / `addDynamicProperty`.
+- **`HierarchyElement`:** `@ts-nocheck` removed; `LayerParentData` + `ParentingHost` for `checkParenting` / `setHierarchy`.
+- **`RenderableElement`:** `@ts-nocheck` removed; `hide` / `show` declared; typed against `GlobalData`, `LayerInOutData`, `RenderableComponentEntry`, `FinalTransformOpacitySlice`.
+- **`ProcessedElement`:** `@ts-nocheck` removed; `elem` / `pos` typed.
+- **`LetterProps`:** `@ts-nocheck` removed; optional constructor args (supports `ITextElement`’s `new LetterProps()`), `Matrix16` / `_mdf` typing.
+- **`NullElement`:** `@ts-nocheck` removed; constructor + instance methods typed; `declare` for mixin-supplied `init*` / `prepareProperties`.

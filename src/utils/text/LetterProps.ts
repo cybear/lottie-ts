@@ -1,12 +1,30 @@
-// @ts-nocheck
+type Matrix16 = number[];
+
+interface LetterPropsMdf {
+  o: boolean;
+  sw: boolean;
+  sc: boolean;
+  fc: boolean;
+  m: boolean;
+  p: boolean;
+}
+
 class LetterProps {
-  constructor(o, sw, sc, fc, m, p) {
+  o: number | undefined;
+  sw: unknown;
+  sc: unknown;
+  fc: unknown;
+  m: unknown;
+  p: Matrix16;
+  _mdf: LetterPropsMdf;
+
+  constructor(o?: number, sw?: unknown, sc?: unknown, fc?: unknown, m?: unknown, p?: Matrix16) {
     this.o = o;
     this.sw = sw;
     this.sc = sc;
     this.fc = fc;
     this.m = m;
-    this.p = p;
+    this.p = p ?? [];
     this._mdf = {
       o: true,
       sw: !!sw,
@@ -17,7 +35,7 @@ class LetterProps {
     };
   }
 
-  update(o, sw, sc, fc, m, p) {
+  update(o: number | undefined, sw: unknown, sc: unknown, fc: unknown, m: unknown, p: Matrix16): boolean {
     this._mdf.o = false;
     this._mdf.sw = false;
     this._mdf.sc = false;
