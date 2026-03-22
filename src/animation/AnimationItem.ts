@@ -1,4 +1,4 @@
-// @ts-nocheck
+/* eslint-disable @typescript-eslint/no-explicit-any -- animation item: dynamic renderer + asset pipeline */
 import audioControllerFactory from '../utils/audio/AudioController';
 import {
   getSubframeEnabled,
@@ -19,7 +19,88 @@ import markerParser from '../utils/markers/markerParser';
 import ProjectInterface from '../utils/expressions/ProjectInterface';
 import { getRenderer, getRegisteredRenderer } from '../renderers/renderersManager';
 
+function bmEnterFrame(type: string, currentTime: number, totalTime: number, frameMultiplier: number): any {
+  const e: any = {};
+  BMEnterFrameEvent.call(e, type, currentTime, totalTime, frameMultiplier);
+  return e;
+}
+function bmComplete(type: string, frameMultiplier: number): any {
+  const e: any = {};
+  BMCompleteEvent.call(e, type, frameMultiplier);
+  return e;
+}
+function bmCompleteLoop(type: string, totalLoops: number, currentLoop: number, frameMultiplier: number): any {
+  const e: any = {};
+  BMCompleteLoopEvent.call(e, type, totalLoops, currentLoop, frameMultiplier);
+  return e;
+}
+function bmSegmentStart(type: string, firstFrame: number, totalFrames: number): any {
+  const e: any = {};
+  BMSegmentStartEvent.call(e, type, firstFrame, totalFrames);
+  return e;
+}
+function bmDestroy(type: string, target: any): any {
+  const e: any = {};
+  BMDestroyEvent.call(e, type, target);
+  return e;
+}
+function bmRenderFrameError(nativeError: any, currentTime: number): any {
+  const e: any = {};
+  BMRenderFrameErrorEvent.call(e, nativeError, currentTime);
+  return e;
+}
+function bmConfigError(nativeError: any): any {
+  const e: any = {};
+  BMConfigErrorEvent.call(e, nativeError);
+  return e;
+}
+
 class AnimationItem extends BaseEvent {
+  name!: any;
+  path!: any;
+  fileName!: any;
+  wrapper!: any;
+  isLoaded!: boolean;
+  currentFrame!: number;
+  currentRawFrame!: number;
+  firstFrame!: number;
+  totalFrames!: number;
+  frameRate!: number;
+  frameMult!: number;
+  frameModifier!: number;
+  playSpeed!: number;
+  playDirection!: number;
+  playCount!: number;
+  animationData!: any;
+  assets!: any[];
+  isPaused!: boolean;
+  autoplay!: boolean;
+  loop!: any;
+  renderer!: any;
+  animationID!: string;
+  assetsPath!: any;
+  timeCompleted!: number;
+  segmentPos!: number;
+  isSubframeEnabled!: boolean;
+  segments!: any[];
+  _idle!: boolean;
+  _completedLoop!: boolean;
+  projectInterface!: any;
+  imagePreloader!: any;
+  audioController!: any;
+  markers!: any[];
+  drawnFrameEvent!: any;
+  expressionsPlugin!: any;
+  animType!: string;
+  autoloadSegments!: boolean;
+  initialSegment!: any;
+  onEnterFrame!: any;
+  onLoopComplete!: any;
+  onComplete!: any;
+  onSegmentStart!: any;
+  onDestroy!: any;
+  onError!: any;
+
   constructor() {
     super();
     this.name = '';
@@ -55,11 +136,11 @@ class AnimationItem extends BaseEvent {
     this.configAnimation = this.configAnimation.bind(this);
     this.onSetupError = this.onSetupError.bind(this);
     this.onSegmentComplete = this.onSegmentComplete.bind(this);
-    this.drawnFrameEvent = new BMEnterFrameEvent('drawnFrame', 0, 0, 0);
+    this.drawnFrameEvent = bmEnterFrame('drawnFrame', 0, 0, 0);
     this.expressionsPlugin = getExpressionsPlugin();
   }
 
-  setParams(params) {
+  setParams(params: any) {
     if (params.wrapper || params.container) {
       this.wrapper = params.wrapper || params.container;
     }
@@ -69,7 +150,7 @@ class AnimationItem extends BaseEvent {
     } else if (params.renderer) {
       animType = params.renderer;
     }
-    const RendererClass = getRenderer(animType);
+    const RendererClass = getRenderer(animType) as new (item: any, settings: any) => any;
     this.renderer = new RendererClass(this, params.rendererSettings);
     this.imagePreloader.setCacheType(animType, this.renderer.globalData.defs);
     this.renderer.setProjectInterface(this.projectInterface);
@@ -109,17 +190,17 @@ class AnimationItem extends BaseEvent {
     this.trigger('data_failed');
   }
 
-  setupAnimation(data) {
-    dataManager.completeAnimation(data, this.configAnimation);
+  setupAnimation(data: any) {
+    dataManager.completeAnimation(data, this.configAnimation, undefined);
   }
 
-  setData(wrapper, animationData) {
+  setData(wrapper: any, animationData: any) {
     if (animationData) {
       if (typeof animationData !== 'object') {
         animationData = JSON.parse(animationData);
       }
     }
-    const params = {
+    const params: any = {
       wrapper: wrapper,
       animationData: animationData,
     };
@@ -192,7 +273,7 @@ class AnimationItem extends BaseEvent {
     }
   }
 
-  includeLayers(data) {
+  includeLayers(data: any) {
     if (data.op > this.animationData.op) {
       this.animationData.op = data.op;
       this.totalFrames = Math.floor(data.op - this.animationData.ip);
@@ -224,10 +305,10 @@ class AnimationItem extends BaseEvent {
       }
     }
     this.animationData.__complete = false;
-    dataManager.completeAnimation(this.animationData, this.onSegmentComplete);
+    dataManager.completeAnimation(this.animationData, this.onSegmentComplete, undefined);
   }
 
-  onSegmentComplete(data) {
+  onSegmentComplete(data: any) {
     this.animationData = data;
     const expressionsPlugin = getExpressionsPlugin();
     if (expressionsPlugin) {
@@ -247,13 +328,9 @@ class AnimationItem extends BaseEvent {
     this.timeCompleted = segment.time * this.frameRate;
     const segmentPath = this.path + this.fileName + '_' + this.segmentPos + '.json';
     this.segmentPos += 1;
-    dataManager.loadData(
-      segmentPath,
-      this.includeLayers.bind(this),
-      function () {
-        this.trigger('data_failed');
-      }.bind(this),
-    );
+    dataManager.loadData(segmentPath, this.includeLayers.bind(this), () => {
+      this.trigger('data_failed');
+    });
   }
 
   loadSegments() {
@@ -275,7 +352,7 @@ class AnimationItem extends BaseEvent {
     this.imagePreloader.loadAssets(this.animationData.assets, this.imagesLoaded.bind(this));
   }
 
-  configAnimation(animData) {
+  configAnimation(animData: any) {
     if (!this.renderer) {
       return;
     }
@@ -335,12 +412,9 @@ class AnimationItem extends BaseEvent {
         expressionsPlugin.initExpressions(this);
       }
       this.renderer.initItems();
-      setTimeout(
-        function () {
-          this.trigger('DOMLoaded');
-        }.bind(this),
-        0,
-      );
+      setTimeout(() => {
+        this.trigger('DOMLoaded');
+      }, 0);
       this.gotoFrame();
       if (this.autoplay) {
         this.play();
@@ -348,14 +422,14 @@ class AnimationItem extends BaseEvent {
     }
   }
 
-  resize(width, height) {
+  resize(width: any, height: any) {
     // Adding this validation for backwards compatibility in case an event object was being passed down
     const _width = typeof width === 'number' ? width : undefined;
     const _height = typeof height === 'number' ? height : undefined;
     this.renderer.updateContainerSize(_width, _height);
   }
 
-  setSubframe(flag) {
+  setSubframe(flag: any) {
     this.isSubframeEnabled = !!flag;
   }
 
@@ -384,7 +458,7 @@ class AnimationItem extends BaseEvent {
     }
   }
 
-  play(name) {
+  play(name?: any) {
     if (name && this.name !== name) {
       return;
     }
@@ -399,7 +473,7 @@ class AnimationItem extends BaseEvent {
     }
   }
 
-  pause(name) {
+  pause(name?: any) {
     if (name && this.name !== name) {
       return;
     }
@@ -412,7 +486,7 @@ class AnimationItem extends BaseEvent {
     }
   }
 
-  togglePause(name) {
+  togglePause(name?: any) {
     if (name && this.name !== name) {
       return;
     }
@@ -423,7 +497,7 @@ class AnimationItem extends BaseEvent {
     }
   }
 
-  stop(name) {
+  stop(name?: any) {
     if (name && this.name !== name) {
       return;
     }
@@ -433,7 +507,7 @@ class AnimationItem extends BaseEvent {
     this.setCurrentRawFrameValue(0);
   }
 
-  getMarkerData(markerName) {
+  getMarkerData(markerName: any) {
     let marker;
     for (let i = 0; i < this.markers.length; i += 1) {
       marker = this.markers[i];
@@ -444,7 +518,7 @@ class AnimationItem extends BaseEvent {
     return null;
   }
 
-  goToAndStop(value, isFrame, name) {
+  goToAndStop(value: any, isFrame: any, name?: any) {
     if (name && this.name !== name) {
       return;
     }
@@ -462,7 +536,7 @@ class AnimationItem extends BaseEvent {
     this.pause();
   }
 
-  goToAndPlay(value, isFrame, name) {
+  goToAndPlay(value: any, isFrame: any, name?: any) {
     if (name && this.name !== name) {
       return;
     }
@@ -482,7 +556,7 @@ class AnimationItem extends BaseEvent {
     this.play();
   }
 
-  advanceTime(value) {
+  advanceTime(value: any) {
     if (this.isPaused === true || this.isLoaded === false) {
       return;
     }
@@ -531,7 +605,7 @@ class AnimationItem extends BaseEvent {
     }
   }
 
-  adjustSegment(arr, offset) {
+  adjustSegment(arr: any, offset: any) {
     this.playCount = 0;
     if (arr[1] < arr[0]) {
       if (this.frameModifier > 0) {
@@ -560,7 +634,7 @@ class AnimationItem extends BaseEvent {
     }
     this.trigger('segmentStart');
   }
-  setSegment(init, end) {
+  setSegment(init: any, end: any) {
     let pendingFrame = -1;
     if (this.isPaused) {
       if (this.currentRawFrame + this.firstFrame < init) {
@@ -578,7 +652,7 @@ class AnimationItem extends BaseEvent {
     }
   }
 
-  playSegments(arr, forceFlag) {
+  playSegments(arr: any, forceFlag: any) {
     if (forceFlag) {
       this.segments.length = 0;
     }
@@ -599,14 +673,14 @@ class AnimationItem extends BaseEvent {
     }
   }
 
-  resetSegments(forceFlag) {
+  resetSegments(forceFlag: any) {
     this.segments.length = 0;
     this.segments.push([this.animationData.ip, this.animationData.op]);
     if (forceFlag) {
       this.checkSegments(0);
     }
   }
-  checkSegments(offset) {
+  checkSegments(offset: any) {
     if (this.segments.length) {
       this.adjustSegment(this.segments.shift(), offset);
       return true;
@@ -614,14 +688,14 @@ class AnimationItem extends BaseEvent {
     return false;
   }
 
-  destroy(name) {
+  destroy(name?: any) {
     if ((name && this.name !== name) || !this.renderer) {
       return;
     }
     this.renderer.destroy();
     this.imagePreloader.destroy();
     this.trigger('destroy');
-    this._cbs = null;
+    (this as any)._cbs = null;
     this.onEnterFrame = null;
     this.onLoopComplete = null;
     this.onComplete = null;
@@ -633,26 +707,26 @@ class AnimationItem extends BaseEvent {
     this.projectInterface = null;
   }
 
-  setCurrentRawFrameValue(value) {
+  setCurrentRawFrameValue(value: any) {
     this.currentRawFrame = value;
     this.gotoFrame();
   }
 
-  setSpeed(val) {
+  setSpeed(val: any) {
     this.playSpeed = val;
     this.updaFrameModifier();
   }
 
-  setDirection(val) {
+  setDirection(val: any) {
     this.playDirection = val < 0 ? -1 : 1;
     this.updaFrameModifier();
   }
 
-  setLoop(isLooping) {
+  setLoop(isLooping: any) {
     this.loop = isLooping;
   }
 
-  setVolume(val, name) {
+  setVolume(val: any, name?: any) {
     if (name && this.name !== name) {
       return;
     }
@@ -663,14 +737,14 @@ class AnimationItem extends BaseEvent {
     return this.audioController.getVolume();
   }
 
-  mute(name) {
+  mute(name?: any) {
     if (name && this.name !== name) {
       return;
     }
     this.audioController.mute();
   }
 
-  unmute(name) {
+  unmute(name?: any) {
     if (name && this.name !== name) {
       return;
     }
@@ -686,7 +760,7 @@ class AnimationItem extends BaseEvent {
     return this.path;
   }
 
-  getAssetsPath(assetData) {
+  getAssetsPath(assetData: any) {
     let path = '';
     if (assetData.e) {
       path = assetData.p;
@@ -704,7 +778,7 @@ class AnimationItem extends BaseEvent {
     return path;
   }
 
-  getAssetData(id) {
+  getAssetData(id: any) {
     let i = 0;
     const len = this.assets.length;
     while (i < len) {
@@ -724,11 +798,11 @@ class AnimationItem extends BaseEvent {
     this.renderer.show();
   }
 
-  getDuration(isFrame) {
+  getDuration(isFrame: any) {
     return isFrame ? this.totalFrames : this.totalFrames / this.frameRate;
   }
 
-  updateDocumentData(path, documentData, index) {
+  updateDocumentData(path: any, documentData: any, index: any) {
     try {
       const element = this.renderer.getElementByPath(path);
       element.updateDocumentData(documentData, index);
@@ -737,11 +811,11 @@ class AnimationItem extends BaseEvent {
     }
   }
 
-  trigger(name) {
+  trigger(name: any) {
     if (this._cbs && this._cbs[name]) {
       switch (name) {
         case 'enterFrame':
-          this.triggerEvent(name, new BMEnterFrameEvent(name, this.currentFrame, this.totalFrames, this.frameModifier));
+          this.triggerEvent(name, bmEnterFrame(name, this.currentFrame, this.totalFrames, this.frameModifier));
           break;
         case 'drawnFrame':
           this.drawnFrameEvent.currentTime = this.currentFrame;
@@ -750,40 +824,40 @@ class AnimationItem extends BaseEvent {
           this.triggerEvent(name, this.drawnFrameEvent);
           break;
         case 'loopComplete':
-          this.triggerEvent(name, new BMCompleteLoopEvent(name, this.loop, this.playCount, this.frameMult));
+          this.triggerEvent(name, bmCompleteLoop(name, this.loop, this.playCount, this.frameMult));
           break;
         case 'complete':
-          this.triggerEvent(name, new BMCompleteEvent(name, this.frameMult));
+          this.triggerEvent(name, bmComplete(name, this.frameMult));
           break;
         case 'segmentStart':
-          this.triggerEvent(name, new BMSegmentStartEvent(name, this.firstFrame, this.totalFrames));
+          this.triggerEvent(name, bmSegmentStart(name, this.firstFrame, this.totalFrames));
           break;
         case 'destroy':
-          this.triggerEvent(name, new BMDestroyEvent(name, this));
+          this.triggerEvent(name, bmDestroy(name, this));
           break;
         default:
           this.triggerEvent(name);
       }
     }
     if (name === 'enterFrame' && this.onEnterFrame) {
-      this.onEnterFrame.call(this, new BMEnterFrameEvent(name, this.currentFrame, this.totalFrames, this.frameMult));
+      this.onEnterFrame.call(this, bmEnterFrame(name, this.currentFrame, this.totalFrames, this.frameMult));
     }
     if (name === 'loopComplete' && this.onLoopComplete) {
-      this.onLoopComplete.call(this, new BMCompleteLoopEvent(name, this.loop, this.playCount, this.frameMult));
+      this.onLoopComplete.call(this, bmCompleteLoop(name, this.loop, this.playCount, this.frameMult));
     }
     if (name === 'complete' && this.onComplete) {
-      this.onComplete.call(this, new BMCompleteEvent(name, this.frameMult));
+      this.onComplete.call(this, bmComplete(name, this.frameMult));
     }
     if (name === 'segmentStart' && this.onSegmentStart) {
-      this.onSegmentStart.call(this, new BMSegmentStartEvent(name, this.firstFrame, this.totalFrames));
+      this.onSegmentStart.call(this, bmSegmentStart(name, this.firstFrame, this.totalFrames));
     }
     if (name === 'destroy' && this.onDestroy) {
-      this.onDestroy.call(this, new BMDestroyEvent(name, this));
+      this.onDestroy.call(this, bmDestroy(name, this));
     }
   }
 
-  triggerRenderFrameError(nativeError) {
-    const error = new BMRenderFrameErrorEvent(nativeError, this.currentFrame);
+  triggerRenderFrameError(nativeError: any) {
+    const error = bmRenderFrameError(nativeError, this.currentFrame);
     this.triggerEvent('error', error);
 
     if (this.onError) {
@@ -791,8 +865,8 @@ class AnimationItem extends BaseEvent {
     }
   }
 
-  triggerConfigError(nativeError) {
-    const error = new BMConfigErrorEvent(nativeError, this.currentFrame);
+  triggerConfigError(nativeError: any) {
+    const error = bmConfigError(nativeError);
     this.triggerEvent('error', error);
 
     if (this.onError) {
