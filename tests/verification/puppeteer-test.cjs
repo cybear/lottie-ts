@@ -88,6 +88,21 @@ async function injectLottie(page, buildFile) {
 
 // ─── visual comparison ────────────────────────────────────────────────────────
 
+/**
+ * Max differing pixels allowed vs baseline. Chromium on Linux vs macOS (fonts, subpixel AA)
+ * routinely diverges by a few dozen pixels on text-heavy Lotties; CI uses Ubuntu.
+ * Override for strict local checks: VISUAL_MAX_MISMATCH_PIXELS=0
+ */
+function allowedVisualMismatchPixels(width, height) {
+  const raw = process.env.VISUAL_MAX_MISMATCH_PIXELS;
+  if (raw !== undefined && raw !== '') {
+    const n = Number.parseInt(raw, 10);
+    if (Number.isFinite(n) && n >= 0) return n;
+  }
+  const total = width * height;
+  return Math.max(64, Math.ceil(total * 0.00025));
+}
+
 function compareScreenshots(currentBuf, baselinePath, label, pixelmatch) {
   const { PNG } = require('pngjs');
 
@@ -103,11 +118,16 @@ function compareScreenshots(currentBuf, baselinePath, label, pixelmatch) {
   }
   const diff     = new PNG({ width: img1.width, height: img1.height });
   const mismatch = pixelmatch(img1.data, img2.data, diff.data, img1.width, img1.height, { threshold: 0.1 });
-  if (mismatch > 0) {
+  const allowed  = allowedVisualMismatchPixels(img1.width, img1.height);
+  const totalPx  = img1.width * img1.height;
+  const pct      = ((mismatch / totalPx) * 100).toFixed(2);
+
+  if (mismatch > allowed) {
     const diffPath = path.join(SCREENSHOTS, `diff-${label}.png`);
     fs.writeFileSync(diffPath, PNG.sync.write(diff));
-    const pct = ((mismatch / (img1.width * img1.height)) * 100).toFixed(2);
-    fail(`${label} visual`, `${mismatch}px differ (${pct}%) diff: ${diffPath}`);
+    fail(`${label} visual`, `${mismatch}px differ (${pct}%), allowed ${allowed} — diff: ${diffPath}`);
+  } else if (mismatch > 0) {
+    pass(`${label} visual (${mismatch}px differ, ≤${allowed} allowed for cross-platform Chromium)`);
   } else {
     pass(`${label} visual (pixel-perfect)`);
   }

@@ -74,6 +74,17 @@ function startServer() {
 
 // ─── screenshot comparison ────────────────────────────────────────────────────
 
+/** See puppeteer-test.cjs — Linux CI vs macOS local Chromium font/AA noise. */
+function allowedVisualMismatchPixels(width, height) {
+  const raw = process.env.VISUAL_MAX_MISMATCH_PIXELS;
+  if (raw !== undefined && raw !== '') {
+    const n = Number.parseInt(raw, 10);
+    if (Number.isFinite(n) && n >= 0) return n;
+  }
+  const total = width * height;
+  return Math.max(64, Math.ceil(total * 0.00025));
+}
+
 async function compareScreenshots(current, baselinePath, label) {
   // Lazy-load PNG+pixelmatch only when needed so the smoke test
   // can skip this if no screenshots exist yet.
@@ -95,13 +106,16 @@ async function compareScreenshots(current, baselinePath, label) {
 
   const diff = new PNG({ width: img1.width, height: img1.height });
   const mismatch = pixelmatch(img1.data, img2.data, diff.data, img1.width, img1.height, { threshold: 0.1 });
+  const allowed = allowedVisualMismatchPixels(img1.width, img1.height);
   const totalPixels = img1.width * img1.height;
   const pct = ((mismatch / totalPixels) * 100).toFixed(2);
 
-  if (mismatch > 0) {
+  if (mismatch > allowed) {
     const diffPath = path.join(SCREENSHOTS_DIR, `diff-${label}.png`);
     fs.writeFileSync(diffPath, PNG.sync.write(diff));
-    fail(`${label} visual`, `${mismatch} pixels differ (${pct}%) — diff saved to ${diffPath}`);
+    fail(`${label} visual`, `${mismatch} pixels differ (${pct}%), allowed ${allowed} — diff saved to ${diffPath}`);
+  } else if (mismatch > 0) {
+    pass(`${label} visual (${mismatch}px differ, ≤${allowed} allowed for cross-platform Chromium)`);
   } else {
     pass(`${label} visual (pixel-perfect)`);
   }
