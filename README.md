@@ -343,7 +343,7 @@ Type-check:
 npm run typecheck
 ```
 
-Typed slices so far include renderer bases, composition elements, masking, the effects manager plus `SVGEffects` / `CVEffects`, and concrete SVG filter / transform effects (`TransformEffect`, composable filters, drop shadow, levels, blur, matte, stroke, etc.). Remaining modules may still carry `@ts-nocheck` until they are migrated. For mixin order, `extendPrototype` inventory, and Track A/B notes, see [`docs/internal/prototype-modernization.md`](docs/internal/prototype-modernization.md).
+Typed slices so far include renderer bases, composition elements, masking, the effects manager plus `SVGEffects` / `CVEffects`, effect value classes in `effects/SliderEffect.ts`, concrete SVG filter / transform effects (`TransformEffect`, composable filters, drop shadow, levels, blur, matte, stroke, etc.), and canvas stack state in `CVContextData.ts`. Remaining modules may still carry `@ts-nocheck` until they are migrated. For mixin order, `extendPrototype` inventory, and Track A/B notes, see [`docs/internal/prototype-modernization.md`](docs/internal/prototype-modernization.md).
 
 ### Custom / tree-shaken builds
 

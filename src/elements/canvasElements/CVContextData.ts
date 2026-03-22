@@ -1,11 +1,22 @@
-// @ts-nocheck
 import { createTypedArray } from '../../utils/helpers/arrays';
 import Matrix from '../../3rd_party/transformation-matrix';
 
+type MatrixInstance = InstanceType<typeof Matrix>;
+
 class CanvasContext {
+  opacity: number;
+  transform: Float32Array;
+  fillStyle: string;
+  strokeStyle: string;
+  lineWidth: string;
+  lineCap: string;
+  lineJoin: string;
+  miterLimit: string;
+  id: number;
+
   constructor() {
     this.opacity = -1;
-    this.transform = createTypedArray('float32', 16);
+    this.transform = createTypedArray('float32', 16) as Float32Array;
     this.fillStyle = '';
     this.strokeStyle = '';
     this.lineWidth = '';
@@ -17,11 +28,31 @@ class CanvasContext {
 }
 
 class CVContextData {
+  stack: CanvasContext[];
+  cArrPos: number;
+  cTr: MatrixInstance;
+  _length: number;
+  nativeContext: CanvasRenderingContext2D | null;
+  transformMat: MatrixInstance;
+  currentOpacity: number;
+  currentFillStyle: string;
+  appliedFillStyle: string;
+  currentStrokeStyle: string;
+  appliedStrokeStyle: string;
+  currentLineWidth: string;
+  appliedLineWidth: string;
+  currentLineCap: string;
+  appliedLineCap: string;
+  currentLineJoin: string;
+  appliedLineJoin: string;
+  appliedMiterLimit: string;
+  currentMiterLimit: string;
+
   constructor() {
     this.stack = [];
     this.cArrPos = 0;
-    this.cTr = new Matrix();
-    let i;
+    this.cTr = new Matrix() as MatrixInstance;
+    let i: number;
     const len = 15;
     for (i = 0; i < len; i += 1) {
       const canvasContext = new CanvasContext();
@@ -29,24 +60,18 @@ class CVContextData {
     }
     this._length = len;
     this.nativeContext = null;
-    this.transformMat = new Matrix();
+    this.transformMat = new Matrix() as MatrixInstance;
     this.currentOpacity = 1;
-    //
     this.currentFillStyle = '';
     this.appliedFillStyle = '';
-    //
     this.currentStrokeStyle = '';
     this.appliedStrokeStyle = '';
-    //
     this.currentLineWidth = '';
     this.appliedLineWidth = '';
-    //
     this.currentLineCap = '';
     this.appliedLineCap = '';
-    //
     this.currentLineJoin = '';
     this.appliedLineJoin = '';
-    //
     this.appliedMiterLimit = '';
     this.currentMiterLimit = '';
   }
@@ -66,17 +91,18 @@ class CVContextData {
     this.stack[this.cArrPos].opacity = 1;
   }
 
-  restore(forceRestore) {
+  restore(forceRestore?: boolean) {
     this.cArrPos -= 1;
     const currentContext = this.stack[this.cArrPos];
     const transform = currentContext.transform;
-    let i;
+    let i: number;
     const arr = this.cTr.props;
     for (i = 0; i < 16; i += 1) {
       arr[i] = transform[i];
     }
+    const ctx = this.nativeContext!;
     if (forceRestore) {
-      this.nativeContext.restore();
+      ctx.restore();
       const prevStack = this.stack[this.cArrPos + 1];
       this.appliedFillStyle = prevStack.fillStyle;
       this.appliedStrokeStyle = prevStack.strokeStyle;
@@ -85,16 +111,9 @@ class CVContextData {
       this.appliedLineJoin = prevStack.lineJoin;
       this.appliedMiterLimit = prevStack.miterLimit;
     }
-    this.nativeContext.setTransform(
-      transform[0],
-      transform[1],
-      transform[4],
-      transform[5],
-      transform[12],
-      transform[13],
-    );
+    ctx.setTransform(transform[0], transform[1], transform[4], transform[5], transform[12], transform[13]);
     if (forceRestore || (currentContext.opacity !== -1 && this.currentOpacity !== currentContext.opacity)) {
-      this.nativeContext.globalAlpha = currentContext.opacity;
+      ctx.globalAlpha = currentContext.opacity;
       this.currentOpacity = currentContext.opacity;
     }
     this.currentFillStyle = currentContext.fillStyle;
@@ -105,9 +124,10 @@ class CVContextData {
     this.currentMiterLimit = currentContext.miterLimit;
   }
 
-  save(saveOnNativeFlag) {
+  save(saveOnNativeFlag?: boolean) {
+    const ctx = this.nativeContext!;
     if (saveOnNativeFlag) {
-      this.nativeContext.save();
+      ctx.save();
     }
     const props = this.cTr.props;
     if (this._length <= this.cArrPos) {
@@ -115,7 +135,7 @@ class CVContextData {
     }
 
     const currentStack = this.stack[this.cArrPos];
-    let i;
+    let i: number;
     for (i = 0; i < 16; i += 1) {
       currentStack.transform[i] = props[i];
     }
@@ -130,119 +150,125 @@ class CVContextData {
     newStack.miterLimit = currentStack.miterLimit;
   }
 
-  setOpacity(value) {
+  setOpacity(value: number) {
     this.stack[this.cArrPos].opacity = value;
   }
 
-  setContext(value) {
+  setContext(value: CanvasRenderingContext2D) {
     this.nativeContext = value;
   }
 
-  fillStyle(value) {
+  fillStyle(value: string) {
     if (this.stack[this.cArrPos].fillStyle !== value) {
       this.currentFillStyle = value;
       this.stack[this.cArrPos].fillStyle = value;
     }
   }
 
-  strokeStyle(value) {
+  strokeStyle(value: string) {
     if (this.stack[this.cArrPos].strokeStyle !== value) {
       this.currentStrokeStyle = value;
       this.stack[this.cArrPos].strokeStyle = value;
     }
   }
 
-  lineWidth(value) {
-    if (this.stack[this.cArrPos].lineWidth !== value) {
-      this.currentLineWidth = value;
-      this.stack[this.cArrPos].lineWidth = value;
+  lineWidth(value: string | number) {
+    const s = typeof value === 'number' ? String(value) : value;
+    if (this.stack[this.cArrPos].lineWidth !== s) {
+      this.currentLineWidth = s;
+      this.stack[this.cArrPos].lineWidth = s;
     }
   }
 
-  lineCap(value) {
+  lineCap(value: string) {
     if (this.stack[this.cArrPos].lineCap !== value) {
       this.currentLineCap = value;
       this.stack[this.cArrPos].lineCap = value;
     }
   }
 
-  lineJoin(value) {
+  lineJoin(value: string) {
     if (this.stack[this.cArrPos].lineJoin !== value) {
       this.currentLineJoin = value;
       this.stack[this.cArrPos].lineJoin = value;
     }
   }
 
-  miterLimit(value) {
-    if (this.stack[this.cArrPos].miterLimit !== value) {
-      this.currentMiterLimit = value;
-      this.stack[this.cArrPos].miterLimit = value;
+  miterLimit(value: string | number) {
+    const s = typeof value === 'number' ? String(value) : value;
+    if (this.stack[this.cArrPos].miterLimit !== s) {
+      this.currentMiterLimit = s;
+      this.stack[this.cArrPos].miterLimit = s;
     }
   }
 
-  transform(props) {
+  transform(props: number[]) {
     this.transformMat.cloneFromProps(props);
-    // Taking the last transform value from the stored stack of transforms
     const currentTransform = this.cTr;
-    // Applying the last transform value after the new transform to respect the order of transformations
     this.transformMat.multiply(currentTransform);
-    // Storing the new transformed value in the stored transform
     currentTransform.cloneFromProps(this.transformMat.props);
     const trProps = currentTransform.props;
-    // Applying the new transform to the canvas
-    this.nativeContext.setTransform(trProps[0], trProps[1], trProps[4], trProps[5], trProps[12], trProps[13]);
+    this.nativeContext!.setTransform(trProps[0], trProps[1], trProps[4], trProps[5], trProps[12], trProps[13]);
   }
 
-  opacity(op) {
+  opacity(op: number) {
     let currentOpacity = this.stack[this.cArrPos].opacity;
     currentOpacity *= op < 0 ? 0 : op;
+    const ctx = this.nativeContext!;
     if (this.stack[this.cArrPos].opacity !== currentOpacity) {
       if (this.currentOpacity !== op) {
-        this.nativeContext.globalAlpha = op;
+        ctx.globalAlpha = op;
         this.currentOpacity = op;
       }
       this.stack[this.cArrPos].opacity = currentOpacity;
     }
   }
 
-  fill(rule) {
+  fill(rule?: CanvasFillRule) {
+    const ctx = this.nativeContext!;
     if (this.appliedFillStyle !== this.currentFillStyle) {
       this.appliedFillStyle = this.currentFillStyle;
-      this.nativeContext.fillStyle = this.appliedFillStyle;
+      ctx.fillStyle = this.appliedFillStyle;
     }
-    this.nativeContext.fill(rule);
+    if (rule === undefined) {
+      ctx.fill();
+    } else {
+      ctx.fill(rule);
+    }
   }
 
-  fillRect(x, y, w, h) {
+  fillRect(x: number, y: number, w: number, h: number) {
+    const ctx = this.nativeContext!;
     if (this.appliedFillStyle !== this.currentFillStyle) {
       this.appliedFillStyle = this.currentFillStyle;
-      this.nativeContext.fillStyle = this.appliedFillStyle;
+      ctx.fillStyle = this.appliedFillStyle;
     }
-    this.nativeContext.fillRect(x, y, w, h);
+    ctx.fillRect(x, y, w, h);
   }
 
   stroke() {
+    const ctx = this.nativeContext!;
     if (this.appliedStrokeStyle !== this.currentStrokeStyle) {
       this.appliedStrokeStyle = this.currentStrokeStyle;
-      this.nativeContext.strokeStyle = this.appliedStrokeStyle;
+      ctx.strokeStyle = this.appliedStrokeStyle;
     }
     if (this.appliedLineWidth !== this.currentLineWidth) {
       this.appliedLineWidth = this.currentLineWidth;
-      this.nativeContext.lineWidth = this.appliedLineWidth;
+      ctx.lineWidth = this.appliedLineWidth as unknown as number;
     }
     if (this.appliedLineCap !== this.currentLineCap) {
       this.appliedLineCap = this.currentLineCap;
-      this.nativeContext.lineCap = this.appliedLineCap;
+      ctx.lineCap = this.appliedLineCap as CanvasLineCap;
     }
     if (this.appliedLineJoin !== this.currentLineJoin) {
       this.appliedLineJoin = this.currentLineJoin;
-      this.nativeContext.lineJoin = this.appliedLineJoin;
+      ctx.lineJoin = this.appliedLineJoin as CanvasLineJoin;
     }
     if (this.appliedMiterLimit !== this.currentMiterLimit) {
       this.appliedMiterLimit = this.currentMiterLimit;
-      this.nativeContext.miterLimit = this.appliedMiterLimit;
+      ctx.miterLimit = this.appliedMiterLimit as unknown as number;
     }
-    this.nativeContext.stroke();
+    ctx.stroke();
   }
 }
 
