@@ -11,17 +11,22 @@ interface DynamicPropertyContainerMixin {
   _isAnimated: boolean;
 }
 
-function DynamicPropertyContainer(this: DynamicPropertyContainerMixin) {}
+class DynamicPropertyContainer {
+  declare dynamicProperties: DynamicProperty[];
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  declare container: any;
+  declare _mdf: boolean;
+  declare _isAnimated: boolean;
 
-DynamicPropertyContainer.prototype = {
-  addDynamicProperty(this: DynamicPropertyContainerMixin, prop: DynamicProperty) {
+  addDynamicProperty(prop: DynamicProperty) {
     if (this.dynamicProperties.indexOf(prop) === -1) {
       this.dynamicProperties.push(prop);
       this.container.addDynamicProperty(this);
       this._isAnimated = true;
     }
-  },
-  iterateDynamicProperties(this: DynamicPropertyContainerMixin) {
+  }
+
+  iterateDynamicProperties() {
     this._mdf = false;
     let i: number;
     const len = this.dynamicProperties.length;
@@ -31,17 +36,15 @@ DynamicPropertyContainer.prototype = {
         this._mdf = true;
       }
     }
-  },
-  initDynamicPropertyContainer(
-    this: DynamicPropertyContainerMixin,
-    container: DynamicPropertyContainerMixin['container'],
-  ) {
+  }
+
+  initDynamicPropertyContainer(container: DynamicPropertyContainerMixin['container']) {
     this.container = container;
     this.dynamicProperties = [];
     this._mdf = false;
     this._isAnimated = false;
-  },
-};
+  }
+}
 
 export default DynamicPropertyContainer;
 export type { DynamicProperty, DynamicPropertyContainerMixin };

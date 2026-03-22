@@ -2,7 +2,7 @@
 import { extendPrototype, createProxyFunction } from '../../utils/functionExtensions';
 import RenderableElement from './RenderableElement';
 
-function RenderableDOMElement() {}
+class RenderableDOMElement {}
 
 (function () {
   const _prototype = {

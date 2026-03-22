@@ -3,10 +3,8 @@ import Matrix from '../../3rd_party/transformation-matrix';
 import TransformPropertyFactory from '../../utils/TransformProperty';
 import effectTypes from '../../utils/helpers/effectTypes';
 
-function TransformElement() {}
-
-TransformElement.prototype = {
-  initTransform: function () {
+class TransformElement {
+  initTransform() {
     const mat = new Matrix();
     this.finalTransform = {
       mProp: this.data.ks ? TransformPropertyFactory.getTransformProperty(this, this.data.ks, this) : { o: 0 },
@@ -25,8 +23,9 @@ TransformElement.prototype = {
     if (this.data.ty !== 11) {
       // this.createElements();
     }
-  },
-  renderTransform: function () {
+  }
+
+  renderTransform() {
     this.finalTransform._opMdf = this.finalTransform.mProp.o._mdf || this._isFirstFrame;
     this.finalTransform._matMdf = this.finalTransform.mProp._mdf || this._isFirstFrame;
 
@@ -60,8 +59,9 @@ TransformElement.prototype = {
     if (this.finalTransform._opMdf) {
       this.finalTransform.localOpacity = this.finalTransform.mProp.o.v;
     }
-  },
-  renderLocalTransform: function () {
+  }
+
+  renderLocalTransform() {
     if (this.localTransforms) {
       let i = 0;
       const len = this.localTransforms.length;
@@ -95,8 +95,9 @@ TransformElement.prototype = {
         this.finalTransform.localOpacity = localOp;
       }
     }
-  },
-  searchEffectTransforms: function () {
+  }
+
+  searchEffectTransforms() {
     if (this.renderableEffectsManager) {
       const transformEffects = this.renderableEffectsManager.getEffects(effectTypes.TRANSFORM_EFFECT);
       if (transformEffects.length) {
@@ -109,8 +110,9 @@ TransformElement.prototype = {
         }
       }
     }
-  },
-  globalToLocal: function (pt) {
+  }
+
+  globalToLocal(pt) {
     const transforms = [];
     transforms.push(this.finalTransform);
     let flag = true;
@@ -134,8 +136,9 @@ TransformElement.prototype = {
       pt = [pt[0] - ptNew[0], pt[1] - ptNew[1], 0];
     }
     return pt;
-  },
-  mHelper: new Matrix(),
-};
+  }
+}
+
+TransformElement.prototype.mHelper = new Matrix();
 
 export default TransformElement;

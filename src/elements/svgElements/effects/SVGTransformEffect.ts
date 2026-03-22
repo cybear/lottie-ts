@@ -1,11 +1,11 @@
 // @ts-nocheck
 import TransformEffect from '../../../effects/TransformEffect';
-import { extendPrototype } from '../../../utils/functionExtensions';
 
-function SVGTransformEffect(_, filterManager) {
-  this.init(filterManager);
+class SVGTransformEffect extends TransformEffect {
+  constructor(_unused, filterManager) {
+    super();
+    this.init(filterManager);
+  }
 }
-
-extendPrototype([TransformEffect], SVGTransformEffect);
 
 export default SVGTransformEffect;

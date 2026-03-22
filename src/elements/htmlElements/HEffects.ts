@@ -1,3 +1,6 @@
 // @ts-nocheck
-function HEffects() {}
-HEffects.prototype.renderFrame = function () {};
+class HEffects {
+  renderFrame() {}
+}
+
+export default HEffects;

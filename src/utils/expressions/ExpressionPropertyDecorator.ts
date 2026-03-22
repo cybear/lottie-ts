@@ -339,9 +339,8 @@ function addPropertyDecorator() {
   const ShapePropertyConstructorFunction = ShapePropertyFactory.getConstructorFunction();
   const KeyframedShapePropertyConstructorFunction = ShapePropertyFactory.getKeyframedConstructorFunction();
 
-  function ShapeExpressions() {}
-  ShapeExpressions.prototype = {
-    vertices: function (prop, time) {
+  class ShapeExpressions {
+    vertices(prop, time) {
       if (this.k) {
         this.getValue();
       }
@@ -362,20 +361,25 @@ function addPropertyDecorator() {
         }
       }
       return arr;
-    },
-    points: function (time) {
+    }
+
+    points(time) {
       return this.vertices('v', time);
-    },
-    inTangents: function (time) {
+    }
+
+    inTangents(time) {
       return this.vertices('i', time);
-    },
-    outTangents: function (time) {
+    }
+
+    outTangents(time) {
       return this.vertices('o', time);
-    },
-    isClosed: function () {
+    }
+
+    isClosed() {
       return this.v.c;
-    },
-    pointOnPath: function (perc, time) {
+    }
+
+    pointOnPath(perc, time) {
       let shapePath = this.v;
       if (time !== undefined) {
         shapePath = this.getValueAtTime(time, 0);
@@ -416,8 +420,9 @@ function addPropertyDecorator() {
           : [shapePath.v[shapePath._length - 1][0], shapePath.v[shapePath._length - 1][1]];
       }
       return pt;
-    },
-    vectorOnPath: function (perc, time, vectorType) {
+    }
+
+    vectorOnPath(perc, time, vectorType) {
       // perc doesn't use triple equality because it can be a Number object as well as a primitive.
       if (perc == 1) {
         // eslint-disable-line eqeqeq
@@ -439,16 +444,20 @@ function addPropertyDecorator() {
           ? [xLength / magnitude, yLength / magnitude]
           : [-yLength / magnitude, xLength / magnitude];
       return unitVector;
-    },
-    tangentOnPath: function (perc, time) {
+    }
+
+    tangentOnPath(perc, time) {
       return this.vectorOnPath(perc, time, 'tangent');
-    },
-    normalOnPath: function (perc, time) {
+    }
+
+    normalOnPath(perc, time) {
       return this.vectorOnPath(perc, time, 'normal');
-    },
-    setGroupProperty: expressionHelpers.setGroupProperty,
-    getValueAtTime: expressionHelpers.getStaticValueAtTime,
-  };
+    }
+  }
+
+  ShapeExpressions.prototype.setGroupProperty = expressionHelpers.setGroupProperty;
+  ShapeExpressions.prototype.getValueAtTime = expressionHelpers.getStaticValueAtTime;
+
   extendPrototype([ShapeExpressions], ShapePropertyConstructorFunction);
   extendPrototype([ShapeExpressions], KeyframedShapePropertyConstructorFunction);
   KeyframedShapePropertyConstructorFunction.prototype.getValueAtTime = getShapeValueAtTime;

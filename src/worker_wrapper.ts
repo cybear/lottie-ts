@@ -1,43 +1,32 @@
 // @ts-nocheck
 function workerContent() {
-  function extendPrototype(sources, destination) {
-    let i;
-    const len = sources.length;
-    let sourcePrototype;
-    for (i = 0; i < len; i += 1) {
-      sourcePrototype = sources[i].prototype;
-      for (const attr in sourcePrototype) {
-        if (Object.prototype.hasOwnProperty.call(sourcePrototype, attr))
-          destination.prototype[attr] = sourcePrototype[attr];
-      }
+  class ProxyElement {
+    constructor(type, namespace) {
+      this._state = 'init';
+      this._isDirty = false;
+      this._isProxy = true;
+      this._changedStyles = [];
+      this._changedAttributes = [];
+      this._changedElements = [];
+      this._textContent = null;
+      this.type = type;
+      this.namespace = namespace;
+      this.children = [];
+      localIdCounter += 1;
+      this.attributes = {
+        id: 'l_d_' + localIdCounter,
+      };
+      this.style = new Style(this);
     }
-  }
-  function ProxyElement(type, namespace) {
-    this._state = 'init';
-    this._isDirty = false;
-    this._isProxy = true;
-    this._changedStyles = [];
-    this._changedAttributes = [];
-    this._changedElements = [];
-    this._textContent = null;
-    this.type = type;
-    this.namespace = namespace;
-    this.children = [];
-    localIdCounter += 1;
-    this.attributes = {
-      id: 'l_d_' + localIdCounter,
-    };
-    this.style = new Style(this);
-  }
-  ProxyElement.prototype = {
-    appendChild: function (_child) {
+
+    appendChild(_child) {
       _child.parentNode = this;
       this.children.push(_child);
       this._isDirty = true;
       this._changedElements.push([_child, this.attributes.id]);
-    },
+    }
 
-    insertBefore: function (_newElement, _nextElement) {
+    insertBefore(_newElement, _nextElement) {
       const children = this.children;
       for (let i = 0; i < children.length; i += 1) {
         if (children[i] === _nextElement) {
@@ -48,17 +37,17 @@ function workerContent() {
         }
       }
       children.push(_nextElement);
-    },
+    }
 
-    setAttribute: function (_attribute, _value) {
+    setAttribute(_attribute, _value) {
       this.attributes[_attribute] = _value;
       if (!this._isDirty) {
         this._isDirty = true;
       }
       this._changedAttributes.push(_attribute);
-    },
+    }
 
-    serialize: function () {
+    serialize() {
       return {
         type: this.type,
         namespace: this.namespace,
@@ -69,21 +58,21 @@ function workerContent() {
         }),
         textContent: this._textContent,
       };
-    },
+    }
 
     // eslint-disable-next-line class-methods-use-this
-    addEventListener: function (_, _callback) {
+    addEventListener(_, _callback) {
       setTimeout(_callback, 1);
-    },
+    }
 
-    setAttributeNS: function (_, _attribute, _value) {
+    setAttributeNS(_, _attribute, _value) {
       this.attributes[_attribute] = _value;
       if (!this._isDirty) {
         this._isDirty = true;
       }
       this._changedAttributes.push(_attribute);
-    },
-  };
+    }
+  }
 
   Object.defineProperty(ProxyElement.prototype, 'textContent', {
     set: function (_value) {
@@ -227,24 +216,23 @@ function workerContent() {
     });
   });
 
-  function CanvasElement(type, namespace) {
-    ProxyElement.call(this, type, namespace);
-    this.instructions = [];
-    this.width = 0;
-    this.height = 0;
-    this.context = new CanvasContext(this);
-  }
+  class CanvasElement extends ProxyElement {
+    constructor(type, namespace) {
+      super(type, namespace);
+      this.instructions = [];
+      this.width = 0;
+      this.height = 0;
+      this.context = new CanvasContext(this);
+    }
 
-  CanvasElement.prototype = {
-    getContext: function () {
+    getContext() {
       return this.context;
-    },
+    }
 
-    resetInstructions: function () {
+    resetInstructions() {
       this.instructions.length = 0;
-    },
-  };
-  extendPrototype([ProxyElement], CanvasElement);
+    }
+  }
 
   function createElement(namespace, type) {
     if (type === 'canvas') {

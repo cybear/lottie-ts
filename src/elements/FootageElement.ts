@@ -5,37 +5,43 @@ import RenderableElement from './helpers/RenderableElement';
 import BaseElement from './BaseElement';
 import FrameElement from './helpers/FrameElement';
 
-function FootageElement(data, globalData, comp) {
-  this.initFrame();
-  this.initRenderable();
-  this.assetData = globalData.getAssetData(data.refId);
-  this.footageData = globalData.imageLoader.getAsset(this.assetData);
-  this.initBaseData(data, globalData, comp);
+class FootageElement {
+  constructor(data, globalData, comp) {
+    this.initFrame();
+    this.initRenderable();
+    this.assetData = globalData.getAssetData(data.refId);
+    this.footageData = globalData.imageLoader.getAsset(this.assetData);
+    this.initBaseData(data, globalData, comp);
+  }
+
+  prepareFrame() {}
+
+  getBaseElement() {
+    return null;
+  }
+
+  renderFrame() {}
+
+  destroy() {}
+
+  getFootageData() {
+    return this.footageData;
+  }
+
+  initExpressions() {
+    const expressionsInterfaces = getExpressionInterfaces();
+    if (!expressionsInterfaces) {
+      return;
+    }
+    const FootageInterface = expressionsInterfaces('footage');
+    this.layerInterface = FootageInterface(this);
+  }
 }
 
-FootageElement.prototype.prepareFrame = function () {};
+const footageInitExpressions = FootageElement.prototype.initExpressions;
 
 extendPrototype([RenderableElement, BaseElement, FrameElement], FootageElement);
 
-FootageElement.prototype.getBaseElement = function () {
-  return null;
-};
-
-FootageElement.prototype.renderFrame = function () {};
-
-FootageElement.prototype.destroy = function () {};
-
-FootageElement.prototype.initExpressions = function () {
-  const expressionsInterfaces = getExpressionInterfaces();
-  if (!expressionsInterfaces) {
-    return;
-  }
-  const FootageInterface = expressionsInterfaces('footage');
-  this.layerInterface = FootageInterface(this);
-};
-
-FootageElement.prototype.getFootageData = function () {
-  return this.footageData;
-};
+FootageElement.prototype.initExpressions = footageInitExpressions;
 
 export default FootageElement;

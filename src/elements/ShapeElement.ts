@@ -1,17 +1,16 @@
 // @ts-nocheck
 import ProcessedElement from './helpers/shapes/ProcessedElement';
 
-function IShapeElement() {}
-
-IShapeElement.prototype = {
-  addShapeToModifiers: function (data) {
+class IShapeElement {
+  addShapeToModifiers(data) {
     let i;
     const len = this.shapeModifiers.length;
     for (i = 0; i < len; i += 1) {
       this.shapeModifiers[i].addShape(data);
     }
-  },
-  isShapeInAnimatedModifiers: function (data) {
+  }
+
+  isShapeInAnimatedModifiers(data) {
     const i = 0;
     const len = this.shapeModifiers.length;
     while (i < len) {
@@ -20,8 +19,9 @@ IShapeElement.prototype = {
       }
     }
     return false;
-  },
-  renderModifiers: function () {
+  }
+
+  renderModifiers() {
     if (!this.shapeModifiers.length) {
       return;
     }
@@ -41,9 +41,9 @@ IShapeElement.prototype = {
         break;
       }
     }
-  },
+  }
 
-  searchProcessedElement: function (elem) {
+  searchProcessedElement(elem) {
     const elements = this.processedElements;
     let i = 0;
     const len = elements.length;
@@ -54,8 +54,9 @@ IShapeElement.prototype = {
       i += 1;
     }
     return 0;
-  },
-  addProcessedElement: function (elem, pos) {
+  }
+
+  addProcessedElement(elem, pos) {
     const elements = this.processedElements;
     let i = elements.length;
     while (i) {
@@ -66,11 +67,12 @@ IShapeElement.prototype = {
       }
     }
     elements.push(new ProcessedElement(elem, pos));
-  },
-  prepareFrame: function (num) {
+  }
+
+  prepareFrame(num) {
     this.prepareRenderableFrame(num);
     this.prepareProperties(num, this.isInRange);
-  },
-};
+  }
+}
 
 export default IShapeElement;

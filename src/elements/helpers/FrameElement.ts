@@ -6,22 +6,21 @@
  *
  */
 
-function FrameElement() {}
-
-FrameElement.prototype = {
+class FrameElement {
   /**
    * @function
    * Initializes frame related properties.
    *
    */
-  initFrame: function () {
+  initFrame() {
     // set to true when inpoint is rendered
     this._isFirstFrame = false;
     // list of animated properties
     this.dynamicProperties = [];
     // If layer has been modified in current tick this will be true
     this._mdf = false;
-  },
+  }
+
   /**
    * @function
    * Calculates all dynamic values
@@ -32,7 +31,7 @@ FrameElement.prototype = {
    * if layers is currently in range
    *
    */
-  prepareProperties: function (num, isVisible) {
+  prepareProperties(num, isVisible) {
     let i;
     const len = this.dynamicProperties.length;
     for (i = 0; i < len; i += 1) {
@@ -44,12 +43,13 @@ FrameElement.prototype = {
         }
       }
     }
-  },
-  addDynamicProperty: function (prop) {
+  }
+
+  addDynamicProperty(prop) {
     if (this.dynamicProperties.indexOf(prop) === -1) {
       this.dynamicProperties.push(prop);
     }
-  },
-};
+  }
+}
 
 export default FrameElement;

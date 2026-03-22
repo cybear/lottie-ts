@@ -7,10 +7,9 @@ import SVGBaseElement from '../svgElements/SVGBaseElement';
 import CVEffects from '../canvasElements/CVEffects';
 import MaskElement from '../../mask';
 
-function HBaseElement() {}
-HBaseElement.prototype = {
-  checkBlendMode: function () {},
-  initRendererElement: function () {
+class HBaseElement {
+  checkBlendMode() {}
+  initRendererElement() {
     this.baseElement = createTag(this.data.tg || 'div');
     if (this.data.hasMask) {
       this.svgElement = createNS('svg');
@@ -22,8 +21,8 @@ HBaseElement.prototype = {
       this.layerElement = this.baseElement;
     }
     styleDiv(this.baseElement);
-  },
-  createContainerElements: function () {
+  }
+  createContainerElements() {
     this.renderableEffectsManager = new CVEffects(this);
     this.transformedElement = this.baseElement;
     this.maskedElement = this.layerElement;
@@ -36,8 +35,8 @@ HBaseElement.prototype = {
     if (this.data.bm !== 0) {
       this.setBlendMode();
     }
-  },
-  renderElement: function () {
+  }
+  renderElement() {
     const transformedElementStyle = this.transformedElement ? this.transformedElement.style : {};
     if (this.finalTransform._matMdf) {
       const matrixValue = this.finalTransform.mat.toCSS();
@@ -47,8 +46,8 @@ HBaseElement.prototype = {
     if (this.finalTransform._opMdf) {
       transformedElementStyle.opacity = this.finalTransform.mProp.o.v;
     }
-  },
-  renderFrame: function () {
+  }
+  renderFrame() {
     // If it is exported as hidden (data.hd === true) no need to render
     // If it is not visible no need to render
     if (this.data.hd || this.hidden) {
@@ -61,8 +60,8 @@ HBaseElement.prototype = {
     if (this._isFirstFrame) {
       this._isFirstFrame = false;
     }
-  },
-  destroy: function () {
+  }
+  destroy() {
     this.layerElement = null;
     this.transformedElement = null;
     if (this.matteElement) {
@@ -72,13 +71,14 @@ HBaseElement.prototype = {
       this.maskManager.destroy();
       this.maskManager = null;
     }
-  },
-  createRenderableComponents: function () {
+  }
+  createRenderableComponents() {
     this.maskManager = new MaskElement(this.data, this, this.globalData);
-  },
-  addEffects: function () {},
-  setMatte: function () {},
-};
+  }
+  addEffects() {}
+  setMatte() {}
+}
+
 HBaseElement.prototype.getBaseElement = SVGBaseElement.prototype.getBaseElement;
 HBaseElement.prototype.destroyBaseElement = HBaseElement.prototype.destroy;
 HBaseElement.prototype.buildElementParenting = BaseRenderer.prototype.buildElementParenting;

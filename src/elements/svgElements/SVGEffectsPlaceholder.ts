@@ -1,4 +1,4 @@
 // @ts-nocheck
-function SVGEffects() {}
+class SVGEffects {}
 
 export default SVGEffects;
