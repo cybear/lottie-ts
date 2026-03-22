@@ -88,11 +88,8 @@ async function injectLottie(page, buildFile) {
 
 // ─── visual comparison ────────────────────────────────────────────────────────
 
-function compareScreenshots(currentBuf, baselinePath, label) {
+function compareScreenshots(currentBuf, baselinePath, label, pixelmatch) {
   const { PNG } = require('pngjs');
-  const pixelmatchMod = require('pixelmatch');
-  const pixelmatch =
-    typeof pixelmatchMod === 'function' ? pixelmatchMod : pixelmatchMod.default;
 
   if (!fs.existsSync(baselinePath)) {
     fail(`${label} baseline`, 'not found — run with --capture first');
@@ -259,6 +256,12 @@ async function main() {
     }
 
     // ── Section 4: Visual regression ─────────────────────────────────────────
+    // pixelmatch v7+ is ESM-only; dynamic import from this CJS entry is required.
+    const pixelmatchMod = await import('pixelmatch');
+    const pixelmatch =
+      typeof pixelmatchMod.default === 'function'
+        ? pixelmatchMod.default
+        : pixelmatchMod;
 
     console.log(`\n\uD83D\uDCF8  Visual regression (${CAPTURE_MODE ? 'CAPTURE' : 'COMPARE'} mode)\n`);
 
@@ -307,7 +310,7 @@ async function main() {
             fs.writeFileSync(baselinePath, buf);
             pass(`${label} baseline captured`);
           } else {
-            compareScreenshots(buf, baselinePath, label);
+            compareScreenshots(buf, baselinePath, label, pixelmatch);
           }
 
         } catch (e) {
@@ -396,7 +399,7 @@ async function main() {
               fs.writeFileSync(customBaselinePath, buf);
               pass('custom build: screenshot captured');
             } else {
-              compareScreenshots(buf, baselinePath, 'happy2016-svg-custom');
+              compareScreenshots(buf, baselinePath, 'happy2016-svg-custom', pixelmatch);
             }
 
             // Cleanup the custom output after we're done with it
