@@ -1,6 +1,6 @@
 # Prototype / `extendPrototype` inventory and class migration strategy
 
-This document supports Track A (strict typing) and Track B (ES classes) modernization. *Last updated: 2025-03-22 — `FootageElement` / `AudioElement` move most overrides into the `class`; `initExpressions` (Footage) and `sourceRectAtTime` + `initExpressions` (Audio) stay post-`extendPrototype` so they replace `BaseElement` / `RenderableElement`. `ICompElement` adds `setElements` / `getElements` / `destroyElements` on the class; comp lifecycle methods stay post-mixin because `RenderableDOMElement` defines the same names.*
+This document supports Track A (strict typing) and Track B (ES classes) modernization. *Last updated: 2025-03-22 — `HTextElement` moves `createContent` / `buildNewText` onto the `class`; `renderInnerContent` stays post-`extendPrototype` because `RenderableDOMElement` defines an empty `renderInnerContent` that would otherwise win after `ITextElement`. `CVTextElement` moves `buildNewText` / `renderInnerContent` onto the `class`; `CVTextElement.prototype.tHelper` stays post-mixin (shared canvas 2D context, like `TransformElement.prototype.mHelper`). Earlier same day: `FootageElement` / `AudioElement` / `ICompElement` patterns as below.*
 
 Regenerate the call-site table with:
 
@@ -205,7 +205,9 @@ These are `class` constructors whose **`prototype`** methods are still merged on
 
 **Still a plain function (by design):** [`ExpressionValue`](../../src/utils/expressions/ExpressionValue.ts) builds and returns an augmented `Number` or typed array with expression hooks—it is not used as `new ExpressionValue()`, so it stays a factory function.
 
-**Shared prototype data** (single instance per constructor) remains assigned **after** the `class` body where the old code relied on it: e.g. `TransformElement.prototype.mHelper`, `CVBaseElement.prototype.mHelper`, `ITextElement.prototype.emptyProp`, **`TextProperty.prototype.defaultBoxWidth`**. **`CVMaskElement.prototype.getMaskProperty`** is copied from **`MaskElement.prototype`**. For nested canvas compositions, **`CanvasRendererBase.prototype.createNull`** is copied from `SVGRendererBase.prototype.createNull`, not defined as a subclass field.
+**Shared prototype data** (single instance per constructor) remains assigned **after** the `class` body where the old code relied on it: e.g. `TransformElement.prototype.mHelper`, `CVBaseElement.prototype.mHelper`, `ITextElement.prototype.emptyProp`, **`TextProperty.prototype.defaultBoxWidth`**, **`CVTextElement.prototype.tHelper`**. **`CVMaskElement.prototype.getMaskProperty`** is copied from **`MaskElement.prototype`**. For nested canvas compositions, **`CanvasRendererBase.prototype.createNull`** is copied from `SVGRendererBase.prototype.createNull`, not defined as a subclass field.
+
+**Post-mixin overrides (collision with DOM text):** **`HTextElement.prototype.renderInnerContent`** is assigned after `extendPrototype` so it replaces **`RenderableDOMElement`’s** no-op `renderInnerContent` (the mixin chain ends with `ITextElement`, which does not redefine that key).
 
 ### Comp elements: why `BaseRenderer` is first
 
