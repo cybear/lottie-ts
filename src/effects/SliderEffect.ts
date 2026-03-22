@@ -37,7 +37,8 @@ class CheckboxEffect {
   }
 }
 class NoValueEffect {
-  constructor() {
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  constructor(_data?: unknown, _elem?: unknown, _container?: unknown) {
     this.p = {};
   }
 }

@@ -6,6 +6,7 @@ import CVMaskElement from './CVMaskElement';
 import type { CVMaskLayerHost } from './CVMaskElement';
 import effectTypes from '../../utils/helpers/effectTypes';
 import type { GlobalData, RenderableComponentEntry } from '../../types/lottieRuntime';
+import type EffectsManager from '../../EffectsManager';
 import type { CanvasTransformCanvas } from '../../renderers/CanvasRendererBase';
 
 const operationsMap: Record<number, GlobalCompositeOperation> = {
@@ -44,6 +45,7 @@ class CVBaseElement {
   declare buffers: HTMLCanvasElement[];
   declare canvasContext: CanvasRenderingContext2D;
   declare transformCanvas: CanvasTransformCanvas;
+  declare effectsManager: EffectsManager;
   declare renderableEffectsManager: CVEffects;
   declare maskManager: CVMaskElement & { _isFirstFrame: boolean; hasMasks?: boolean };
   declare transformEffects: unknown[];

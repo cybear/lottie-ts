@@ -7,6 +7,7 @@ import filtersFactory from '../../utils/filters';
 import featureSupport from '../../utils/featureSupport';
 import SVGEffects from './SVGEffects';
 import type { BaseInitLayerData, GlobalData, RenderableComponentEntry } from '../../types/lottieRuntime';
+import type EffectsManager from '../../EffectsManager';
 
 type Matrix2dCss = { to2dCSS(): string };
 
@@ -46,6 +47,7 @@ class SVGBaseElement {
   declare _sizeChanged: boolean;
   declare matteMasks: Record<number, string>;
   declare maskManager: MaskElement;
+  declare effectsManager: EffectsManager;
   declare renderableEffectsManager: SVGEffects;
   declare searchEffectTransforms: () => void;
   declare checkMasks: () => boolean;

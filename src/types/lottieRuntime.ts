@@ -264,6 +264,12 @@ export type MaskHostLayerData = ElementData & {
   masksProperties?: MaskDefinitionJson[];
 };
 
+/** Effect JSON group or leaf (`EffectsManager` / `GroupEffect` / slider rows). */
+export type EffectJsonEntry = ElementData & {
+  ty?: number;
+  ef?: EffectJsonEntry[];
+};
+
 /** Layer fields used by `BaseElement` (init, masks, blend mode, expressions). */
 export type BaseInitLayerData = ElementData & {
   hasMask?: boolean;
@@ -272,6 +278,7 @@ export type BaseInitLayerData = ElementData & {
   xt?: boolean;
   bm?: number;
   sr?: number;
+  ef?: EffectJsonEntry[];
 };
 
 /**

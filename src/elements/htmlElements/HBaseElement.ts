@@ -12,6 +12,7 @@ import type {
   RenderableComponentEntry,
   RendererElementInstance,
 } from '../../types/lottieRuntime';
+import type EffectsManager from '../../EffectsManager';
 
 type MatrixCss = { toCSS(): string };
 
@@ -44,6 +45,7 @@ class HBaseElement {
   declare hidden: boolean;
   declare _isFirstFrame: boolean;
   declare maskManager: MaskElement;
+  declare effectsManager: EffectsManager;
   declare renderableEffectsManager: CVEffects;
   declare matteElement: HTMLElement | SVGGElement | null;
   declare renderTransform: () => void;
