@@ -10,9 +10,9 @@ const fs = require('fs');
 const { promises: { readFile } } = require('fs');
 const { parseArgs } = require('node:util');
 const PNG = require('pngjs').PNG;
-const pixelmatchMod = require('pixelmatch');
-const pixelmatch =
-  typeof pixelmatchMod === 'function' ? pixelmatchMod : pixelmatchMod.default;
+
+/** Set in takeImageStrip via dynamic import (pixelmatch v7+ is ESM-only). */
+let pixelmatch;
 
 /** Lottie JSON under repo root (served as /demo/.../data.json) */
 const examplesDirectory = '/demo/';
@@ -98,7 +98,7 @@ const startServer = async () => {
     return file;
   }));
 
-  app.get('/*', async (req, res) => {
+  app.get('/*splat', async (req, res) => {
     try {
       if (req.originalUrl.indexOf('.json') !== -1) {
         const file = await readFile(`.${req.originalUrl}`, 'utf8');
@@ -285,6 +285,8 @@ const takeImageStrip = async () => {
   let browser;
   let exitCode = 0;
   try {
+    const pm = await import('pixelmatch');
+    pixelmatch = pm.default;
     await startServer();
     const settings = await getSettings();
     browser = await getBrowser();
