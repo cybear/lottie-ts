@@ -1,18 +1,27 @@
-// @ts-nocheck
 import { createSizedArray } from '../helpers/arrays';
 import pointPool from '../pooling/point_pool';
 
+type Point = Float32Array;
+
 class ShapePath {
+  c: boolean;
+  _length: number;
+  _maxLength: number;
+  /** Pool release may null entries between uses. */
+  v: (Point | null)[];
+  o: (Point | null)[];
+  i: (Point | null)[];
+
   constructor() {
     this.c = false;
     this._length = 0;
     this._maxLength = 8;
-    this.v = createSizedArray(this._maxLength);
-    this.o = createSizedArray(this._maxLength);
-    this.i = createSizedArray(this._maxLength);
+    this.v = createSizedArray(this._maxLength) as (Point | null)[];
+    this.o = createSizedArray(this._maxLength) as (Point | null)[];
+    this.i = createSizedArray(this._maxLength) as (Point | null)[];
   }
 
-  setPathData(closed, len) {
+  setPathData(closed: boolean, len: number) {
     this.c = closed;
     this.setLength(len);
     let i = 0;
@@ -24,7 +33,7 @@ class ShapePath {
     }
   }
 
-  setLength(len) {
+  setLength(len: number) {
     while (this._maxLength < len) {
       this.doubleArrayLength();
     }
@@ -32,14 +41,14 @@ class ShapePath {
   }
 
   doubleArrayLength() {
-    this.v = this.v.concat(createSizedArray(this._maxLength));
-    this.i = this.i.concat(createSizedArray(this._maxLength));
-    this.o = this.o.concat(createSizedArray(this._maxLength));
+    this.v = this.v.concat(createSizedArray(this._maxLength) as (Point | null)[]);
+    this.i = this.i.concat(createSizedArray(this._maxLength) as (Point | null)[]);
+    this.o = this.o.concat(createSizedArray(this._maxLength) as (Point | null)[]);
     this._maxLength *= 2;
   }
 
-  setXYAt(x, y, type, pos, replace) {
-    let arr;
+  setXYAt(x: number, y: number, type: string, pos: number, replace: boolean) {
+    let arr: (Point | null)[];
     this._length = Math.max(this._length, pos + 1);
     if (this._length >= this._maxLength) {
       this.doubleArrayLength();
@@ -55,17 +64,18 @@ class ShapePath {
         arr = this.o;
         break;
       default:
-        arr = [];
+        arr = [] as (Point | null)[];
         break;
     }
     if (!arr[pos] || (arr[pos] && !replace)) {
       arr[pos] = pointPool.newElement();
     }
-    arr[pos][0] = x;
-    arr[pos][1] = y;
+    const pt = arr[pos]!;
+    pt[0] = x;
+    pt[1] = y;
   }
 
-  setTripleAt(vX, vY, oX, oY, iX, iY, pos, replace) {
+  setTripleAt(vX: number, vY: number, oX: number, oY: number, iX: number, iY: number, pos: number, replace: boolean) {
     this.setXYAt(vX, vY, 'v', pos, replace);
     this.setXYAt(oX, oY, 'o', pos, replace);
     this.setXYAt(iX, iY, 'i', pos, replace);
@@ -78,7 +88,7 @@ class ShapePath {
     const outPoints = this.o;
     const inPoints = this.i;
     let init = 0;
-    if (this.c) {
+    if (this.c && vertices[0] && inPoints[0] && outPoints[0]) {
       newPath.setTripleAt(
         vertices[0][0],
         vertices[0][1],
@@ -94,18 +104,14 @@ class ShapePath {
     let cnt = this._length - 1;
     const len = this._length;
 
-    let i;
+    let i: number;
     for (i = init; i < len; i += 1) {
-      newPath.setTripleAt(
-        vertices[cnt][0],
-        vertices[cnt][1],
-        inPoints[cnt][0],
-        inPoints[cnt][1],
-        outPoints[cnt][0],
-        outPoints[cnt][1],
-        i,
-        false,
-      );
+      const v = vertices[cnt];
+      const inn = inPoints[cnt];
+      const out = outPoints[cnt];
+      if (v && inn && out) {
+        newPath.setTripleAt(v[0], v[1], inn[0], inn[1], out[0], out[1], i, false);
+      }
       cnt -= 1;
     }
     return newPath;

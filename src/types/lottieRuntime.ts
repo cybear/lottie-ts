@@ -81,6 +81,12 @@ export type GlobalDataCanvasImage = GlobalData & {
   renderConfig: RenderConfig;
 };
 
+/** Hybrid / HTML image layers: asset JSON + path resolver (no canvas `imageLoader`). */
+export type GlobalDataImageHost = GlobalData & {
+  getAssetData: (refId: string) => ImageAssetData;
+  getAssetsPath: (asset: ImageAssetData) => string;
+};
+
 /** `globalData` on canvas solid / shape / text layers (2D renderer + context). */
 export type GlobalDataCanvasLayer = GlobalData & {
   renderer: CanvasRenderer2D;
@@ -210,6 +216,18 @@ export interface AnimationRootData {
   layers: RendererLayerData[];
   chars?: unknown;
   fonts?: unknown;
+}
+
+/** Hybrid HTML renderer 3D stack entry (`HybridRendererBase.threeDElements`). */
+export interface HybridThreeDContainerLike {
+  type: string;
+  perspectiveElem: HTMLElement;
+  container: HTMLElement;
+}
+
+/** Composition / renderer reference passed into `HCameraElement` (needs 3D element list). */
+export interface HybridCompWithThreeD {
+  threeDElements: HybridThreeDContainerLike[];
 }
 
 /** Text layer JSON (`t` holds text document + animators). */
@@ -348,6 +366,19 @@ export type BaseInitLayerData = ElementData & {
   bm?: number;
   sr?: number;
   ef?: EffectJsonEntry[];
+};
+
+/** Camera layer JSON (`ks` transform + perspective `pe`). */
+export type CameraLayerData = BaseInitLayerData & {
+  pe: unknown;
+  ks: {
+    p: unknown;
+    a?: unknown;
+    or: { k: unknown[] };
+    rx: unknown;
+    ry: unknown;
+    rz: unknown;
+  };
 };
 
 /**

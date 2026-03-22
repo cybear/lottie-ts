@@ -15,8 +15,10 @@ import SVGTextLottieElement from '../elements/svgElements/SVGTextElement';
 import type {
   AnimationItemRendererPartial,
   AnimationRootData,
+  CameraLayerData,
   ElementData,
   GlobalData,
+  GlobalDataImageHost,
   ProjectInterfaceLike,
   RefIdLayerData,
   RendererElementInstance,
@@ -149,7 +151,11 @@ abstract class HybridRendererBase extends BaseRenderer {
   }
 
   createCamera(data: RendererLayerData): RendererElementInstance {
-    this.camera = new HCameraElement(data, this.globalData, this) as unknown as HybridCameraInstance;
+    this.camera = new HCameraElement(
+      data as unknown as CameraLayerData,
+      this.globalData,
+      this,
+    ) as unknown as HybridCameraInstance;
     return this.camera;
   }
 
@@ -161,7 +167,11 @@ abstract class HybridRendererBase extends BaseRenderer {
         this,
       ) as unknown as RendererElementInstance;
     }
-    return new HImageElement(data, this.globalData, this) as unknown as RendererElementInstance;
+    return new HImageElement(
+      data as unknown as RefIdLayerData & { hasMask?: boolean; ln?: string },
+      this.globalData as unknown as GlobalDataImageHost,
+      this,
+    ) as unknown as RendererElementInstance;
   }
 
   createSolid(data: RendererLayerData): RendererElementInstance {
