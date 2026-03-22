@@ -53,7 +53,39 @@ export type ElementData = Record<string, unknown>;
 /** Options on `globalData.renderConfig` used by `RenderableElement`. */
 export interface RenderConfig {
   hideOnTransparent?: boolean;
+  imagePreserveAspectRatio?: string;
 }
+
+/** HTML solid / rect layer subset (`sw` / `sh` / `sc`). */
+export type SolidColorLayerData = ElementData & {
+  sw: number;
+  sh: number;
+  sc: string;
+  hasMask?: boolean;
+};
+
+/** Image asset reference after `getAssetData` (dimensions + optional slot). */
+export type ImageAssetData = ElementData & {
+  w: number;
+  h: number;
+  pr?: string;
+  sid?: string;
+};
+
+/** Shape pipeline modifier entry (`SVGShapeElement` / canvas shape stacks). */
+export interface ShapeModifierLike {
+  addShape(data: unknown): void;
+  isAnimatedWithShape(data: unknown): boolean;
+  processShapes(isFirstFrame: boolean): boolean;
+}
+
+/** Minimal audio / footage layer JSON used by `AudioElement`. */
+export type AudioLayerData = ElementData & {
+  refId: string;
+  sr: number;
+  tm?: unknown;
+  au?: { lv?: unknown };
+};
 
 /** Layer timing + size fields used by `RenderableElement.checkLayerLimits` / `getLayerSize`. */
 export interface LayerInOutData extends ElementData {
@@ -64,6 +96,51 @@ export interface LayerInOutData extends ElementData {
   textData?: { width: number; height: number };
   width?: number;
   height?: number;
+}
+
+/** Text layer JSON (`t` holds text document + animators). */
+export type TextLayerData = LayerInOutData & { t: unknown };
+
+/** Image / footage layers that reference `assets` via `refId`. */
+export type RefIdLayerData = LayerInOutData & { refId: string };
+
+/** Precomposition layer JSON (`layers`, optional `xt`, time remap fields). */
+export type CompLayerData = LayerInOutData & {
+  xt?: boolean;
+  sr: number;
+  op: number;
+  layers: Array<ElementData & { st: number }>;
+  tm?: unknown;
+};
+
+/** Child layer instance stored on a comp (`elements[i]`). */
+export interface CompChildElement {
+  destroy(): void;
+  prepareFrame(num: number): void;
+  renderFrame(): void;
+  _mdf?: boolean;
+}
+
+export interface SlotManagerLike {
+  getProp(asset: unknown): unknown;
+}
+
+export interface ImageLoaderLike {
+  getAsset(asset: unknown): unknown;
+}
+
+export interface AudioPlayerLike {
+  play(): void;
+  pause(): void;
+  playing(): boolean;
+  seek(t?: number): number | void;
+  rate(r: number): void;
+  volume(v: number): void;
+}
+
+export interface AudioControllerLike {
+  createAudio(path: string): AudioPlayerLike;
+  addAudio(el: unknown): void;
 }
 
 /** Minimal `finalTransform` slice for opacity / visibility checks. */

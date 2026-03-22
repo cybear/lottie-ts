@@ -1,34 +1,69 @@
-// @ts-nocheck
 import { extendPrototype } from '../utils/functionExtensions';
 import PropertyFactory from '../utils/PropertyFactory';
+import type { AudioControllerLike, AudioLayerData, GlobalData } from '../types/lottieRuntime';
 import RenderableElement from './helpers/RenderableElement';
 import BaseElement from './BaseElement';
 import FrameElement from './helpers/FrameElement';
 
+/** Time remap from `PropertyFactory` or a stand-in when absent. */
+type TimeRemapProp = { _placeholder: true } | { _placeholder?: false; v: number };
+
+/** Level property (`lv`) — first channel used as volume scalar. */
+type LevelProp = { v: number[] };
+
 class AudioElement {
-  constructor(data, globalData, comp) {
+  declare initFrame: () => void;
+  declare initRenderable: () => void;
+  declare initBaseData: (data: AudioLayerData, globalData: GlobalData, comp: unknown) => void;
+  declare prepareRenderableFrame: (num: number, isVisible: boolean) => void;
+  declare prepareProperties: (num: number, isVisible: boolean) => void;
+  declare isInRange: boolean;
+  declare globalData: GlobalData;
+  declare data: AudioLayerData;
+
+  assetData: unknown;
+  audio: ReturnType<AudioControllerLike['createAudio']>;
+  _isPlaying: boolean;
+  _canPlay: boolean;
+  _currentTime: number;
+  _volumeMultiplier: number;
+  _volume: number;
+  _previousVolume: number | null;
+  tm: TimeRemapProp;
+  lv: LevelProp;
+
+  constructor(data: AudioLayerData, globalData: GlobalData, comp: unknown) {
     this.initFrame();
     this.initRenderable();
-    this.assetData = globalData.getAssetData(data.refId);
+    this.assetData = globalData.getAssetData!(data.refId);
     this.initBaseData(data, globalData, comp);
     this._isPlaying = false;
     this._canPlay = false;
-    const assetPath = this.globalData.getAssetsPath(this.assetData);
-    this.audio = this.globalData.audioController.createAudio(assetPath);
+    const assetPath = globalData.getAssetsPath!(this.assetData);
+    const audioController = globalData.audioController as AudioControllerLike;
+    this.audio = audioController.createAudio(assetPath);
     this._currentTime = 0;
-    this.globalData.audioController.addAudio(this);
+    audioController.addAudio(this);
     this._volumeMultiplier = 1;
     this._volume = 1;
     this._previousVolume = null;
-    this.tm = data.tm ? PropertyFactory.getProp(this, data.tm, 0, globalData.frameRate, this) : { _placeholder: true };
-    this.lv = PropertyFactory.getProp(this, data.au && data.au.lv ? data.au.lv : { k: [100] }, 1, 0.01, this);
+    this.tm = data.tm
+      ? (PropertyFactory.getProp(this, data.tm, 0, globalData.frameRate!, this) as TimeRemapProp)
+      : { _placeholder: true };
+    this.lv = PropertyFactory.getProp(
+      this,
+      data.au && data.au.lv ? data.au.lv : { k: [100] },
+      1,
+      0.01,
+      this,
+    ) as LevelProp;
   }
 
-  prepareFrame(num) {
+  prepareFrame(num: number) {
     this.prepareRenderableFrame(num, true);
     this.prepareProperties(num, true);
-    if (!this.tm._placeholder) {
-      const timeRemapped = this.tm.v;
+    if (!('_placeholder' in this.tm) || !this.tm._placeholder) {
+      const timeRemapped = (this.tm as { v: number }).v;
       this._currentTime = timeRemapped;
     } else {
       this._currentTime = num / this.data.sr;
@@ -45,13 +80,13 @@ class AudioElement {
     if (this.isInRange && this._canPlay) {
       if (!this._isPlaying) {
         this.audio.play();
-        this.audio.seek(this._currentTime / this.globalData.frameRate);
+        this.audio.seek(this._currentTime / this.globalData.frameRate!);
         this._isPlaying = true;
       } else if (
         !this.audio.playing() ||
-        Math.abs(this._currentTime / this.globalData.frameRate - this.audio.seek()) > 0.1
+        Math.abs(this._currentTime / this.globalData.frameRate! - (this.audio.seek() as number)) > 0.1
       ) {
-        this.audio.seek(this._currentTime / this.globalData.frameRate);
+        this.audio.seek(this._currentTime / this.globalData.frameRate!);
       }
     }
   }
@@ -75,17 +110,17 @@ class AudioElement {
     this._canPlay = true;
   }
 
-  setRate(rateValue) {
+  setRate(rateValue: number) {
     this.audio.rate(rateValue);
   }
 
-  volume(volumeValue) {
+  volume(volumeValue: number) {
     this._volumeMultiplier = volumeValue;
     this._previousVolume = volumeValue * this._volume;
     this.audio.volume(this._previousVolume);
   }
 
-  getBaseElement() {
+  getBaseElement(): null {
     return null;
   }
 

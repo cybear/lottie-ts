@@ -269,10 +269,20 @@ After each slice, run `npm test`, `npm run test:e2e`, and compare baselines wher
 
 ### Track A (incremental, started)
 
-- **`src/types/lottieRuntime.ts`:** `GlobalData` expanded (`CompSize`, `_mdf`, frame fields, `defs`, asset helpers, optional canvas/renderer fields, index signature for extra renderer state). `LayerDynamicProperty` models `dynamicProperties` entries. Also: `RenderConfig`, `LayerInOutData`, `FinalTransformOpacitySlice`, `RenderableComponentEntry`, `LayerParentData`, `ParentingHost`.
+- **`src/types/lottieRuntime.ts`:** `GlobalData` expanded (`CompSize`, `_mdf`, frame fields, `defs`, asset helpers, optional canvas/renderer fields, index signature for extra renderer state). `LayerDynamicProperty` models `dynamicProperties` entries. Also: `RenderConfig` (incl. `imagePreserveAspectRatio`), `SolidColorLayerData`, `ImageAssetData`, `ShapeModifierLike`, `AudioLayerData`, `TextLayerData`, `RefIdLayerData`, `CompLayerData`, `CompChildElement`, `SlotManagerLike`, `ImageLoaderLike`, `AudioPlayerLike`, `AudioControllerLike`, `LayerInOutData`, `FinalTransformOpacitySlice`, `RenderableComponentEntry`, `LayerParentData`, `ParentingHost`.
 - **`FrameElement`:** `@ts-nocheck` removed; uses `GlobalData` and `LayerDynamicProperty` for `prepareProperties` / `addDynamicProperty`.
 - **`HierarchyElement`:** `@ts-nocheck` removed; `LayerParentData` + `ParentingHost` for `checkParenting` / `setHierarchy`.
 - **`RenderableElement`:** `@ts-nocheck` removed; `hide` / `show` declared; typed against `GlobalData`, `LayerInOutData`, `RenderableComponentEntry`, `FinalTransformOpacitySlice`.
 - **`ProcessedElement`:** `@ts-nocheck` removed; `elem` / `pos` typed.
 - **`LetterProps`:** `@ts-nocheck` removed; optional constructor args (supports `ITextElement`’s `new LetterProps()`), `Matrix16` / `_mdf` typing.
 - **`NullElement`:** `@ts-nocheck` removed; constructor + instance methods typed; `declare` for mixin-supplied `init*` / `prepareProperties`.
+- **`HSolidElement`:** `@ts-nocheck` removed; `SolidColorLayerData` + mixin `declare`s; string coercions for SVG attributes / styles.
+- **`IShapeElement` (`ShapeElement.ts`):** `@ts-nocheck` removed; `ShapeModifierLike` + `ProcessedElement` typing; fixed `isShapeInAnimatedModifiers` loop increment (was stuck on `i === 0`).
+- **`FootageElement`:** `@ts-nocheck` removed; `RefIdLayerData`, `ImageLoaderLike`, mixin `declare`s.
+- **`AudioElement`:** `@ts-nocheck` removed; `AudioLayerData`, `AudioControllerLike` / time+level prop typing, mixin `declare`s.
+- **`ISolidElement` (`SolidElement.ts`):** `@ts-nocheck` removed; `SolidColorLayerData` + SVG `createContent`.
+- **`IImageElement` (`ImageElement.ts`):** `@ts-nocheck` removed; `RefIdLayerData`, `ImageAssetData`, `SlotManagerLike`, optional `renderConfig.imagePreserveAspectRatio`.
+- **`BaseTextElement`:** `@ts-nocheck` removed; empty ES `class` (tree-shake stub).
+- **`ITextElement` (`TextElement.ts`):** `@ts-nocheck` removed; `TextLayerData`, text/matrix helper interfaces, `TextProperty` frame flags via intersection; `prototype.emptyProp` via typed assertion.
+- **`ICompElement` (`CompElement.ts`):** `@ts-nocheck` removed; `CompLayerData`, `CompChildElement`, time-remap typing, mixin `declare`s for comp state.
+- **`ShapeGroupData`:** `@ts-nocheck` removed; `it` / `prevViewData` / `gr` typed.

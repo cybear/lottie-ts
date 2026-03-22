@@ -1,22 +1,31 @@
-// @ts-nocheck
 import { extendPrototype } from '../utils/functionExtensions';
 import { getExpressionInterfaces } from '../utils/common';
+import type { GlobalData, ImageLoaderLike, RefIdLayerData } from '../types/lottieRuntime';
 import RenderableElement from './helpers/RenderableElement';
 import BaseElement from './BaseElement';
 import FrameElement from './helpers/FrameElement';
 
 class FootageElement {
-  constructor(data, globalData, comp) {
+  declare initFrame: () => void;
+  declare initRenderable: () => void;
+  declare initBaseData: (data: RefIdLayerData, globalData: GlobalData, comp: unknown) => void;
+  declare layerInterface: unknown;
+
+  assetData: unknown;
+  footageData: unknown;
+
+  constructor(data: RefIdLayerData, globalData: GlobalData, comp: unknown) {
     this.initFrame();
     this.initRenderable();
-    this.assetData = globalData.getAssetData(data.refId);
-    this.footageData = globalData.imageLoader.getAsset(this.assetData);
+    this.assetData = globalData.getAssetData!(data.refId);
+    const imageLoader = globalData.imageLoader as ImageLoaderLike;
+    this.footageData = imageLoader.getAsset(this.assetData);
     this.initBaseData(data, globalData, comp);
   }
 
   prepareFrame() {}
 
-  getBaseElement() {
+  getBaseElement(): null {
     return null;
   }
 

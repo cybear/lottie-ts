@@ -1,15 +1,70 @@
-// @ts-nocheck
+import type { GlobalData, LayerDynamicProperty, TextLayerData } from '../types/lottieRuntime';
 import LetterProps from '../utils/text/LetterProps';
 import TextProperty from '../utils/text/TextProperty';
 import TextAnimatorProperty from '../utils/text/TextAnimatorProperty';
 import buildShapeString from '../utils/shapes/shapePathBuilder';
 
+interface MatrixPointHelper {
+  applyToPointStringified(x: number, y: number): string;
+}
+
+interface MatrixTranslateHelper {
+  translate(x: number, y: number, z: number): void;
+}
+
+interface PathNodesForString {
+  i: unknown[];
+  o: unknown[];
+  v: unknown[][];
+}
+
+interface TextShapeEntry {
+  ty: string;
+  ks: { k: PathNodesForString };
+}
+
+/** Subset of `TextProperty` document fields used when positioning glyphs. */
+interface TextDocumentLayoutSlice {
+  ps?: [number, number];
+  ascent: number;
+  ls: number;
+  j: number;
+  justifyOffset: number;
+  boxWidth: number;
+  lineWidths: number[];
+}
+
+/** Internal flags on `TextProperty` (class is still `@ts-nocheck`). */
+type TextPropertyFrameFlags = TextProperty & { _mdf: boolean; _isFirstFrame: boolean };
+
 class ITextElement {
-  initElement(data, globalData, comp) {
+  declare lettersChangedFlag: boolean;
+  declare _mdf: boolean;
+  declare initFrame: () => void;
+  declare initBaseData: (data: TextLayerData, globalData: GlobalData, comp: unknown) => void;
+  declare dynamicProperties: LayerDynamicProperty[];
+  declare renderType: string;
+  declare initTransform: (data: TextLayerData, globalData: GlobalData, comp: unknown) => void;
+  declare initHierarchy: () => void;
+  declare initRenderable: () => void;
+  declare initRendererElement: () => void;
+  declare createContainerElements: () => void;
+  declare createRenderableComponents: () => void;
+  declare createContent: () => void;
+  declare hide: () => void;
+  declare prepareRenderableFrame: (num: number) => void;
+  declare prepareProperties: (num: number, isVisible: boolean) => void;
+  declare isInRange: boolean;
+  declare buildNewText: () => void;
+
+  textProperty!: TextProperty;
+  textAnimator!: TextAnimatorProperty;
+
+  initElement(data: TextLayerData, globalData: GlobalData, comp: unknown) {
     this.lettersChangedFlag = true;
     this.initFrame();
     this.initBaseData(data, globalData, comp);
-    this.textProperty = new TextProperty(this, data.t, this.dynamicProperties);
+    this.textProperty = new TextProperty(this, data.t);
     this.textAnimator = new TextAnimatorProperty(data.t, this.renderType, this);
     this.initTransform(data, globalData, comp);
     this.initHierarchy();
@@ -19,19 +74,19 @@ class ITextElement {
     this.createRenderableComponents();
     this.createContent();
     this.hide();
-    this.textAnimator.searchProperties(this.dynamicProperties);
+    this.textAnimator.searchProperties();
   }
 
-  prepareFrame(num) {
+  prepareFrame(num: number) {
     this._mdf = false;
     this.prepareRenderableFrame(num);
     this.prepareProperties(num, this.isInRange);
   }
 
-  createPathShape(matrixHelper, shapes) {
-    let j;
+  createPathShape(matrixHelper: MatrixPointHelper, shapes: TextShapeEntry[]) {
+    let j: number;
     const jLen = shapes.length;
-    let pathNodes;
+    let pathNodes: PathNodesForString;
     let shapeStr = '';
     for (j = 0; j < jLen; j += 1) {
       if (shapes[j].ty === 'sh') {
@@ -42,19 +97,25 @@ class ITextElement {
     return shapeStr;
   }
 
-  updateDocumentData(newData, index) {
+  updateDocumentData(newData: unknown, index: number) {
     this.textProperty.updateDocumentData(newData, index);
   }
 
-  canResizeFont(_canResize) {
+  canResizeFont(_canResize: boolean) {
     this.textProperty.canResizeFont(_canResize);
   }
 
-  setMinimumFontSize(_fontSize) {
+  setMinimumFontSize(_fontSize: number) {
     this.textProperty.setMinimumFontSize(_fontSize);
   }
 
-  applyTextPropertiesToMatrix(documentData, matrixHelper, lineNumber, xPos, yPos) {
+  applyTextPropertiesToMatrix(
+    documentData: TextDocumentLayoutSlice,
+    matrixHelper: MatrixTranslateHelper,
+    lineNumber: number,
+    xPos: number,
+    yPos: number,
+  ) {
     if (documentData.ps) {
       matrixHelper.translate(documentData.ps[0], documentData.ps[1] + documentData.ascent, 0);
     }
@@ -80,7 +141,7 @@ class ITextElement {
     matrixHelper.translate(xPos, yPos, 0);
   }
 
-  buildColor(colorData) {
+  buildColor(colorData: number[]) {
     return (
       'rgb(' +
       Math.round(colorData[0] * 255) +
@@ -95,14 +156,15 @@ class ITextElement {
   destroy() {}
 
   validateText() {
-    if (this.textProperty._mdf || this.textProperty._isFirstFrame) {
+    const tp = this.textProperty as TextPropertyFrameFlags;
+    if (tp._mdf || tp._isFirstFrame) {
       this.buildNewText();
-      this.textProperty._isFirstFrame = false;
-      this.textProperty._mdf = false;
+      tp._isFirstFrame = false;
+      tp._mdf = false;
     }
   }
 }
 
-ITextElement.prototype.emptyProp = new LetterProps();
+(ITextElement.prototype as typeof ITextElement.prototype & { emptyProp: LetterProps }).emptyProp = new LetterProps();
 
 export default ITextElement;

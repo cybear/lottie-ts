@@ -1,7 +1,7 @@
-// @ts-nocheck
 import { extendPrototype } from '../utils/functionExtensions';
 
 import createNS from '../utils/helpers/svg_elements';
+import type { GlobalData, ImageAssetData, RefIdLayerData, SlotManagerLike } from '../types/lottieRuntime';
 import BaseElement from './BaseElement';
 import TransformElement from './helpers/TransformElement';
 import SVGBaseElement from './svgElements/SVGBaseElement';
@@ -10,11 +10,21 @@ import FrameElement from './helpers/FrameElement';
 import RenderableDOMElement from './helpers/RenderableDOMElement';
 
 class IImageElement {
-  constructor(data, globalData, comp) {
-    this.assetData = globalData.getAssetData(data.refId);
-    if (this.assetData && this.assetData.sid) {
-      this.assetData = globalData.slotManager.getProp(this.assetData);
+  declare initElement: (data: RefIdLayerData, globalData: GlobalData, comp: unknown) => void;
+  declare globalData: GlobalData;
+  declare layerElement: SVGElement;
+
+  assetData: ImageAssetData;
+  innerElem!: SVGImageElement;
+  sourceRect: { top: number; left: number; width: number; height: number };
+
+  constructor(data: RefIdLayerData, globalData: GlobalData, comp: unknown) {
+    let asset = globalData.getAssetData!(data.refId) as ImageAssetData;
+    if (asset && asset.sid) {
+      const slotManager = globalData.slotManager as SlotManagerLike;
+      asset = slotManager.getProp(asset) as ImageAssetData;
     }
+    this.assetData = asset;
     this.initElement(data, globalData, comp);
     this.sourceRect = {
       top: 0,
@@ -25,14 +35,14 @@ class IImageElement {
   }
 
   createContent() {
-    const assetPath = this.globalData.getAssetsPath(this.assetData);
+    const assetPath = this.globalData.getAssetsPath!(this.assetData);
 
-    this.innerElem = createNS('image');
-    this.innerElem.setAttribute('width', this.assetData.w + 'px');
-    this.innerElem.setAttribute('height', this.assetData.h + 'px');
+    this.innerElem = createNS('image') as SVGImageElement;
+    this.innerElem.setAttribute('width', `${this.assetData.w}px`);
+    this.innerElem.setAttribute('height', `${this.assetData.h}px`);
     this.innerElem.setAttribute(
       'preserveAspectRatio',
-      this.assetData.pr || this.globalData.renderConfig.imagePreserveAspectRatio,
+      this.assetData.pr || this.globalData.renderConfig?.imagePreserveAspectRatio || '',
     );
     this.innerElem.setAttributeNS('http://www.w3.org/1999/xlink', 'href', assetPath);
 
