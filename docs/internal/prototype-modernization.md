@@ -1,6 +1,8 @@
 # Prototype / `extendPrototype` inventory and class migration strategy
 
-This document supports Track A (strict typing) and Track B (ES classes) modernization. Regenerate the call-site table with:
+This document supports Track A (strict typing) and Track B (ES classes) modernization. *Last updated: 2025-03-22 — includes trait/renderer-base/effects/mask/shape-helper class conversions; regenerate counts as needed.*
+
+Regenerate the call-site table with:
 
 ```bash
 rg "extendPrototype\(" src --glob '*.ts' -l
@@ -99,7 +101,7 @@ flowchart TB
 | `SVGCompElement` | `SVGRendererBase`, `ICompElement`, `SVGBaseElement`    | `elements/svgElements/SVGCompElement.ts` |
 | `CVCompElement`  | `CanvasRendererBase`, `ICompElement`, `CVBaseElement`   | `elements/canvasElements/CVCompElement.ts` |
 | `HCompElement`   | `HybridRendererBase`, `ICompElement`, `HBaseElement`  | `elements/htmlElements/HCompElement.ts` |
-| `CVCompBaseElement` | `BaseRenderer`                                       | `elements/canvasElements/CVCompBaseElement.ts` |
+| `CVCompBaseElement` | `class extends BaseRenderer` (no `extendPrototype`) | `elements/canvasElements/CVCompBaseElement.ts` |
 
 ### Shared / DOM elements
 
@@ -162,6 +164,37 @@ flowchart TB
 | Destination     | Mixin chain              | File                 |
 | --------------- | ------------------------ | -------------------- |
 | `CanvasElement` | `ProxyElement`           | `worker_wrapper.ts`  |
+
+---
+
+## Track B snapshot (`src/`)
+
+### `extendPrototype` usage
+
+Call sites live mostly on **destination** layer/comp constructors. The helper itself is [`functionExtensions.ts`](../../src/utils/functionExtensions.ts). As of this revision, `extendPrototype(` appears in roughly **two dozen** element modules (some calls span multiple lines), plus **`ExpressionPropertyDecorator.ts`** (two calls onto shape property factory functions), and **`RenderableDOMElement.ts`** (inside an IIFE). **`CVCompBaseElement`** only subclasses `BaseRenderer` and does **not** call `extendPrototype`.
+
+### Types already ES `class` (sources, not destinations)
+
+These are `class` constructors whose **`prototype`** methods are still merged onto composites via `extendPrototype`, or types only instantiated with `new`:
+
+| Area | Types |
+| ---- | ----- |
+| Animation / events | `AnimationItem`, `BaseEvent` |
+| Renderers | `BaseRenderer`, `SVGRendererBase`, `SVGRenderer`, `CanvasRendererBase`, `CanvasRenderer`, `HybridRendererBase`, `HybridRenderer` |
+| Core traits | `BaseElement`, `TransformElement`, `HierarchyElement`, `FrameElement`, `RenderableElement` |
+| Shape / text traits | `IShapeElement` (`ShapeElement.ts`), `ITextElement` (`TextElement.ts`) |
+| Renderer-family bases | `SVGBaseElement`, `CVBaseElement`, `HBaseElement` |
+| Effects on layers | `SVGEffects`, `CVEffects` |
+| Masking | `MaskElement` |
+| Shape geometry helpers | `ShapeCollection`, `ShapePath` |
+| Dynamic / modifiers | `DynamicPropertyContainer`, `ShapeModifier` (+ concrete modifiers), `ShapeProperty`, `KeyframedShapeProperty`, `ShapeExpressions` (expression decorator) |
+| Worker bundle | `ProxyElement`, `CanvasElement` |
+
+**Shared prototype data** (single instance per constructor) remains assigned **after** the `class` body where the old code relied on it: e.g. `TransformElement.prototype.mHelper`, `CVBaseElement.prototype.mHelper`, `ITextElement.prototype.emptyProp`. For nested canvas compositions, **`CanvasRendererBase.prototype.createNull`** is copied from `SVGRendererBase.prototype.createNull`, not defined as a subclass field.
+
+### Comp elements: why `BaseRenderer` is first
+
+For `SVGCompElement`, `CVCompElement`, and `HCompElement`, the mixin array starts with **`BaseRenderer`** then the renderer-specific base (`SVGRendererBase` / `CanvasRendererBase` / `HybridRendererBase`). Subclass prototypes do not carry `BaseRenderer`’s methods as **own** properties, so listing `BaseRenderer` first ensures those methods are copied onto the comp’s prototype.
 
 ---
 
