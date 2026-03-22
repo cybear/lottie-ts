@@ -46,133 +46,134 @@ class HCameraElement {
       mProp: this,
     };
   }
-}
-extendPrototype([BaseElement, FrameElement, HierarchyElement], HCameraElement);
 
-HCameraElement.prototype.setup = function () {
-  let i;
-  const len = this.comp.threeDElements.length;
-  let comp;
-  let perspectiveStyle;
-  let containerStyle;
-  for (i = 0; i < len; i += 1) {
-    // [perspectiveElem,container]
-    comp = this.comp.threeDElements[i];
-    if (comp.type === '3d') {
-      perspectiveStyle = comp.perspectiveElem.style;
-      containerStyle = comp.container.style;
-      const perspective = this.pe.v + 'px';
-      const origin = '0px 0px 0px';
-      const matrix = 'matrix3d(1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1)';
-      perspectiveStyle.perspective = perspective;
-      perspectiveStyle.webkitPerspective = perspective;
-      containerStyle.transformOrigin = origin;
-      containerStyle.mozTransformOrigin = origin;
-      containerStyle.webkitTransformOrigin = origin;
-      perspectiveStyle.transform = matrix;
-      perspectiveStyle.webkitTransform = matrix;
-    }
-  }
-};
-
-HCameraElement.prototype.createElements = function () {};
-
-HCameraElement.prototype.hide = function () {};
-
-HCameraElement.prototype.renderFrame = function () {
-  let _mdf = this._isFirstFrame;
-  let i;
-  let len;
-  if (this.hierarchy) {
-    len = this.hierarchy.length;
+  setup() {
+    let i;
+    const len = this.comp.threeDElements.length;
+    let comp;
+    let perspectiveStyle;
+    let containerStyle;
     for (i = 0; i < len; i += 1) {
-      _mdf = this.hierarchy[i].finalTransform.mProp._mdf || _mdf;
+      // [perspectiveElem,container]
+      comp = this.comp.threeDElements[i];
+      if (comp.type === '3d') {
+        perspectiveStyle = comp.perspectiveElem.style;
+        containerStyle = comp.container.style;
+        const perspective = this.pe.v + 'px';
+        const origin = '0px 0px 0px';
+        const matrix = 'matrix3d(1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1)';
+        perspectiveStyle.perspective = perspective;
+        perspectiveStyle.webkitPerspective = perspective;
+        containerStyle.transformOrigin = origin;
+        containerStyle.mozTransformOrigin = origin;
+        containerStyle.webkitTransformOrigin = origin;
+        perspectiveStyle.transform = matrix;
+        perspectiveStyle.webkitTransform = matrix;
+      }
     }
   }
-  if (
-    _mdf ||
-    this.pe._mdf ||
-    (this.p && this.p._mdf) ||
-    (this.px && (this.px._mdf || this.py._mdf || this.pz._mdf)) ||
-    this.rx._mdf ||
-    this.ry._mdf ||
-    this.rz._mdf ||
-    this.or._mdf ||
-    (this.a && this.a._mdf)
-  ) {
-    this.mat.reset();
 
+  createElements() {}
+
+  hide() {}
+
+  renderFrame() {
+    let _mdf = this._isFirstFrame;
+    let i;
+    let len;
     if (this.hierarchy) {
-      len = this.hierarchy.length - 1;
-      for (i = len; i >= 0; i -= 1) {
-        const mTransf = this.hierarchy[i].finalTransform.mProp;
-        this.mat.translate(-mTransf.p.v[0], -mTransf.p.v[1], mTransf.p.v[2]);
-        this.mat.rotateX(-mTransf.or.v[0]).rotateY(-mTransf.or.v[1]).rotateZ(mTransf.or.v[2]);
-        this.mat.rotateX(-mTransf.rx.v).rotateY(-mTransf.ry.v).rotateZ(mTransf.rz.v);
-        this.mat.scale(1 / mTransf.s.v[0], 1 / mTransf.s.v[1], 1 / mTransf.s.v[2]);
-        this.mat.translate(mTransf.a.v[0], mTransf.a.v[1], mTransf.a.v[2]);
-      }
-    }
-    if (this.p) {
-      this.mat.translate(-this.p.v[0], -this.p.v[1], this.p.v[2]);
-    } else {
-      this.mat.translate(-this.px.v, -this.py.v, this.pz.v);
-    }
-    if (this.a) {
-      let diffVector;
-      if (this.p) {
-        diffVector = [this.p.v[0] - this.a.v[0], this.p.v[1] - this.a.v[1], this.p.v[2] - this.a.v[2]];
-      } else {
-        diffVector = [this.px.v - this.a.v[0], this.py.v - this.a.v[1], this.pz.v - this.a.v[2]];
-      }
-      const mag = Math.sqrt(Math.pow(diffVector[0], 2) + Math.pow(diffVector[1], 2) + Math.pow(diffVector[2], 2));
-      // var lookDir = getNormalizedPoint(getDiffVector(this.a.v,this.p.v));
-      const lookDir = [diffVector[0] / mag, diffVector[1] / mag, diffVector[2] / mag];
-      const lookLengthOnXZ = Math.sqrt(lookDir[2] * lookDir[2] + lookDir[0] * lookDir[0]);
-      const mRotationX = Math.atan2(lookDir[1], lookLengthOnXZ);
-      const mRotationY = Math.atan2(lookDir[0], -lookDir[2]);
-      this.mat.rotateY(mRotationY).rotateX(-mRotationX);
-    }
-    this.mat.rotateX(-this.rx.v).rotateY(-this.ry.v).rotateZ(this.rz.v);
-    this.mat.rotateX(-this.or.v[0]).rotateY(-this.or.v[1]).rotateZ(this.or.v[2]);
-    this.mat.translate(this.globalData.compSize.w / 2, this.globalData.compSize.h / 2, 0);
-    this.mat.translate(0, 0, this.pe.v);
-
-    const hasMatrixChanged = !this._prevMat.equals(this.mat);
-    if ((hasMatrixChanged || this.pe._mdf) && this.comp.threeDElements) {
-      len = this.comp.threeDElements.length;
-      let comp;
-      let perspectiveStyle;
-      let containerStyle;
+      len = this.hierarchy.length;
       for (i = 0; i < len; i += 1) {
-        comp = this.comp.threeDElements[i];
-        if (comp.type === '3d') {
-          if (hasMatrixChanged) {
-            const matValue = this.mat.toCSS();
-            containerStyle = comp.container.style;
-            containerStyle.transform = matValue;
-            containerStyle.webkitTransform = matValue;
-          }
-          if (this.pe._mdf) {
-            perspectiveStyle = comp.perspectiveElem.style;
-            perspectiveStyle.perspective = this.pe.v + 'px';
-            perspectiveStyle.webkitPerspective = this.pe.v + 'px';
-          }
+        _mdf = this.hierarchy[i].finalTransform.mProp._mdf || _mdf;
+      }
+    }
+    if (
+      _mdf ||
+      this.pe._mdf ||
+      (this.p && this.p._mdf) ||
+      (this.px && (this.px._mdf || this.py._mdf || this.pz._mdf)) ||
+      this.rx._mdf ||
+      this.ry._mdf ||
+      this.rz._mdf ||
+      this.or._mdf ||
+      (this.a && this.a._mdf)
+    ) {
+      this.mat.reset();
+
+      if (this.hierarchy) {
+        len = this.hierarchy.length - 1;
+        for (i = len; i >= 0; i -= 1) {
+          const mTransf = this.hierarchy[i].finalTransform.mProp;
+          this.mat.translate(-mTransf.p.v[0], -mTransf.p.v[1], mTransf.p.v[2]);
+          this.mat.rotateX(-mTransf.or.v[0]).rotateY(-mTransf.or.v[1]).rotateZ(mTransf.or.v[2]);
+          this.mat.rotateX(-mTransf.rx.v).rotateY(-mTransf.ry.v).rotateZ(mTransf.rz.v);
+          this.mat.scale(1 / mTransf.s.v[0], 1 / mTransf.s.v[1], 1 / mTransf.s.v[2]);
+          this.mat.translate(mTransf.a.v[0], mTransf.a.v[1], mTransf.a.v[2]);
         }
       }
-      this.mat.clone(this._prevMat);
+      if (this.p) {
+        this.mat.translate(-this.p.v[0], -this.p.v[1], this.p.v[2]);
+      } else {
+        this.mat.translate(-this.px.v, -this.py.v, this.pz.v);
+      }
+      if (this.a) {
+        let diffVector;
+        if (this.p) {
+          diffVector = [this.p.v[0] - this.a.v[0], this.p.v[1] - this.a.v[1], this.p.v[2] - this.a.v[2]];
+        } else {
+          diffVector = [this.px.v - this.a.v[0], this.py.v - this.a.v[1], this.pz.v - this.a.v[2]];
+        }
+        const mag = Math.sqrt(Math.pow(diffVector[0], 2) + Math.pow(diffVector[1], 2) + Math.pow(diffVector[2], 2));
+        // var lookDir = getNormalizedPoint(getDiffVector(this.a.v,this.p.v));
+        const lookDir = [diffVector[0] / mag, diffVector[1] / mag, diffVector[2] / mag];
+        const lookLengthOnXZ = Math.sqrt(lookDir[2] * lookDir[2] + lookDir[0] * lookDir[0]);
+        const mRotationX = Math.atan2(lookDir[1], lookLengthOnXZ);
+        const mRotationY = Math.atan2(lookDir[0], -lookDir[2]);
+        this.mat.rotateY(mRotationY).rotateX(-mRotationX);
+      }
+      this.mat.rotateX(-this.rx.v).rotateY(-this.ry.v).rotateZ(this.rz.v);
+      this.mat.rotateX(-this.or.v[0]).rotateY(-this.or.v[1]).rotateZ(this.or.v[2]);
+      this.mat.translate(this.globalData.compSize.w / 2, this.globalData.compSize.h / 2, 0);
+      this.mat.translate(0, 0, this.pe.v);
+
+      const hasMatrixChanged = !this._prevMat.equals(this.mat);
+      if ((hasMatrixChanged || this.pe._mdf) && this.comp.threeDElements) {
+        len = this.comp.threeDElements.length;
+        let comp;
+        let perspectiveStyle;
+        let containerStyle;
+        for (i = 0; i < len; i += 1) {
+          comp = this.comp.threeDElements[i];
+          if (comp.type === '3d') {
+            if (hasMatrixChanged) {
+              const matValue = this.mat.toCSS();
+              containerStyle = comp.container.style;
+              containerStyle.transform = matValue;
+              containerStyle.webkitTransform = matValue;
+            }
+            if (this.pe._mdf) {
+              perspectiveStyle = comp.perspectiveElem.style;
+              perspectiveStyle.perspective = this.pe.v + 'px';
+              perspectiveStyle.webkitPerspective = this.pe.v + 'px';
+            }
+          }
+        }
+        this.mat.clone(this._prevMat);
+      }
     }
+    this._isFirstFrame = false;
   }
-  this._isFirstFrame = false;
-};
 
-HCameraElement.prototype.prepareFrame = function (num) {
-  this.prepareProperties(num, true);
-};
+  prepareFrame(num) {
+    this.prepareProperties(num, true);
+  }
 
-HCameraElement.prototype.destroy = function () {};
-HCameraElement.prototype.getBaseElement = function () {
-  return null;
-};
+  destroy() {}
+
+  getBaseElement() {
+    return null;
+  }
+}
+extendPrototype([BaseElement, FrameElement, HierarchyElement], HCameraElement);
 
 export default HCameraElement;

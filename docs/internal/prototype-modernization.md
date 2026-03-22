@@ -1,6 +1,6 @@
 # Prototype / `extendPrototype` inventory and class migration strategy
 
-This document supports Track A (strict typing) and Track B (ES classes) modernization. *Last updated: 2025-03-22 — `ImagePreloader` is an ES `class` (replaces IIFE + `prototype` factory); hybrid `HEffects`, `AudioController`, and `utils/audio/AudioElement` also converted.*
+This document supports Track A (strict typing) and Track B (ES classes) modernization. *Last updated: 2025-03-22 — `HCameraElement`, `HSolidElement`, and `IImageElement` keep `extendPrototype` but layer-specific logic lives in the `class` body; `IImageElement.prototype.sourceRectAtTime` stays post-mixin so it wins over `BaseElement`’s stub.*
 
 Regenerate the call-site table with:
 
