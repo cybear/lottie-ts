@@ -28,6 +28,7 @@ extendPrototype(
   CVSolidElement,
 );
 
+// Same borrow pattern as CVImageElement: DOM init path + image-style prepareFrame.
 CVSolidElement.prototype.initElement = SVGShapeElement.prototype.initElement;
 CVSolidElement.prototype.prepareFrame = IImageElement.prototype.prepareFrame;
 

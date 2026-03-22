@@ -77,10 +77,16 @@ class HBaseElement {
   }
   addEffects() {}
   setMatte() {}
+
+  getBaseElement() {
+    return SVGBaseElement.prototype.getBaseElement.call(this);
+  }
+
+  buildElementParenting(element, parentName, hierarchy) {
+    return BaseRenderer.prototype.buildElementParenting.call(this, element, parentName, hierarchy);
+  }
 }
 
-HBaseElement.prototype.getBaseElement = SVGBaseElement.prototype.getBaseElement;
 HBaseElement.prototype.destroyBaseElement = HBaseElement.prototype.destroy;
-HBaseElement.prototype.buildElementParenting = BaseRenderer.prototype.buildElementParenting;
 
 export default HBaseElement;

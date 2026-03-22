@@ -183,7 +183,7 @@ These are `class` constructors whose **`prototype`** methods are still merged on
 | Renderers | `BaseRenderer`, `SVGRendererBase`, `SVGRenderer`, `CanvasRendererBase`, `CanvasRenderer`, `HybridRendererBase`, `HybridRenderer` |
 | Core traits | `BaseElement`, `TransformElement`, `HierarchyElement`, `FrameElement`, `RenderableElement` |
 | Shape / text traits | `IShapeElement` (`ShapeElement.ts`), `ITextElement` (`TextElement.ts`) |
-| Renderer-family bases | `SVGBaseElement`, `CVBaseElement`, `HBaseElement` |
+| Renderer-family bases | `SVGBaseElement`, `CVBaseElement`, `HBaseElement` (`getBaseElement` / `buildElementParenting` delegate to `SVGBaseElement` / `BaseRenderer`; `destroyBaseElement` aliases `destroy` on `prototype`) |
 | Hybrid HTML effects stub | `HEffects` (`elements/htmlElements/HEffects.ts`) |
 | Audio runtime | `AudioController` (`utils/audio/AudioController.ts`); `AudioElement` audio-data wrapper (`utils/audio/AudioElement.ts`, distinct from the layer class) |
 | Effects on layers | `SVGEffects`, `CVEffects` |
@@ -192,7 +192,7 @@ These are `class` constructors whose **`prototype`** methods are still merged on
 | Text | `TextProperty` (shared `defaultBoxWidth` on `prototype`), `LetterProps`, `TextAnimatorDataProperty` |
 | SVG stub | `SVGEffects` in `SVGEffectsPlaceholder.ts` (no-op class for tree-shaken / placeholder bundles) |
 | Shape geometry helpers | `ShapeCollection`, `ShapePath` |
-| Shape element data (SVG/CV pipeline) | `SVGShapeData`, `CVShapeData` (`setAsAnimated` from `SVGShapeData.prototype`), `SVGStyleData`, `SVGTransformData`, `ShapeGroupData`, `ShapeTransformManager`, `ProcessedElement`, `ShapeElementData` |
+| Shape element data (SVG/CV pipeline) | `SVGShapeData`, `CVShapeData` (`setAsAnimated` on the `class`, same body as SVG), `SVGStyleData`, `SVGTransformData`, `ShapeGroupData`, `ShapeTransformManager`, `ProcessedElement`, `ShapeElementData` |
 | Effect value holders | `SliderEffect`, `AngleEffect`, `ColorEffect`, `PointEffect`, `LayerIndexEffect`, `MaskIndexEffect`, `CheckboxEffect`, `NoValueEffect` (`effects/SliderEffect.ts`) |
 | Property animation (`getProp`) | `ValueProperty`, `MultiDimensionalProperty`, `KeyframedValueProperty`, `KeyframedMultidimensionalProperty` in [`PropertyFactory.ts`](../../src/utils/PropertyFactory.ts) |
 | Bezier math | `PolynomialBezier` ([`PolynomialBezier.ts`](../../src/utils/PolynomialBezier.ts)) |
@@ -205,7 +205,7 @@ These are `class` constructors whose **`prototype`** methods are still merged on
 
 **Still a plain function (by design):** [`ExpressionValue`](../../src/utils/expressions/ExpressionValue.ts) builds and returns an augmented `Number` or typed array with expression hooks—it is not used as `new ExpressionValue()`, so it stays a factory function.
 
-**Shared prototype data** (single instance per constructor) remains assigned **after** the `class` body where the old code relied on it: e.g. `TransformElement.prototype.mHelper`, `CVBaseElement.prototype.mHelper`, `ITextElement.prototype.emptyProp`, **`TextProperty.prototype.defaultBoxWidth`**, **`CVTextElement.prototype.tHelper`**, **`SVGShapeElement.prototype.identityMatrix`**. **`CVMaskElement.prototype.getMaskProperty`** is copied from **`MaskElement.prototype`**. For nested canvas compositions, **`CanvasRendererBase.prototype.createNull`** is copied from `SVGRendererBase.prototype.createNull`, not defined as a subclass field.
+**Shared prototype data** (single instance per constructor) remains assigned **after** the `class` body where the old code relied on it: e.g. `TransformElement.prototype.mHelper`, `CVBaseElement.prototype.mHelper`, `ITextElement.prototype.emptyProp`, **`TextProperty.prototype.defaultBoxWidth`**, **`CVTextElement.prototype.tHelper`** (set from a module-level measure canvas context), **`SVGShapeElement.prototype.identityMatrix`**. **`CVMaskElement.prototype.getMaskProperty`** is copied from **`MaskElement.prototype`**. For nested canvas compositions, **`CanvasRendererBase.prototype.createNull`** is copied from `SVGRendererBase.prototype.createNull`, not defined as a subclass field.
 
 **Post-mixin save-restore (text / SVG text):** **`HTextElement`** and **`SVGTextLottieElement`** define **`renderInnerContent`** on the **`class`**, then restore after **`extendPrototype`** so they replace **`RenderableDOMElement`’s** no-op. **`SVGTextLottieElement`** also restores **`sourceRectAtTime`** after **`RenderableElement`** (via **`RenderableDOMElement`**) would supply the default rect.
 
@@ -214,6 +214,8 @@ These are `class` constructors whose **`prototype`** methods are still merged on
 **Canvas shape layer:** **`CVShapeElement`** — class holds search/render helpers, **`renderInnerContent`**, **`createContent`**, and **`destroy`**; save-restore **`createContent`** / **`destroy`** vs **`CVBaseElement`**. Post-**`extendPrototype`** **`prototype`** data: **`initElement`** (from **`RenderableDOMElement`**), **`transformHelper`**, **`dashResetter`**.
 
 **HTML hybrid shape layer:** **`HShapeElement`** — after **`extendPrototype`**, **`_renderShapeFrame`** references the mixed-in SVG shape **`renderInnerContent`**; the class’s HTML **`renderInnerContent`** wraps it after save-restore. Shared curve-bounds objects **`shapeBoundingBox`** / **`tempBoundingBox`** stay on **`prototype`** (one pair per constructor).
+
+**HTML base (`HBaseElement`):** **`getBaseElement`** and **`buildElementParenting`** are **`class`** methods that delegate with **`.call(this, …)`** to **`SVGBaseElement.prototype`** and **`BaseRenderer.prototype`** so the surface is explicit; **`destroyBaseElement`** remains **`HBaseElement.prototype.destroy`** (same function reference as **`destroy`**).
 
 **Composition layers:** **`CVCompElement`** keeps **`renderInnerContent`** and **`destroy`** on the **`class`** with save-restore after **`extendPrototype`** (override **`ICompElement`** / **`CVBaseElement`**). **`HCompElement`** defines **`createContainerElements`** on the **`class`**, then save-restore so **`_createBaseContainerElements`** still aliases the mixed-in **`HBaseElement`** implementation before the wrapper runs.
 

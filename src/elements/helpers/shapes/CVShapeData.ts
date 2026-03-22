@@ -1,6 +1,5 @@
 // @ts-nocheck
 import ShapePropertyFactory from '../../../utils/shapes/ShapeProperty';
-import SVGShapeData from './SVGShapeData';
 
 class CVShapeData {
   constructor(element, data, styles, transformsManager) {
@@ -29,8 +28,10 @@ class CVShapeData {
       }
     }
   }
-}
 
-CVShapeData.prototype.setAsAnimated = SVGShapeData.prototype.setAsAnimated;
+  setAsAnimated() {
+    this._isAnimated = true;
+  }
+}
 
 export default CVShapeData;

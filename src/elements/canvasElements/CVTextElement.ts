@@ -270,11 +270,15 @@ class CVTextElement {
     }
   }
 }
+
+/** Shared 2D context for font metrics (one per module, same as former prototype field). */
+const cvTextMeasureContext = createTag('canvas').getContext('2d');
+
 extendPrototype(
   [BaseElement, TransformElement, CVBaseElement, HierarchyElement, FrameElement, RenderableElement, ITextElement],
   CVTextElement,
 );
 
-CVTextElement.prototype.tHelper = createTag('canvas').getContext('2d');
+CVTextElement.prototype.tHelper = cvTextMeasureContext;
 
 export default CVTextElement;
