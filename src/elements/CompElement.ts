@@ -6,7 +6,7 @@ import HierarchyElement from './helpers/HierarchyElement';
 import FrameElement from './helpers/FrameElement';
 import RenderableDOMElement from './helpers/RenderableDOMElement';
 
-function ICompElement() {}
+class ICompElement {}
 
 extendPrototype([BaseElement, TransformElement, HierarchyElement, FrameElement, RenderableDOMElement], ICompElement);
 

@@ -9,18 +9,20 @@ import HierarchyElement from './helpers/HierarchyElement';
 import FrameElement from './helpers/FrameElement';
 import RenderableDOMElement from './helpers/RenderableDOMElement';
 
-function IImageElement(data, globalData, comp) {
-  this.assetData = globalData.getAssetData(data.refId);
-  if (this.assetData && this.assetData.sid) {
-    this.assetData = globalData.slotManager.getProp(this.assetData);
+class IImageElement {
+  constructor(data, globalData, comp) {
+    this.assetData = globalData.getAssetData(data.refId);
+    if (this.assetData && this.assetData.sid) {
+      this.assetData = globalData.slotManager.getProp(this.assetData);
+    }
+    this.initElement(data, globalData, comp);
+    this.sourceRect = {
+      top: 0,
+      left: 0,
+      width: this.assetData.w,
+      height: this.assetData.h,
+    };
   }
-  this.initElement(data, globalData, comp);
-  this.sourceRect = {
-    top: 0,
-    left: 0,
-    width: this.assetData.w,
-    height: this.assetData.h,
-  };
 }
 
 extendPrototype(

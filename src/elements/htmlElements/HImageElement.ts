@@ -9,9 +9,11 @@ import FrameElement from '../helpers/FrameElement';
 import HBaseElement from './HBaseElement';
 import HSolidElement from './HSolidElement';
 
-function HImageElement(data, globalData, comp) {
-  this.assetData = globalData.getAssetData(data.refId);
-  this.initElement(data, globalData, comp);
+class HImageElement {
+  constructor(data, globalData, comp) {
+    this.assetData = globalData.getAssetData(data.refId);
+    this.initElement(data, globalData, comp);
+  }
 }
 
 extendPrototype(

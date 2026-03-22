@@ -9,8 +9,10 @@ import FrameElement from '../helpers/FrameElement';
 import RenderableDOMElement from '../helpers/RenderableDOMElement';
 import HBaseElement from './HBaseElement';
 
-function HSolidElement(data, globalData, comp) {
-  this.initElement(data, globalData, comp);
+class HSolidElement {
+  constructor(data, globalData, comp) {
+    this.initElement(data, globalData, comp);
+  }
 }
 extendPrototype(
   [BaseElement, TransformElement, HBaseElement, HierarchyElement, FrameElement, RenderableDOMElement],

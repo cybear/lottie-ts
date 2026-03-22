@@ -10,10 +10,12 @@ import CVBaseElement from './CVBaseElement';
 import IImageElement from '../ImageElement';
 import SVGShapeElement from '../svgElements/SVGShapeElement';
 
-function CVImageElement(data, globalData, comp) {
-  this.assetData = globalData.getAssetData(data.refId);
-  this.img = globalData.imageLoader.getAsset(this.assetData);
-  this.initElement(data, globalData, comp);
+class CVImageElement {
+  constructor(data, globalData, comp) {
+    this.assetData = globalData.getAssetData(data.refId);
+    this.img = globalData.imageLoader.getAsset(this.assetData);
+    this.initElement(data, globalData, comp);
+  }
 }
 extendPrototype(
   [BaseElement, TransformElement, CVBaseElement, HierarchyElement, FrameElement, RenderableElement],

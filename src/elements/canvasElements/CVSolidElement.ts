@@ -9,8 +9,10 @@ import CVBaseElement from './CVBaseElement';
 import IImageElement from '../ImageElement';
 import SVGShapeElement from '../svgElements/SVGShapeElement';
 
-function CVSolidElement(data, globalData, comp) {
-  this.initElement(data, globalData, comp);
+class CVSolidElement {
+  constructor(data, globalData, comp) {
+    this.initElement(data, globalData, comp);
+  }
 }
 extendPrototype(
   [BaseElement, TransformElement, CVBaseElement, HierarchyElement, FrameElement, RenderableElement],
