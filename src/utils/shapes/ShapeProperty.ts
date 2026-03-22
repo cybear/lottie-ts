@@ -177,23 +177,25 @@ const ShapePropertyFactory = (function () {
     this.frameId = this.elem.globalData.frameId;
   }
 
-  function ShapeProperty(elem, data, type) {
-    this.propType = 'shape';
-    this.comp = elem.comp;
-    this.container = elem;
-    this.elem = elem;
-    this.data = data;
-    this.k = false;
-    this.kf = false;
-    this._mdf = false;
-    const pathData = type === 3 ? data.pt.k : data.ks.k;
-    this.v = shapePool.clone(pathData);
-    this.pv = shapePool.clone(this.v);
-    this.localShapeCollection = shapeCollectionPool.newShapeCollection();
-    this.paths = this.localShapeCollection;
-    this.paths.addShape(this.v);
-    this.reset = resetShape;
-    this.effectsSequence = [];
+  class ShapeProperty {
+    constructor(elem, data, type) {
+      this.propType = 'shape';
+      this.comp = elem.comp;
+      this.container = elem;
+      this.elem = elem;
+      this.data = data;
+      this.k = false;
+      this.kf = false;
+      this._mdf = false;
+      const pathData = type === 3 ? data.pt.k : data.ks.k;
+      this.v = shapePool.clone(pathData);
+      this.pv = shapePool.clone(this.v);
+      this.localShapeCollection = shapeCollectionPool.newShapeCollection();
+      this.paths = this.localShapeCollection;
+      this.paths.addShape(this.v);
+      this.reset = resetShape;
+      this.effectsSequence = [];
+    }
   }
 
   function addEffect(effectFunction) {
@@ -206,27 +208,29 @@ const ShapePropertyFactory = (function () {
   ShapeProperty.prototype.setVValue = setVValue;
   ShapeProperty.prototype.addEffect = addEffect;
 
-  function KeyframedShapeProperty(elem, data, type) {
-    this.propType = 'shape';
-    this.comp = elem.comp;
-    this.elem = elem;
-    this.container = elem;
-    this.offsetTime = elem.data.st;
-    this.keyframes = type === 3 ? data.pt.k : data.ks.k;
-    this.keyframesMetadata = [];
-    this.k = true;
-    this.kf = true;
-    const len = this.keyframes[0].s[0].i.length;
-    this.v = shapePool.newElement();
-    this.v.setPathData(this.keyframes[0].s[0].c, len);
-    this.pv = shapePool.clone(this.v);
-    this.localShapeCollection = shapeCollectionPool.newShapeCollection();
-    this.paths = this.localShapeCollection;
-    this.paths.addShape(this.v);
-    this.lastFrame = initFrame;
-    this.reset = resetShape;
-    this._caching = { lastFrame: initFrame, lastIndex: 0 };
-    this.effectsSequence = [interpolateShapeCurrentTime.bind(this)];
+  class KeyframedShapeProperty {
+    constructor(elem, data, type) {
+      this.propType = 'shape';
+      this.comp = elem.comp;
+      this.elem = elem;
+      this.container = elem;
+      this.offsetTime = elem.data.st;
+      this.keyframes = type === 3 ? data.pt.k : data.ks.k;
+      this.keyframesMetadata = [];
+      this.k = true;
+      this.kf = true;
+      const len = this.keyframes[0].s[0].i.length;
+      this.v = shapePool.newElement();
+      this.v.setPathData(this.keyframes[0].s[0].c, len);
+      this.pv = shapePool.clone(this.v);
+      this.localShapeCollection = shapeCollectionPool.newShapeCollection();
+      this.paths = this.localShapeCollection;
+      this.paths.addShape(this.v);
+      this.lastFrame = initFrame;
+      this.reset = resetShape;
+      this._caching = { lastFrame: initFrame, lastIndex: 0 };
+      this.effectsSequence = [interpolateShapeCurrentTime.bind(this)];
+    }
   }
   KeyframedShapeProperty.prototype.getValue = processEffectsSequence;
   KeyframedShapeProperty.prototype.interpolateShape = interpolateShape;
