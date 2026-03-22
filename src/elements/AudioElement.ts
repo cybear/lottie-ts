@@ -5,40 +5,42 @@ import RenderableElement from './helpers/RenderableElement';
 import BaseElement from './BaseElement';
 import FrameElement from './helpers/FrameElement';
 
-function AudioElement(data, globalData, comp) {
-  this.initFrame();
-  this.initRenderable();
-  this.assetData = globalData.getAssetData(data.refId);
-  this.initBaseData(data, globalData, comp);
-  this._isPlaying = false;
-  this._canPlay = false;
-  const assetPath = this.globalData.getAssetsPath(this.assetData);
-  this.audio = this.globalData.audioController.createAudio(assetPath);
-  this._currentTime = 0;
-  this.globalData.audioController.addAudio(this);
-  this._volumeMultiplier = 1;
-  this._volume = 1;
-  this._previousVolume = null;
-  this.tm = data.tm ? PropertyFactory.getProp(this, data.tm, 0, globalData.frameRate, this) : { _placeholder: true };
-  this.lv = PropertyFactory.getProp(this, data.au && data.au.lv ? data.au.lv : { k: [100] }, 1, 0.01, this);
-}
+class AudioElement {
+  constructor(data, globalData, comp) {
+    this.initFrame();
+    this.initRenderable();
+    this.assetData = globalData.getAssetData(data.refId);
+    this.initBaseData(data, globalData, comp);
+    this._isPlaying = false;
+    this._canPlay = false;
+    const assetPath = this.globalData.getAssetsPath(this.assetData);
+    this.audio = this.globalData.audioController.createAudio(assetPath);
+    this._currentTime = 0;
+    this.globalData.audioController.addAudio(this);
+    this._volumeMultiplier = 1;
+    this._volume = 1;
+    this._previousVolume = null;
+    this.tm = data.tm ? PropertyFactory.getProp(this, data.tm, 0, globalData.frameRate, this) : { _placeholder: true };
+    this.lv = PropertyFactory.getProp(this, data.au && data.au.lv ? data.au.lv : { k: [100] }, 1, 0.01, this);
+  }
 
-AudioElement.prototype.prepareFrame = function (num) {
-  this.prepareRenderableFrame(num, true);
-  this.prepareProperties(num, true);
-  if (!this.tm._placeholder) {
-    const timeRemapped = this.tm.v;
-    this._currentTime = timeRemapped;
-  } else {
-    this._currentTime = num / this.data.sr;
+  prepareFrame(num) {
+    this.prepareRenderableFrame(num, true);
+    this.prepareProperties(num, true);
+    if (!this.tm._placeholder) {
+      const timeRemapped = this.tm.v;
+      this._currentTime = timeRemapped;
+    } else {
+      this._currentTime = num / this.data.sr;
+    }
+    this._volume = this.lv.v[0];
+    const totalVolume = this._volume * this._volumeMultiplier;
+    if (this._previousVolume !== totalVolume) {
+      this._previousVolume = totalVolume;
+      this.audio.volume(totalVolume);
+    }
   }
-  this._volume = this.lv.v[0];
-  const totalVolume = this._volume * this._volumeMultiplier;
-  if (this._previousVolume !== totalVolume) {
-    this._previousVolume = totalVolume;
-    this.audio.volume(totalVolume);
-  }
-};
+}
 
 extendPrototype([RenderableElement, BaseElement, FrameElement], AudioElement);
 

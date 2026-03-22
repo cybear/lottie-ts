@@ -5,15 +5,17 @@ import RenderableElement from './helpers/RenderableElement';
 import BaseElement from './BaseElement';
 import FrameElement from './helpers/FrameElement';
 
-function FootageElement(data, globalData, comp) {
-  this.initFrame();
-  this.initRenderable();
-  this.assetData = globalData.getAssetData(data.refId);
-  this.footageData = globalData.imageLoader.getAsset(this.assetData);
-  this.initBaseData(data, globalData, comp);
-}
+class FootageElement {
+  constructor(data, globalData, comp) {
+    this.initFrame();
+    this.initRenderable();
+    this.assetData = globalData.getAssetData(data.refId);
+    this.footageData = globalData.imageLoader.getAsset(this.assetData);
+    this.initBaseData(data, globalData, comp);
+  }
 
-FootageElement.prototype.prepareFrame = function () {};
+  prepareFrame() {}
+}
 
 extendPrototype([RenderableElement, BaseElement, FrameElement], FootageElement);
 

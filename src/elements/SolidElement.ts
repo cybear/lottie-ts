@@ -3,9 +3,12 @@ import { extendPrototype } from '../utils/functionExtensions';
 import createNS from '../utils/helpers/svg_elements';
 import IImageElement from './ImageElement';
 
-function ISolidElement(data, globalData, comp) {
-  this.initElement(data, globalData, comp);
+class ISolidElement {
+  constructor(data, globalData, comp) {
+    this.initElement(data, globalData, comp);
+  }
 }
+
 extendPrototype([IImageElement], ISolidElement);
 
 ISolidElement.prototype.createContent = function () {
