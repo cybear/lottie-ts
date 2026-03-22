@@ -1,4 +1,4 @@
-// @ts-nocheck
+/* eslint-disable @typescript-eslint/no-explicit-any -- offset bezier pipeline */
 import { roundCorner } from '../common';
 import PropertyFactory from '../PropertyFactory';
 import shapePool from '../pooling/shape_pool';
@@ -12,12 +12,14 @@ import {
   floatEqual,
 } from '../PolynomialBezier';
 
-function linearOffset(p1, p2, amount) {
+type Point2D = [number, number];
+
+function linearOffset(p1: Point2D, p2: Point2D, amount: number) {
   const angle = Math.atan2(p2[0] - p1[0], p2[1] - p1[1]);
   return [polarOffset(p1, angle, amount), polarOffset(p2, angle, amount)];
 }
 
-function offsetSegment(segment, amount) {
+function offsetSegment(segment: any, amount: number) {
   let e;
   e = linearOffset(segment.points[0], segment.points[1], amount);
   const p0 = e[0];
@@ -33,10 +35,10 @@ function offsetSegment(segment, amount) {
   let p2 = lineIntersection(p2a, p3, p1b, p2b);
   if (p2 === null) p2 = p2a;
 
-  return new PolynomialBezier(p0, p1, p2, p3);
+  return new PolynomialBezier(p0 as Point2D, p1 as Point2D, p2 as Point2D, p3 as Point2D, false);
 }
 
-function joinLines(outputBezier, seg1, seg2, lineJoin, miterLimit) {
+function joinLines(outputBezier: any, seg1: any, seg2: any, lineJoin: number, miterLimit: number) {
   const p0 = seg1.points[3];
   const p1 = seg2.points[0];
 
@@ -59,10 +61,10 @@ function joinLines(outputBezier, seg1, seg2, lineJoin, miterLimit) {
     const radius = center ? pointDistance(center, p0) : pointDistance(p0, p1) / 2;
 
     let tan = polarOffset(p0, angleOut, 2 * radius * roundCorner);
-    outputBezier.setXYAt(tan[0], tan[1], 'o', outputBezier.length() - 1);
+    outputBezier.setXYAt(tan[0], tan[1], 'o', outputBezier.length() - 1, false);
 
     tan = polarOffset(p1, angleIn, 2 * radius * roundCorner);
-    outputBezier.setTripleAt(p1[0], p1[1], p1[0], p1[1], tan[0], tan[1], outputBezier.length());
+    outputBezier.setTripleAt(p1[0], p1[1], p1[0], p1[1], tan[0], tan[1], outputBezier.length(), false);
 
     return p1;
   }
@@ -80,6 +82,7 @@ function joinLines(outputBezier, seg1, seg2, lineJoin, miterLimit) {
       intersection[0],
       intersection[1],
       outputBezier.length(),
+      false,
     );
     return intersection;
   }
@@ -87,7 +90,7 @@ function joinLines(outputBezier, seg1, seg2, lineJoin, miterLimit) {
   return p0;
 }
 
-function getIntersection(a, b) {
+function getIntersection(a: any, b: any) {
   const intersect = a.intersections(b);
 
   if (intersect.length && floatEqual(intersect[0][0], 1)) intersect.shift();
@@ -97,7 +100,7 @@ function getIntersection(a, b) {
   return null;
 }
 
-function pruneSegmentIntersection(a, b) {
+function pruneSegmentIntersection(a: any, b: any) {
   const outa = a.slice();
   const outb = b.slice();
   let intersect = getIntersection(a[a.length - 1], b[0]);
@@ -114,7 +117,7 @@ function pruneSegmentIntersection(a, b) {
   return [outa, outb];
 }
 
-function pruneIntersections(segments) {
+function pruneIntersections(segments: any) {
   let e;
   for (let i = 1; i < segments.length; i += 1) {
     e = pruneSegmentIntersection(segments[i - 1], segments[i]);
@@ -131,7 +134,7 @@ function pruneIntersections(segments) {
   return segments;
 }
 
-function offsetSegmentSplit(segment, amount) {
+function offsetSegmentSplit(segment: any, amount: number) {
   /*
     We split each bezier segment into smaller pieces based
     on inflection points, this ensures the control point
@@ -167,7 +170,11 @@ function offsetSegmentSplit(segment, amount) {
 }
 
 class OffsetPathModifier extends ShapeModifier {
-  initModifierProperties(elem, data) {
+  amount!: { v: number; effectsSequence: unknown[] };
+  miterLimit!: { v: number; effectsSequence: unknown[] };
+  lineJoin!: number;
+
+  initModifierProperties(elem: unknown, data: { a: unknown; ml: unknown; lj: number }) {
     this.getValue = this.processKeys;
     this.amount = PropertyFactory.getProp(elem, data.a, 0, null, this);
     this.miterLimit = PropertyFactory.getProp(elem, data.ml, 0, null, this);
@@ -175,7 +182,7 @@ class OffsetPathModifier extends ShapeModifier {
     this._isAnimated = this.amount.effectsSequence.length !== 0;
   }
 
-  processPath(inputBezier, amount, lineJoin, miterLimit) {
+  processPath(inputBezier: any, amount: number, lineJoin: number, miterLimit: number) {
     const outputBezier = shapePool.newElement();
     outputBezier.c = inputBezier.c;
     let count = inputBezier.length();
@@ -216,7 +223,7 @@ class OffsetPathModifier extends ShapeModifier {
         segment = multiSegment[j];
 
         if (lastPoint && pointEqual(segment.points[0], lastPoint)) {
-          outputBezier.setXYAt(segment.points[1][0], segment.points[1][1], 'o', outputBezier.length() - 1);
+          outputBezier.setXYAt(segment.points[1][0], segment.points[1][1], 'o', outputBezier.length() - 1, false);
         } else {
           outputBezier.setTripleAt(
             segment.points[0][0],
@@ -226,6 +233,7 @@ class OffsetPathModifier extends ShapeModifier {
             segment.points[0][0],
             segment.points[0][1],
             outputBezier.length(),
+            false,
           );
         }
 
@@ -237,6 +245,7 @@ class OffsetPathModifier extends ShapeModifier {
           segment.points[2][0],
           segment.points[2][1],
           outputBezier.length(),
+          false,
         );
 
         lastPoint = segment.points[3];
@@ -248,7 +257,7 @@ class OffsetPathModifier extends ShapeModifier {
     return outputBezier;
   }
 
-  processShapes(_isFirstFrame) {
+  processShapes(_isFirstFrame: boolean) {
     let shapePaths;
     let i;
     const len = this.shapes.length;
@@ -262,7 +271,7 @@ class OffsetPathModifier extends ShapeModifier {
       let shapeData;
       let localShapeCollection;
       for (i = 0; i < len; i += 1) {
-        shapeData = this.shapes[i];
+        shapeData = this.shapes[i] as any;
         localShapeCollection = shapeData.localShapeCollection;
         if (!(!shapeData.shape._mdf && !this._mdf && !_isFirstFrame)) {
           localShapeCollection.releaseShapes();
