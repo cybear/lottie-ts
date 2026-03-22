@@ -2,6 +2,7 @@
 import { extendPrototype } from '../../utils/functionExtensions';
 import { getLocationHref } from '../../main';
 import ShapePropertyFactory from '../../utils/shapes/ShapeProperty';
+import type { ShapePropertyFactoryApi } from '../../utils/shapes/shapePropertyFactoryTypes';
 import BaseElement from '../BaseElement';
 import TransformElement from '../helpers/TransformElement';
 import SVGBaseElement from './SVGBaseElement';
@@ -190,9 +191,7 @@ class SVGShapeElement {
     } else if (data.ty === 'sr') {
       ty = 7;
     }
-    const shapeProperty = (
-      ShapePropertyFactory as { getShapeProp: (a: unknown, b: unknown, c: number, d: unknown) => unknown }
-    ).getShapeProp(this, data, ty, this);
+    const shapeProperty = (ShapePropertyFactory as ShapePropertyFactoryApi).getShapeProp(this, data, ty, this);
     const elementData = new SVGShapeData(
       ownTransformers as ShapeTransformerLike[],
       level,

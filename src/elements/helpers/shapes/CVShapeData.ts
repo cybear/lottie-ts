@@ -1,8 +1,7 @@
 import ShapePropertyFactory from '../../../utils/shapes/ShapeProperty';
+import type { ShapePropertyFactoryApi } from '../../../utils/shapes/shapePropertyFactoryTypes';
 
-const shapePropFactory = ShapePropertyFactory as {
-  getShapeProp(elem: unknown, data: CVShapeJson, type: number): unknown;
-};
+const shapePropFactory = ShapePropertyFactory as ShapePropertyFactoryApi;
 
 interface CVShapeJson {
   ty: string;
