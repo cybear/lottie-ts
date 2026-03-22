@@ -1,6 +1,5 @@
-// @ts-nocheck
 import { degToRads } from './common';
-import { createTypedArray } from './helpers/arrays';
+import { createTypedArray, type NumberArray } from './helpers/arrays';
 import BezierFactory from '../3rd_party/BezierEaser';
 import { initialDefaultFrame } from '../main';
 import bez from './bez';
@@ -333,6 +332,25 @@ function addEffect(this: any, effectFunction: any) {
 }
 
 class ValueProperty {
+  propType!: string;
+  mult!: number;
+  data!: any;
+  v!: number;
+  pv!: number;
+  _mdf!: boolean;
+  elem!: any;
+  container!: any;
+  comp!: any;
+  k!: boolean;
+  kf!: boolean;
+  vel!: number;
+  effectsSequence!: any[];
+  _isFirstFrame!: boolean;
+  frameId!: number;
+  getValue!: typeof processEffectsSequence;
+  setVValue!: typeof setVValue;
+  addEffect!: typeof addEffect;
+
   constructor(elem: any, data: any, mult: any, container: any) {
     this.propType = 'unidimensional';
     this.mult = mult || 1;
@@ -348,6 +366,7 @@ class ValueProperty {
     this.vel = 0;
     this.effectsSequence = [];
     this._isFirstFrame = true;
+    this.frameId = -1;
     this.getValue = processEffectsSequence;
     this.setVValue = setVValue;
     this.addEffect = addEffect;
@@ -355,6 +374,25 @@ class ValueProperty {
 }
 
 class MultiDimensionalProperty {
+  propType!: string;
+  mult!: number;
+  data!: any;
+  _mdf!: boolean;
+  elem!: any;
+  container!: any;
+  comp!: any;
+  k!: boolean;
+  kf!: boolean;
+  frameId!: number;
+  v!: NumberArray;
+  pv!: NumberArray;
+  vel!: NumberArray;
+  _isFirstFrame!: boolean;
+  effectsSequence!: any[];
+  getValue!: typeof processEffectsSequence;
+  setVValue!: typeof setVValue;
+  addEffect!: typeof addEffect;
+
   constructor(elem: any, data: any, mult: any, container: any) {
     this.propType = 'multidimensional';
     this.mult = mult || 1;
@@ -384,6 +422,33 @@ class MultiDimensionalProperty {
 }
 
 class KeyframedValueProperty {
+  propType!: string;
+  keyframes!: any[];
+  keyframesMetadata!: any[];
+  offsetTime!: number;
+  frameId!: number;
+  _caching!: {
+    lastFrame: number;
+    lastIndex: number;
+    value: number;
+    _lastKeyframeIndex: number;
+  };
+  k!: boolean;
+  kf!: boolean;
+  data!: any;
+  mult!: number;
+  elem!: any;
+  container!: any;
+  comp!: any;
+  v!: number;
+  pv!: number;
+  _isFirstFrame!: boolean;
+  getValue!: typeof processEffectsSequence;
+  setVValue!: typeof setVValue;
+  interpolateValue!: typeof interpolateValue;
+  effectsSequence!: any[];
+  addEffect!: typeof addEffect;
+
   constructor(elem: any, data: any, mult: any, container: any) {
     this.propType = 'unidimensional';
     this.keyframes = data.k;
@@ -415,6 +480,28 @@ class KeyframedValueProperty {
 }
 
 class KeyframedMultidimensionalProperty {
+  propType!: string;
+  effectsSequence!: any[];
+  data!: any;
+  keyframes!: any[];
+  keyframesMetadata!: any[];
+  offsetTime!: number;
+  k!: boolean;
+  kf!: boolean;
+  _isFirstFrame!: boolean;
+  mult!: number;
+  elem!: any;
+  container!: any;
+  comp!: any;
+  getValue!: typeof processEffectsSequence;
+  setVValue!: typeof setVValue;
+  interpolateValue!: typeof interpolateValue;
+  frameId!: number;
+  v!: NumberArray;
+  pv!: NumberArray;
+  _caching!: { lastFrame: number; lastIndex: number; value: NumberArray };
+  addEffect!: typeof addEffect;
+
   constructor(elem: any, data: any, mult: any, container: any) {
     this.propType = 'multidimensional';
     let i;
@@ -484,7 +571,7 @@ const PropertyFactory = (function () {
       data = elem.globalData.slotManager.getProp(data);
     }
     let p: any;
-    if (!data.k.length) {
+    if (!data.k || !data.k.length) {
       p = new ValueProperty(elem, data, mult, container);
     } else if (typeof data.k[0] === 'number') {
       p = new MultiDimensionalProperty(elem, data, mult, container);

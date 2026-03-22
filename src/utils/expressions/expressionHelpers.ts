@@ -1,19 +1,51 @@
-// @ts-nocheck
 import { createTypedArray } from '../helpers/arrays';
-import ExpressionManager from './ExpressionManager';
+import ExpressionManagerImport from './ExpressionManager';
+
+type ExpressionManagerApi = {
+  initiateExpression: (elem: unknown, data: unknown, prop: unknown) => () => void;
+};
+
+const ExpressionManager = ExpressionManagerImport as ExpressionManagerApi;
+
+interface ExpressionCapableProp {
+  k?: boolean;
+  x?: boolean;
+  initiateExpression?: ExpressionManagerApi['initiateExpression'];
+  effectsSequence: Array<() => void>;
+}
+
+interface CachingAtTime {
+  lastFrame: number;
+  lastIndex: number;
+  value: unknown;
+  _lastKeyframeIndex?: number;
+  _lastPoint?: number;
+  _lastAddedLength?: number;
+}
+
+interface ValueAtTimeHost {
+  elem: { globalData: { frameRate?: number } };
+  offsetTime: number;
+  _cachingAtTime: CachingAtTime;
+  interpolateValue(frameNum: number, caching: CachingAtTime): unknown;
+  getValueAtTime(frameNum: number): unknown;
+  pv: unknown;
+  vel?: unknown;
+  propertyGroup?: unknown;
+}
 
 const expressionHelpers = (function () {
-  function searchExpressions(elem, data, prop) {
+  function searchExpressions(elem: unknown, data: { x?: unknown }, prop: ExpressionCapableProp) {
     if (data.x) {
       prop.k = true;
       prop.x = true;
       prop.initiateExpression = ExpressionManager.initiateExpression;
-      prop.effectsSequence.push(prop.initiateExpression(elem, data, prop).bind(prop));
+      prop.effectsSequence.push(prop.initiateExpression!(elem, data, prop).bind(prop));
     }
   }
 
-  function getValueAtTime(frameNum) {
-    frameNum *= this.elem.globalData.frameRate;
+  function getValueAtTime(this: ValueAtTimeHost, frameNum: number) {
+    frameNum *= this.elem.globalData.frameRate ?? 1;
     frameNum -= this.offsetTime;
     if (frameNum !== this._cachingAtTime.lastFrame) {
       this._cachingAtTime.lastIndex = this._cachingAtTime.lastFrame < frameNum ? this._cachingAtTime.lastIndex : 0;
@@ -23,15 +55,17 @@ const expressionHelpers = (function () {
     return this._cachingAtTime.value;
   }
 
-  function getSpeedAtTime(frameNum) {
+  function getSpeedAtTime(this: ValueAtTimeHost, frameNum: number) {
     const delta = -0.01;
-    const v1 = this.getValueAtTime(frameNum);
-    const v2 = this.getValueAtTime(frameNum + delta);
+    const v1 = this.getValueAtTime(frameNum) as number | number[];
+    const v2 = this.getValueAtTime(frameNum + delta) as number | number[];
     let speed = 0;
-    if (v1.length) {
-      let i;
-      for (i = 0; i < v1.length; i += 1) {
-        speed += Math.pow(v2[i] - v1[i], 2);
+    if ((v1 as number[]).length) {
+      let i: number;
+      const arr1 = v1 as number[];
+      const arr2 = v2 as number[];
+      for (i = 0; i < arr1.length; i += 1) {
+        speed += Math.pow(arr2[i] - arr1[i], 2);
       }
       speed = Math.sqrt(speed) * 100;
     } else {
@@ -40,35 +74,33 @@ const expressionHelpers = (function () {
     return speed;
   }
 
-  function getVelocityAtTime(frameNum) {
+  function getVelocityAtTime(this: ValueAtTimeHost, frameNum: number) {
     if (this.vel !== undefined) {
       return this.vel;
     }
     const delta = -0.001;
-    // frameNum += this.elem.data.st;
-    const v1 = this.getValueAtTime(frameNum);
-    const v2 = this.getValueAtTime(frameNum + delta);
-    let velocity;
-    if (v1.length) {
-      velocity = createTypedArray('float32', v1.length);
-      let i;
-      for (i = 0; i < v1.length; i += 1) {
-        // removing frameRate
-        // if needed, don't add it here
-        // velocity[i] = this.elem.globalData.frameRate*((v2[i] - v1[i])/delta);
-        velocity[i] = (v2[i] - v1[i]) / delta;
+    const v1 = this.getValueAtTime(frameNum) as number | number[];
+    const v2 = this.getValueAtTime(frameNum + delta) as number | number[];
+    let velocity: Float32Array | number;
+    if ((v1 as number[]).length) {
+      velocity = createTypedArray('float32', (v1 as number[]).length) as Float32Array;
+      let i: number;
+      const arr1 = v1 as number[];
+      const arr2 = v2 as number[];
+      for (i = 0; i < arr1.length; i += 1) {
+        velocity[i] = (arr2[i] - arr1[i]) / delta;
       }
     } else {
-      velocity = (v2 - v1) / delta;
+      velocity = ((v2 as number) - (v1 as number)) / delta;
     }
     return velocity;
   }
 
-  function getStaticValueAtTime() {
+  function getStaticValueAtTime(this: { pv: unknown }) {
     return this.pv;
   }
 
-  function setGroupProperty(propertyGroup) {
+  function setGroupProperty(this: { propertyGroup?: unknown }, propertyGroup: unknown) {
     this.propertyGroup = propertyGroup;
   }
 

@@ -1,5 +1,6 @@
 type TypedArrayType = 'float32' | 'int16' | 'uint8c' | string;
-type NumberArray = number[] | Float32Array | Int16Array | Uint8ClampedArray;
+/** Typed or fallback numeric buffers from `createTypedArray`. */
+export type NumberArray = number[] | Float32Array | Int16Array | Uint8ClampedArray;
 
 const createTypedArray: (type: TypedArrayType, len: number) => NumberArray = (function () {
   function createRegularArray(type: TypedArrayType, len: number): number[] {

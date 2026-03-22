@@ -1,4 +1,3 @@
-// @ts-nocheck
 import DynamicPropertyContainer from '../helpers/dynamicProperties';
 import PropertyFactory from '../PropertyFactory';
 import BezierFactory from '../../3rd_party/BezierEaser';
@@ -7,17 +6,39 @@ const max = Math.max;
 const min = Math.min;
 const floor = Math.floor;
 
+/** Animated scalar / vector from `PropertyFactory` (body still loosely typed). */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+type AnimProp = any;
+
 class TextSelectorPropFactory extends DynamicPropertyContainer {
-  constructor(elem, data) {
+  _currentTextLength!: number;
+  k!: boolean;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  data: any;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  elem: any;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  comp: any;
+  finalS!: number;
+  finalE!: number;
+  s!: AnimProp;
+  e!: AnimProp;
+  o!: AnimProp;
+  xe!: AnimProp;
+  ne!: AnimProp;
+  sm!: AnimProp;
+  a!: AnimProp;
+
+  constructor(elem: unknown, data: Record<string, unknown>) {
     super();
     this._currentTextLength = -1;
     this.k = false;
     this.data = data;
     this.elem = elem;
-    this.comp = elem.comp;
+    this.comp = (elem as { comp: unknown }).comp;
     this.finalS = 0;
     this.finalE = 0;
-    this.initDynamicPropertyContainer(elem);
+    this.initDynamicPropertyContainer(elem as DynamicPropertyContainer['container']);
     this.s = PropertyFactory.getProp(elem, data.s || { k: 0 }, 0, 0, this);
     if ('e' in data) {
       this.e = PropertyFactory.getProp(elem, data.e, 0, 0, this);
@@ -34,7 +55,7 @@ class TextSelectorPropFactory extends DynamicPropertyContainer {
     }
   }
 
-  getMult(ind) {
+  getMult(ind: number) {
     if (this._currentTextLength !== this.elem.textProperty.currentData.l.length) {
       this.getValue();
     }
@@ -90,8 +111,6 @@ class TextSelectorPropFactory extends DynamicPropertyContainer {
         mult = 0;
       } else {
         const tot = e - s;
-        /* ind += 0.5;
-                    mult = -4/(tot*tot)*(ind*ind)+(4/tot)*ind; */
         ind = min(max(0, ind + 0.5 - s), e - s);
         const x = -tot / 2 + ind;
         const a = tot / 2;
@@ -134,9 +153,9 @@ class TextSelectorPropFactory extends DynamicPropertyContainer {
     return mult * this.a.v;
   }
 
-  getValue(newCharsFlag) {
+  getValue(newCharsFlag?: boolean) {
     this.iterateDynamicProperties();
-    this._mdf = newCharsFlag || this._mdf;
+    this._mdf = !!newCharsFlag || this._mdf;
     this._currentTextLength = this.elem.textProperty.currentData.l.length || 0;
     if (newCharsFlag && this.data.r === 2) {
       this.e.v = this._currentTextLength;
@@ -156,8 +175,8 @@ class TextSelectorPropFactory extends DynamicPropertyContainer {
 }
 
 const TextSelectorProp = (function () {
-  function getTextSelectorProp(elem, data, arr) {
-    return new TextSelectorPropFactory(elem, data, arr);
+  function getTextSelectorProp(elem: unknown, data: Record<string, unknown>, _arr: unknown) {
+    return new TextSelectorPropFactory(elem, data);
   }
 
   return {

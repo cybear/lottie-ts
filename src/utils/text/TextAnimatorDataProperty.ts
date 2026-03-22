@@ -1,11 +1,20 @@
-// @ts-nocheck
 import { degToRads } from '../common';
 import PropertyFactory from '../PropertyFactory';
 import TextSelectorProp from './TextSelectorProperty';
 
+type PropOrStub = { propType: boolean } | ReturnType<typeof PropertyFactory.getProp>;
+
+interface AnimatorPropsJson {
+  a: Record<string, unknown>;
+  s: { t?: unknown } & Record<string, unknown>;
+}
+
 class TextAnimatorDataProperty {
-  constructor(elem, animatorProps, container) {
-    const defaultData = { propType: false };
+  a: Record<string, PropOrStub>;
+  s: ReturnType<typeof TextSelectorProp.getTextSelectorProp> & { t?: unknown };
+
+  constructor(elem: unknown, animatorProps: AnimatorPropsJson, container: unknown) {
+    const defaultData: { propType: boolean } = { propType: false };
     const getProp = PropertyFactory.getProp;
     const textAnimatorAnimatables = animatorProps.a;
     this.a = {
@@ -25,9 +34,9 @@ class TextAnimatorDataProperty {
       fs: textAnimatorAnimatables.fs ? getProp(elem, textAnimatorAnimatables.fs, 0, 0.01, container) : defaultData,
       fb: textAnimatorAnimatables.fb ? getProp(elem, textAnimatorAnimatables.fb, 0, 0.01, container) : defaultData,
       t: textAnimatorAnimatables.t ? getProp(elem, textAnimatorAnimatables.t, 0, 0, container) : defaultData,
-    };
+    } as Record<string, PropOrStub>;
 
-    this.s = TextSelectorProp.getTextSelectorProp(elem, animatorProps.s, container);
+    this.s = TextSelectorProp.getTextSelectorProp(elem, animatorProps.s, container) as TextAnimatorDataProperty['s'];
     this.s.t = animatorProps.s.t;
   }
 }
