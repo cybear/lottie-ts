@@ -1,6 +1,8 @@
 // @ts-nocheck
-function EffectsManager() {
-  this.effectElements = [];
+class EffectsManager {
+  constructor() {
+    this.effectElements = [];
+  }
 }
 
 export default EffectsManager;

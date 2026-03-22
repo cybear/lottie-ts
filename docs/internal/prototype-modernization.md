@@ -1,6 +1,6 @@
 # Prototype / `extendPrototype` inventory and class migration strategy
 
-This document supports Track A (strict typing) and Track B (ES classes) modernization. *Last updated: 2025-03-22 — adds `SlotManager`, canvas `CVContextData` (+ internal `CanvasContext`), SVG filter/effect classes (`SVGFillFilter`, `SVGTritoneFilter`, `SVGProLevelsFilter`, `SVGGaussianBlurEffect`, `SVGMatte3Effect`, `SVGStrokeEffect`); `ExpressionValue` remains a factory function (see below).*
+This document supports Track A (strict typing) and Track B (ES classes) modernization. *Last updated: 2025-03-22 — adds `PropertyFactory` property types as ES classes (`ValueProperty`, `MultiDimensionalProperty`, `KeyframedValueProperty`, `KeyframedMultidimensionalProperty`; file uses `@ts-nocheck` until fields are typed), `PolynomialBezier` as a class with static `shapeSegment` / `shapeSegmentInverted`, `TextAnimatorDataProperty`, and `EffectsManager` placeholder.*
 
 Regenerate the call-site table with:
 
@@ -185,13 +185,15 @@ These are `class` constructors whose **`prototype`** methods are still merged on
 | Shape / text traits | `IShapeElement` (`ShapeElement.ts`), `ITextElement` (`TextElement.ts`) |
 | Renderer-family bases | `SVGBaseElement`, `CVBaseElement`, `HBaseElement` |
 | Effects on layers | `SVGEffects`, `CVEffects` |
-| Effect data tree | `EffectsManager` (root; nested groups still `GroupEffect extends DynamicPropertyContainer`) |
+| Effect data tree | `EffectsManager` + `GroupEffect` (`EffectsManager.ts`); empty placeholder class (`EffectsManagerPlaceholder.ts`) |
 | Masking | `MaskElement`, `CVMaskElement` (`getMaskProperty` aliased from `MaskElement.prototype`) |
-| Text | `TextProperty` (shared `defaultBoxWidth` on `prototype`), `LetterProps` |
+| Text | `TextProperty` (shared `defaultBoxWidth` on `prototype`), `LetterProps`, `TextAnimatorDataProperty` |
 | SVG stub | `SVGEffects` in `SVGEffectsPlaceholder.ts` (no-op class for tree-shaken / placeholder bundles) |
 | Shape geometry helpers | `ShapeCollection`, `ShapePath` |
 | Shape element data (SVG/CV pipeline) | `SVGShapeData`, `CVShapeData` (`setAsAnimated` from `SVGShapeData.prototype`), `SVGStyleData`, `SVGTransformData`, `ShapeGroupData`, `ShapeTransformManager`, `ProcessedElement`, `ShapeElementData` |
 | Effect value holders | `SliderEffect`, `AngleEffect`, `ColorEffect`, `PointEffect`, `LayerIndexEffect`, `MaskIndexEffect`, `CheckboxEffect`, `NoValueEffect` (`effects/SliderEffect.ts`) |
+| Property animation (`getProp`) | `ValueProperty`, `MultiDimensionalProperty`, `KeyframedValueProperty`, `KeyframedMultidimensionalProperty` in [`PropertyFactory.ts`](../../src/utils/PropertyFactory.ts) |
+| Bezier math | `PolynomialBezier` ([`PolynomialBezier.ts`](../../src/utils/PolynomialBezier.ts)) |
 | Dynamic / modifiers | `DynamicPropertyContainer`, `ShapeModifier` (+ concrete modifiers), `ShapeProperty`, `KeyframedShapeProperty`, `ShapeExpressions` (expression decorator) |
 | Worker bundle | `ProxyElement`, `CanvasElement` |
 | Slots | `SlotManager` (`slotFactory` → `new SlotManager`) |

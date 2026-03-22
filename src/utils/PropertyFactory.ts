@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { degToRads } from './common';
 import { createTypedArray } from './helpers/arrays';
 import BezierFactory from '../3rd_party/BezierEaser';
@@ -331,142 +332,150 @@ function addEffect(this: any, effectFunction: any) {
   this.container.addDynamicProperty(this);
 }
 
-function ValueProperty(this: any, elem: any, data: any, mult: any, container: any) {
-  this.propType = 'unidimensional';
-  this.mult = mult || 1;
-  this.data = data;
-  this.v = mult ? data.k * mult : data.k;
-  this.pv = data.k;
-  this._mdf = false;
-  this.elem = elem;
-  this.container = container;
-  this.comp = elem.comp;
-  this.k = false;
-  this.kf = false;
-  this.vel = 0;
-  this.effectsSequence = [];
-  this._isFirstFrame = true;
-  this.getValue = processEffectsSequence;
-  this.setVValue = setVValue;
-  this.addEffect = addEffect;
-}
-
-function MultiDimensionalProperty(this: any, elem: any, data: any, mult: any, container: any) {
-  this.propType = 'multidimensional';
-  this.mult = mult || 1;
-  this.data = data;
-  this._mdf = false;
-  this.elem = elem;
-  this.container = container;
-  this.comp = elem.comp;
-  this.k = false;
-  this.kf = false;
-  this.frameId = -1;
-  let i;
-  const len = data.k.length;
-  this.v = createTypedArray('float32', len);
-  this.pv = createTypedArray('float32', len);
-  this.vel = createTypedArray('float32', len);
-  for (i = 0; i < len; i += 1) {
-    this.v[i] = data.k[i] * this.mult;
-    this.pv[i] = data.k[i];
+class ValueProperty {
+  constructor(elem: any, data: any, mult: any, container: any) {
+    this.propType = 'unidimensional';
+    this.mult = mult || 1;
+    this.data = data;
+    this.v = mult ? data.k * mult : data.k;
+    this.pv = data.k;
+    this._mdf = false;
+    this.elem = elem;
+    this.container = container;
+    this.comp = elem.comp;
+    this.k = false;
+    this.kf = false;
+    this.vel = 0;
+    this.effectsSequence = [];
+    this._isFirstFrame = true;
+    this.getValue = processEffectsSequence;
+    this.setVValue = setVValue;
+    this.addEffect = addEffect;
   }
-  this._isFirstFrame = true;
-  this.effectsSequence = [];
-  this.getValue = processEffectsSequence;
-  this.setVValue = setVValue;
-  this.addEffect = addEffect;
 }
 
-function KeyframedValueProperty(this: any, elem: any, data: any, mult: any, container: any) {
-  this.propType = 'unidimensional';
-  this.keyframes = data.k;
-  this.keyframesMetadata = [];
-  this.offsetTime = elem.data.st;
-  this.frameId = -1;
-  this._caching = {
-    lastFrame: initFrame,
-    lastIndex: 0,
-    value: 0,
-    _lastKeyframeIndex: -1,
-  };
-  this.k = true;
-  this.kf = true;
-  this.data = data;
-  this.mult = mult || 1;
-  this.elem = elem;
-  this.container = container;
-  this.comp = elem.comp;
-  this.v = initFrame;
-  this.pv = initFrame;
-  this._isFirstFrame = true;
-  this.getValue = processEffectsSequence;
-  this.setVValue = setVValue;
-  this.interpolateValue = interpolateValue;
-  this.effectsSequence = [getValueAtCurrentTime.bind(this)];
-  this.addEffect = addEffect;
+class MultiDimensionalProperty {
+  constructor(elem: any, data: any, mult: any, container: any) {
+    this.propType = 'multidimensional';
+    this.mult = mult || 1;
+    this.data = data;
+    this._mdf = false;
+    this.elem = elem;
+    this.container = container;
+    this.comp = elem.comp;
+    this.k = false;
+    this.kf = false;
+    this.frameId = -1;
+    let i;
+    const len = data.k.length;
+    this.v = createTypedArray('float32', len);
+    this.pv = createTypedArray('float32', len);
+    this.vel = createTypedArray('float32', len);
+    for (i = 0; i < len; i += 1) {
+      this.v[i] = data.k[i] * this.mult;
+      this.pv[i] = data.k[i];
+    }
+    this._isFirstFrame = true;
+    this.effectsSequence = [];
+    this.getValue = processEffectsSequence;
+    this.setVValue = setVValue;
+    this.addEffect = addEffect;
+  }
 }
 
-function KeyframedMultidimensionalProperty(this: any, elem: any, data: any, mult: any, container: any) {
-  this.propType = 'multidimensional';
-  let i;
-  const len = data.k.length;
-  let s: any;
-  let e: any;
-  let to: any;
-  let ti: any;
-  for (i = 0; i < len - 1; i += 1) {
-    if (data.k[i].to && data.k[i].s && data.k[i + 1] && data.k[i + 1].s) {
-      s = data.k[i].s;
-      e = data.k[i + 1].s;
-      to = data.k[i].to;
-      ti = data.k[i].ti;
-      if (
-        (s.length === 2 &&
-          !(s[0] === e[0] && s[1] === e[1]) &&
-          bez.pointOnLine2D(s[0], s[1], e[0], e[1], s[0] + to[0], s[1] + to[1]) &&
-          bez.pointOnLine2D(s[0], s[1], e[0], e[1], e[0] + ti[0], e[1] + ti[1])) ||
-        (s.length === 3 &&
-          !(s[0] === e[0] && s[1] === e[1] && s[2] === e[2]) &&
-          bez.pointOnLine3D(s[0], s[1], s[2], e[0], e[1], e[2], s[0] + to[0], s[1] + to[1], s[2] + to[2]) &&
-          bez.pointOnLine3D(s[0], s[1], s[2], e[0], e[1], e[2], e[0] + ti[0], e[1] + ti[1], e[2] + ti[2]))
-      ) {
-        data.k[i].to = null;
-        data.k[i].ti = null;
-      }
-      if (s[0] === e[0] && s[1] === e[1] && to[0] === 0 && to[1] === 0 && ti[0] === 0 && ti[1] === 0) {
-        if (s.length === 2 || (s[2] === e[2] && to[2] === 0 && ti[2] === 0)) {
+class KeyframedValueProperty {
+  constructor(elem: any, data: any, mult: any, container: any) {
+    this.propType = 'unidimensional';
+    this.keyframes = data.k;
+    this.keyframesMetadata = [];
+    this.offsetTime = elem.data.st;
+    this.frameId = -1;
+    this._caching = {
+      lastFrame: initFrame,
+      lastIndex: 0,
+      value: 0,
+      _lastKeyframeIndex: -1,
+    };
+    this.k = true;
+    this.kf = true;
+    this.data = data;
+    this.mult = mult || 1;
+    this.elem = elem;
+    this.container = container;
+    this.comp = elem.comp;
+    this.v = initFrame;
+    this.pv = initFrame;
+    this._isFirstFrame = true;
+    this.getValue = processEffectsSequence;
+    this.setVValue = setVValue;
+    this.interpolateValue = interpolateValue;
+    this.effectsSequence = [getValueAtCurrentTime.bind(this)];
+    this.addEffect = addEffect;
+  }
+}
+
+class KeyframedMultidimensionalProperty {
+  constructor(elem: any, data: any, mult: any, container: any) {
+    this.propType = 'multidimensional';
+    let i;
+    const len = data.k.length;
+    let s: any;
+    let e: any;
+    let to: any;
+    let ti: any;
+    for (i = 0; i < len - 1; i += 1) {
+      if (data.k[i].to && data.k[i].s && data.k[i + 1] && data.k[i + 1].s) {
+        s = data.k[i].s;
+        e = data.k[i + 1].s;
+        to = data.k[i].to;
+        ti = data.k[i].ti;
+        if (
+          (s.length === 2 &&
+            !(s[0] === e[0] && s[1] === e[1]) &&
+            bez.pointOnLine2D(s[0], s[1], e[0], e[1], s[0] + to[0], s[1] + to[1]) &&
+            bez.pointOnLine2D(s[0], s[1], e[0], e[1], e[0] + ti[0], e[1] + ti[1])) ||
+          (s.length === 3 &&
+            !(s[0] === e[0] && s[1] === e[1] && s[2] === e[2]) &&
+            bez.pointOnLine3D(s[0], s[1], s[2], e[0], e[1], e[2], s[0] + to[0], s[1] + to[1], s[2] + to[2]) &&
+            bez.pointOnLine3D(s[0], s[1], s[2], e[0], e[1], e[2], e[0] + ti[0], e[1] + ti[1], e[2] + ti[2]))
+        ) {
           data.k[i].to = null;
           data.k[i].ti = null;
         }
+        if (s[0] === e[0] && s[1] === e[1] && to[0] === 0 && to[1] === 0 && ti[0] === 0 && ti[1] === 0) {
+          if (s.length === 2 || (s[2] === e[2] && to[2] === 0 && ti[2] === 0)) {
+            data.k[i].to = null;
+            data.k[i].ti = null;
+          }
+        }
       }
     }
+    this.effectsSequence = [getValueAtCurrentTime.bind(this)];
+    this.data = data;
+    this.keyframes = data.k;
+    this.keyframesMetadata = [];
+    this.offsetTime = elem.data.st;
+    this.k = true;
+    this.kf = true;
+    this._isFirstFrame = true;
+    this.mult = mult || 1;
+    this.elem = elem;
+    this.container = container;
+    this.comp = elem.comp;
+    this.getValue = processEffectsSequence;
+    this.setVValue = setVValue;
+    this.interpolateValue = interpolateValue;
+    this.frameId = -1;
+    const arrLen = data.k[0].s.length;
+    this.v = createTypedArray('float32', arrLen);
+    this.pv = createTypedArray('float32', arrLen);
+    for (i = 0; i < arrLen; i += 1) {
+      this.v[i] = initFrame;
+      this.pv[i] = initFrame;
+    }
+    this._caching = { lastFrame: initFrame, lastIndex: 0, value: createTypedArray('float32', arrLen) };
+    this.addEffect = addEffect;
   }
-  this.effectsSequence = [getValueAtCurrentTime.bind(this)];
-  this.data = data;
-  this.keyframes = data.k;
-  this.keyframesMetadata = [];
-  this.offsetTime = elem.data.st;
-  this.k = true;
-  this.kf = true;
-  this._isFirstFrame = true;
-  this.mult = mult || 1;
-  this.elem = elem;
-  this.container = container;
-  this.comp = elem.comp;
-  this.getValue = processEffectsSequence;
-  this.setVValue = setVValue;
-  this.interpolateValue = interpolateValue;
-  this.frameId = -1;
-  const arrLen = data.k[0].s.length;
-  this.v = createTypedArray('float32', arrLen);
-  this.pv = createTypedArray('float32', arrLen);
-  for (i = 0; i < arrLen; i += 1) {
-    this.v[i] = initFrame;
-    this.pv[i] = initFrame;
-  }
-  this._caching = { lastFrame: initFrame, lastIndex: 0, value: createTypedArray('float32', arrLen) };
-  this.addEffect = addEffect;
 }
 
 const PropertyFactory = (function () {
@@ -476,16 +485,16 @@ const PropertyFactory = (function () {
     }
     let p: any;
     if (!data.k.length) {
-      p = new (ValueProperty as any)(elem, data, mult, container);
+      p = new ValueProperty(elem, data, mult, container);
     } else if (typeof data.k[0] === 'number') {
-      p = new (MultiDimensionalProperty as any)(elem, data, mult, container);
+      p = new MultiDimensionalProperty(elem, data, mult, container);
     } else {
       switch (type) {
         case 0:
-          p = new (KeyframedValueProperty as any)(elem, data, mult, container);
+          p = new KeyframedValueProperty(elem, data, mult, container);
           break;
         case 1:
-          p = new (KeyframedMultidimensionalProperty as any)(elem, data, mult, container);
+          p = new KeyframedMultidimensionalProperty(elem, data, mult, container);
           break;
         default:
           break;

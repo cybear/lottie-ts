@@ -70,90 +70,142 @@ function polynomialCoefficients(p0: number, p1: number, p2: number, p3: number):
   return [-p0 + 3 * p1 - 3 * p2 + p3, 3 * p0 - 6 * p1 + 3 * p2, -3 * p0 + 3 * p1, p0];
 }
 
-function singlePoint(p: Point2D): PolynomialBezierInstance {
+function pointEqual(p1: Point2D, p2: Point2D): boolean {
+  return floatEqual(p1[0], p2[0]) && floatEqual(p1[1], p2[1]);
+}
+
+class PolynomialBezier implements PolynomialBezierInstance {
+  a: Point2D;
+  b: Point2D;
+  c: Point2D;
+  d: Point2D;
+  points: Point2D[];
+
+  constructor(p0: Point2D, p1: Point2D, p2: Point2D, p3: Point2D, linearize: boolean) {
+    if (linearize && pointEqual(p0, p1)) {
+      p1 = lerpPoint(p0, p3, 1 / 3);
+    }
+    if (linearize && pointEqual(p2, p3)) {
+      p2 = lerpPoint(p0, p3, 2 / 3);
+    }
+    const coeffx = polynomialCoefficients(p0[0], p1[0], p2[0], p3[0]);
+    const coeffy = polynomialCoefficients(p0[1], p1[1], p2[1], p3[1]);
+    this.a = [coeffx[0], coeffy[0]];
+    this.b = [coeffx[1], coeffy[1]];
+    this.c = [coeffx[2], coeffy[2]];
+    this.d = [coeffx[3], coeffy[3]];
+    this.points = [p0, p1, p2, p3];
+  }
+
+  point(t: number): Point2D {
+    return [
+      ((this.a[0] * t + this.b[0]) * t + this.c[0]) * t + this.d[0],
+      ((this.a[1] * t + this.b[1]) * t + this.c[1]) * t + this.d[1],
+    ];
+  }
+
+  derivative(t: number): Point2D {
+    return [(3 * t * this.a[0] + 2 * this.b[0]) * t + this.c[0], (3 * t * this.a[1] + 2 * this.b[1]) * t + this.c[1]];
+  }
+
+  tangentAngle(t: number): number {
+    const p = this.derivative(t);
+    return Math.atan2(p[1], p[0]);
+  }
+
+  normalAngle(t: number): number {
+    const p = this.derivative(t);
+    return Math.atan2(p[0], p[1]);
+  }
+
+  inflectionPoints(): number[] {
+    const denom = this.a[1] * this.b[0] - this.a[0] * this.b[1];
+    if (floatZero(denom)) return [];
+    const tcusp = (-0.5 * (this.a[1] * this.c[0] - this.a[0] * this.c[1])) / denom;
+    const square = tcusp * tcusp - ((1 / 3) * (this.b[1] * this.c[0] - this.b[0] * this.c[1])) / denom;
+    if (square < 0) return [];
+    const root = Math.sqrt(square);
+    if (floatZero(root)) {
+      if (root > 0 && root < 1) return [tcusp];
+      return [];
+    }
+    return [tcusp - root, tcusp + root].filter(function (r) {
+      return r > 0 && r < 1;
+    });
+  }
+
+  split(t: number): [PolynomialBezierInstance, PolynomialBezierInstance] {
+    if (t <= 0) return [singlePoint(this.points[0]), this];
+    if (t >= 1) return [this, singlePoint(this.points[this.points.length - 1])];
+    const p10 = lerpPoint(this.points[0], this.points[1], t);
+    const p11 = lerpPoint(this.points[1], this.points[2], t);
+    const p12 = lerpPoint(this.points[2], this.points[3], t);
+    const p20 = lerpPoint(p10, p11, t);
+    const p21 = lerpPoint(p11, p12, t);
+    const p3 = lerpPoint(p20, p21, t);
+    return [
+      new PolynomialBezier(this.points[0], p10, p20, p3, true),
+      new PolynomialBezier(p3, p21, p12, this.points[3], true),
+    ];
+  }
+
+  bounds() {
+    return {
+      x: extrema(this, 0),
+      y: extrema(this, 1),
+    };
+  }
+
+  boundingBox(): BoundingBox {
+    const bounds = this.bounds();
+    return {
+      left: bounds.x.min,
+      right: bounds.x.max,
+      top: bounds.y.min,
+      bottom: bounds.y.max,
+      width: bounds.x.max - bounds.x.min,
+      height: bounds.y.max - bounds.y.min,
+      cx: (bounds.x.max + bounds.x.min) / 2,
+      cy: (bounds.y.max + bounds.y.min) / 2,
+    };
+  }
+
+  intersections(other: PolynomialBezierInstance, tolerance?: number, maxRecursion?: number): [number, number][] {
+    if (tolerance === undefined) tolerance = 2;
+    if (maxRecursion === undefined) maxRecursion = 7;
+    const intersections: [number, number][] = [];
+    intersectsImpl(intersectData(this, 0, 1), intersectData(other, 0, 1), 0, tolerance, intersections, maxRecursion);
+    return intersections;
+  }
+
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  return new (PolynomialBezier as any)(p, p, p, p, false) as PolynomialBezierInstance;
+  static shapeSegment(shapePath: any, index: number): PolynomialBezierInstance {
+    const nextIndex = (index + 1) % shapePath.length();
+    return new PolynomialBezier(
+      shapePath.v[index],
+      shapePath.o[index],
+      shapePath.i[nextIndex],
+      shapePath.v[nextIndex],
+      true,
+    );
+  }
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  static shapeSegmentInverted(shapePath: any, index: number): PolynomialBezierInstance {
+    const nextIndex = (index + 1) % shapePath.length();
+    return new PolynomialBezier(
+      shapePath.v[nextIndex],
+      shapePath.i[nextIndex],
+      shapePath.o[index],
+      shapePath.v[index],
+      true,
+    );
+  }
 }
 
-function PolynomialBezier(
-  this: PolynomialBezierInstance,
-  p0: Point2D,
-  p1: Point2D,
-  p2: Point2D,
-  p3: Point2D,
-  linearize: boolean,
-) {
-  if (linearize && pointEqual(p0, p1)) {
-    p1 = lerpPoint(p0, p3, 1 / 3);
-  }
-  if (linearize && pointEqual(p2, p3)) {
-    p2 = lerpPoint(p0, p3, 2 / 3);
-  }
-  const coeffx = polynomialCoefficients(p0[0], p1[0], p2[0], p3[0]);
-  const coeffy = polynomialCoefficients(p0[1], p1[1], p2[1], p3[1]);
-  this.a = [coeffx[0], coeffy[0]];
-  this.b = [coeffx[1], coeffy[1]];
-  this.c = [coeffx[2], coeffy[2]];
-  this.d = [coeffx[3], coeffy[3]];
-  this.points = [p0, p1, p2, p3];
+function singlePoint(p: Point2D): PolynomialBezierInstance {
+  return new PolynomialBezier(p, p, p, p, false);
 }
-
-PolynomialBezier.prototype.point = function (this: PolynomialBezierInstance, t: number): Point2D {
-  return [
-    ((this.a[0] * t + this.b[0]) * t + this.c[0]) * t + this.d[0],
-    ((this.a[1] * t + this.b[1]) * t + this.c[1]) * t + this.d[1],
-  ];
-};
-
-PolynomialBezier.prototype.derivative = function (this: PolynomialBezierInstance, t: number): Point2D {
-  return [(3 * t * this.a[0] + 2 * this.b[0]) * t + this.c[0], (3 * t * this.a[1] + 2 * this.b[1]) * t + this.c[1]];
-};
-
-PolynomialBezier.prototype.tangentAngle = function (this: PolynomialBezierInstance, t: number): number {
-  const p = this.derivative(t);
-  return Math.atan2(p[1], p[0]);
-};
-
-PolynomialBezier.prototype.normalAngle = function (this: PolynomialBezierInstance, t: number): number {
-  const p = this.derivative(t);
-  return Math.atan2(p[0], p[1]);
-};
-
-PolynomialBezier.prototype.inflectionPoints = function (this: PolynomialBezierInstance): number[] {
-  const denom = this.a[1] * this.b[0] - this.a[0] * this.b[1];
-  if (floatZero(denom)) return [];
-  const tcusp = (-0.5 * (this.a[1] * this.c[0] - this.a[0] * this.c[1])) / denom;
-  const square = tcusp * tcusp - ((1 / 3) * (this.b[1] * this.c[0] - this.b[0] * this.c[1])) / denom;
-  if (square < 0) return [];
-  const root = Math.sqrt(square);
-  if (floatZero(root)) {
-    if (root > 0 && root < 1) return [tcusp];
-    return [];
-  }
-  return [tcusp - root, tcusp + root].filter(function (r) {
-    return r > 0 && r < 1;
-  });
-};
-
-PolynomialBezier.prototype.split = function (
-  this: PolynomialBezierInstance,
-  t: number,
-): [PolynomialBezierInstance, PolynomialBezierInstance] {
-  if (t <= 0) return [singlePoint(this.points[0]), this];
-  if (t >= 1) return [this, singlePoint(this.points[this.points.length - 1])];
-  const p10 = lerpPoint(this.points[0], this.points[1], t);
-  const p11 = lerpPoint(this.points[1], this.points[2], t);
-  const p12 = lerpPoint(this.points[2], this.points[3], t);
-  const p20 = lerpPoint(p10, p11, t);
-  const p21 = lerpPoint(p11, p12, t);
-  const p3 = lerpPoint(p20, p21, t);
-  return [
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    new (PolynomialBezier as any)(this.points[0], p10, p20, p3, true) as PolynomialBezierInstance,
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    new (PolynomialBezier as any)(p3, p21, p12, this.points[3], true) as PolynomialBezierInstance,
-  ];
-};
 
 function extrema(bez: PolynomialBezierInstance, comp: 0 | 1): { min: number; max: number } {
   let min = bez.points[0][comp];
@@ -173,27 +225,6 @@ function extrema(bez: PolynomialBezierInstance, comp: 0 | 1): { min: number; max
   }
   return { min, max };
 }
-
-PolynomialBezier.prototype.bounds = function (this: PolynomialBezierInstance) {
-  return {
-    x: extrema(this, 0),
-    y: extrema(this, 1),
-  };
-};
-
-PolynomialBezier.prototype.boundingBox = function (this: PolynomialBezierInstance): BoundingBox {
-  const bounds = this.bounds();
-  return {
-    left: bounds.x.min,
-    right: bounds.x.max,
-    top: bounds.y.min,
-    bottom: bounds.y.max,
-    width: bounds.x.max - bounds.x.min,
-    height: bounds.y.max - bounds.y.min,
-    cx: (bounds.x.max + bounds.x.min) / 2,
-    cy: (bounds.y.max + bounds.y.min) / 2,
-  };
-};
 
 function intersectData(bez: PolynomialBezierInstance, t1: number, t2: number): IntersectData {
   const box = bez.boundingBox();
@@ -242,45 +273,6 @@ function intersectsImpl(
   intersectsImpl(d1s[1], d2s[1], depth + 1, tolerance, intersections, maxRecursion);
 }
 
-PolynomialBezier.prototype.intersections = function (
-  this: PolynomialBezierInstance,
-  other: PolynomialBezierInstance,
-  tolerance?: number,
-  maxRecursion?: number,
-): [number, number][] {
-  if (tolerance === undefined) tolerance = 2;
-  if (maxRecursion === undefined) maxRecursion = 7;
-  const intersections: [number, number][] = [];
-  intersectsImpl(intersectData(this, 0, 1), intersectData(other, 0, 1), 0, tolerance, intersections, maxRecursion);
-  return intersections;
-};
-
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-PolynomialBezier.shapeSegment = function (shapePath: any, index: number): PolynomialBezierInstance {
-  const nextIndex = (index + 1) % shapePath.length();
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  return new (PolynomialBezier as any)(
-    shapePath.v[index],
-    shapePath.o[index],
-    shapePath.i[nextIndex],
-    shapePath.v[nextIndex],
-    true,
-  ) as PolynomialBezierInstance;
-};
-
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-PolynomialBezier.shapeSegmentInverted = function (shapePath: any, index: number): PolynomialBezierInstance {
-  const nextIndex = (index + 1) % shapePath.length();
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  return new (PolynomialBezier as any)(
-    shapePath.v[nextIndex],
-    shapePath.i[nextIndex],
-    shapePath.o[index],
-    shapePath.v[index],
-    true,
-  ) as PolynomialBezierInstance;
-};
-
 function crossProduct(a: Point3D, b: Point3D): Point3D {
   return [a[1] * b[2] - a[2] * b[1], a[2] * b[0] - a[0] * b[2], a[0] * b[1] - a[1] * b[0]];
 }
@@ -304,10 +296,6 @@ function polarOffset(p: Point2D, angle: number, length: number): Point2D {
 
 function pointDistance(p1: Point2D, p2: Point2D): number {
   return Math.hypot(p1[0] - p2[0], p1[1] - p2[1]);
-}
-
-function pointEqual(p1: Point2D, p2: Point2D): boolean {
-  return floatEqual(p1[0], p2[0]) && floatEqual(p1[1], p2[1]);
 }
 
 export { PolynomialBezier, lineIntersection, polarOffset, pointDistance, pointEqual, floatEqual };
