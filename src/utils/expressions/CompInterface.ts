@@ -1,7 +1,7 @@
-// @ts-nocheck
+/* eslint-disable @typescript-eslint/no-explicit-any -- comp layer lookup for expressions */
 const CompExpressionInterface = (function () {
-  return function (comp) {
-    function _thisLayerFunction(name) {
+  return function (comp: any) {
+    const _thisLayerFunction: any = function (name: string | number) {
       let i = 0;
       const len = comp.layers.length;
       while (i < len) {
@@ -11,8 +11,7 @@ const CompExpressionInterface = (function () {
         i += 1;
       }
       return null;
-      // return {active:false};
-    }
+    };
     Object.defineProperty(_thisLayerFunction, '_name', { value: comp.data.nm });
     _thisLayerFunction.layer = _thisLayerFunction;
     _thisLayerFunction.pixelAspect = 1;

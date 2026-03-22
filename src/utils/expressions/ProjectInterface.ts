@@ -1,11 +1,11 @@
-// @ts-nocheck
+/* eslint-disable @typescript-eslint/no-explicit-any -- project composition registry */
 const ProjectInterface = (function () {
-  function registerComposition(comp) {
+  function registerComposition(this: any, comp: any) {
     this.compositions.push(comp);
   }
 
   return function () {
-    function _thisProjectFunction(name) {
+    function _thisProjectFunction(this: any, name: string) {
       let i = 0;
       const len = this.compositions.length;
       while (i < len) {
@@ -20,7 +20,7 @@ const ProjectInterface = (function () {
       return null;
     }
 
-    _thisProjectFunction.compositions = [];
+    _thisProjectFunction.compositions = [] as any[];
     _thisProjectFunction.currentFrame = 0;
 
     _thisProjectFunction.registerComposition = registerComposition;

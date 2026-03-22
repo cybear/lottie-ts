@@ -1,6 +1,6 @@
-// @ts-nocheck
+/* eslint-disable @typescript-eslint/no-explicit-any -- nested footage data walk */
 const FootageInterface = (function () {
-  const outlineInterfaceFactory = function (elem) {
+  const outlineInterfaceFactory = function (elem: any) {
     let currentPropertyName = '';
     let currentProperty = elem.getFootageData();
     function init() {
@@ -8,7 +8,7 @@ const FootageInterface = (function () {
       currentProperty = elem.getFootageData();
       return searchProperty;
     }
-    function searchProperty(value) {
+    const searchProperty: any = function (value: string) {
       if (currentProperty[value]) {
         currentPropertyName = value;
         currentProperty = currentProperty[value];
@@ -27,30 +27,30 @@ const FootageInterface = (function () {
         return currentProperty;
       }
       return '';
-    }
+    };
     return init;
   };
 
-  const dataInterfaceFactory = function (elem) {
-    function interfaceFunction(value) {
+  const dataInterfaceFactory = function (elem: any) {
+    const interfaceFunction: any = function (value: string) {
       if (value === 'Outline') {
         return interfaceFunction.outlineInterface();
       }
       return null;
-    }
+    };
 
     interfaceFunction._name = 'Outline';
     interfaceFunction.outlineInterface = outlineInterfaceFactory(elem);
     return interfaceFunction;
   };
 
-  return function (elem) {
-    function _interfaceFunction(value) {
+  return function (elem: any) {
+    const _interfaceFunction: any = function (value: string) {
       if (value === 'Data') {
         return _interfaceFunction.dataInterface;
       }
       return null;
-    }
+    };
 
     _interfaceFunction._name = 'Data';
     _interfaceFunction.dataInterface = dataInterfaceFactory(elem);

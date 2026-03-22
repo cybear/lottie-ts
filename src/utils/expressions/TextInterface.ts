@@ -1,23 +1,22 @@
-// @ts-nocheck
+/* eslint-disable @typescript-eslint/no-explicit-any, no-new-wrappers -- text document proxy for AE expressions */
 const TextExpressionInterface = (function () {
-  return function (elem) {
-    let _sourceText;
-    function _thisLayerFunction(name) {
+  return function (elem: any) {
+    let _sourceText: any;
+    const _thisLayerFunction: any = function (name: string) {
       switch (name) {
         case 'ADBE Text Document':
           return _thisLayerFunction.sourceText;
         default:
           return null;
       }
-    }
+    };
     Object.defineProperty(_thisLayerFunction, 'sourceText', {
       get: function () {
         elem.textProperty.getValue();
         const stringValue = elem.textProperty.currentData.t;
         if (!_sourceText || stringValue !== _sourceText.value) {
-          _sourceText = new String(stringValue); // eslint-disable-line no-new-wrappers
-          // If stringValue is an empty string, eval returns undefined, so it has to be returned as a String primitive
-          _sourceText.value = stringValue || new String(stringValue); // eslint-disable-line no-new-wrappers
+          _sourceText = new String(stringValue);
+          _sourceText.value = stringValue || new String(stringValue);
           Object.defineProperty(_sourceText, 'style', {
             get: function () {
               return {

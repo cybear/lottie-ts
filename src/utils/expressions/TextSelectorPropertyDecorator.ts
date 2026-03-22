@@ -1,18 +1,17 @@
-// @ts-nocheck
+/* eslint-disable @typescript-eslint/no-explicit-any -- text selector expression decorator */
 import ExpressionManager from './ExpressionManager';
 import expressionHelpers from './expressionHelpers';
 import TextSelectorProp from '../text/TextSelectorProperty';
 
 const TextExpressionSelectorPropFactory = (function () {
-  // eslint-disable-line no-unused-vars
-  function getValueProxy(index, total) {
+  function getValueProxy(this: any, index: number, total: number) {
     this.textIndex = index + 1;
     this.textTotal = total;
     this.v = this.getValue() * this.mult;
     return this.v;
   }
 
-  return function (elem, data) {
+  return function (this: any, elem: any, data: any, _arr?: any) {
     this.pv = 1;
     this.comp = elem.comp;
     this.elem = elem;
@@ -23,7 +22,7 @@ const TextExpressionSelectorPropFactory = (function () {
     this.lastValue = [1, 1, 1];
     this.k = true;
     this.x = true;
-    this.getValue = ExpressionManager.initiateExpression.bind(this)(elem, data, this);
+    this.getValue = (ExpressionManager as any).initiateExpression.bind(this)(elem, data, this);
     this.getMult = getValueProxy;
     this.getVelocityAtTime = expressionHelpers.getVelocityAtTime;
     if (this.kf) {
@@ -36,9 +35,9 @@ const TextExpressionSelectorPropFactory = (function () {
 })();
 
 const propertyGetTextProp = TextSelectorProp.getTextSelectorProp;
-TextSelectorProp.getTextSelectorProp = function (elem, data, arr) {
+(TextSelectorProp as any).getTextSelectorProp = function (elem: any, data: any, arr: any) {
   if (data.t === 1) {
-    return new TextExpressionSelectorPropFactory(elem, data, arr); // eslint-disable-line no-undef
+    return new (TextExpressionSelectorPropFactory as any)(elem, data, arr);
   }
   return propertyGetTextProp(elem, data, arr);
 };

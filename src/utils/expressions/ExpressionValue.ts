@@ -1,9 +1,9 @@
-// @ts-nocheck
+/* eslint-disable @typescript-eslint/no-explicit-any, no-new-wrappers -- Number / typed array wrappers for AE API */
 import { createTypedArray } from '../helpers/arrays';
 
-function ExpressionValue(elementProp, mult, type) {
+function ExpressionValue(elementProp: any, mult?: number, type?: string) {
   mult = mult || 1;
-  let expressionValue;
+  let expressionValue: any;
 
   if (elementProp.k) {
     elementProp.getValue();
@@ -25,7 +25,7 @@ function ExpressionValue(elementProp, mult, type) {
     }
   } else if (elementProp.propType === 'unidimensional') {
     val = elementProp.v * mult;
-    expressionValue = new Number(val); // eslint-disable-line no-new-wrappers
+    expressionValue = new Number(val);
     expressionValue.value = val;
   } else {
     len = elementProp.pv.length;
@@ -39,7 +39,7 @@ function ExpressionValue(elementProp, mult, type) {
   }
 
   expressionValue.numKeys = elementProp.keyframes ? elementProp.keyframes.length : 0;
-  expressionValue.key = function (pos) {
+  expressionValue.key = function (pos: number) {
     if (!expressionValue.numKeys) {
       return 0;
     }
