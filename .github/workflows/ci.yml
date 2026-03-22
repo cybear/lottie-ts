@@ -10,7 +10,7 @@ jobs:
     strategy:
       matrix:
         # Align with package.json engines and Vitest 4.1 / Vite 8 (Node 22 needs ≥22.12).
-        node-version: ['20.19', '22.12', '25'] # disable 24 for now, as it fails and I don't want to spend time on it right now.
+        node-version: ['20.19', '22.12', '24', '25']
 
     steps:
       - name: Checkout
