@@ -1,4 +1,3 @@
-import { extendPrototype } from '../utils/functionExtensions';
 import PropertyFactory from '../utils/PropertyFactory';
 import type { AudioControllerLike, AudioLayerData, GlobalData } from '../types/lottieRuntime';
 import RenderableElement from './helpers/RenderableElement';
@@ -11,10 +10,9 @@ type TimeRemapProp = { _placeholder: true } | { _placeholder?: false; v: number 
 /** Level property (`lv`) — first channel used as volume scalar. */
 type LevelProp = { v: number[] };
 
-class AudioElement {
+class AudioElement extends BaseElement {
   declare initFrame: () => void;
   declare initRenderable: () => void;
-  declare initBaseData: (data: AudioLayerData, globalData: GlobalData, comp: unknown) => void;
   declare prepareRenderableFrame: (num: number, isVisible: boolean) => void;
   declare prepareProperties: (num: number, isVisible: boolean) => void;
   declare isInRange: boolean;
@@ -33,6 +31,7 @@ class AudioElement {
   lv: LevelProp;
 
   constructor(data: AudioLayerData, globalData: GlobalData, comp: unknown) {
+    super();
     this.initFrame();
     this.initRenderable();
     this.assetData = globalData.getAssetData!(data.refId);
@@ -133,8 +132,25 @@ class AudioElement {
 
 const audioSourceRectAtTime = AudioElement.prototype.sourceRectAtTime;
 const audioInitExpressions = AudioElement.prototype.initExpressions;
+const getRequiredDescriptor = (proto: object, key: string): PropertyDescriptor => {
+  const desc = Object.getOwnPropertyDescriptor(proto, key);
+  if (!desc) {
+    throw new Error(`Missing descriptor for ${key}`);
+  }
+  return desc;
+};
 
-extendPrototype([RenderableElement, BaseElement, FrameElement], AudioElement);
+Object.defineProperties(AudioElement.prototype, {
+  initRenderable: getRequiredDescriptor(RenderableElement.prototype, 'initRenderable'),
+  addRenderableComponent: getRequiredDescriptor(RenderableElement.prototype, 'addRenderableComponent'),
+  removeRenderableComponent: getRequiredDescriptor(RenderableElement.prototype, 'removeRenderableComponent'),
+  prepareRenderableFrame: getRequiredDescriptor(RenderableElement.prototype, 'prepareRenderableFrame'),
+  checkLayerLimits: getRequiredDescriptor(RenderableElement.prototype, 'checkLayerLimits'),
+  renderRenderable: getRequiredDescriptor(RenderableElement.prototype, 'renderRenderable'),
+  initFrame: getRequiredDescriptor(FrameElement.prototype, 'initFrame'),
+  prepareProperties: getRequiredDescriptor(FrameElement.prototype, 'prepareProperties'),
+  addDynamicProperty: getRequiredDescriptor(FrameElement.prototype, 'addDynamicProperty'),
+});
 
 AudioElement.prototype.sourceRectAtTime = audioSourceRectAtTime;
 AudioElement.prototype.initExpressions = audioInitExpressions;
