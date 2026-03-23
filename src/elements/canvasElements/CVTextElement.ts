@@ -1,4 +1,4 @@
-import { prototypeChainInheritanceOrder } from '../../utils/functionExtensions';
+import { copyPrototypeDescriptors } from '../../utils/functionExtensions';
 import { createSizedArray } from '../../utils/helpers/arrays';
 import createTag from '../../utils/helpers/html_elements';
 import RenderableElement from '../helpers/RenderableElement';
@@ -332,23 +332,6 @@ class CVTextElement {
 
 /** Shared 2D context for font metrics (one per module, same as former prototype field). */
 const cvTextMeasureContext = (createTag('canvas') as HTMLCanvasElement).getContext('2d')!;
-
-const copyPrototypeDescriptors = (sources: Array<{ prototype: object }>, destination: { prototype: object }) => {
-  const destProto = destination.prototype;
-  for (let i = 0; i < sources.length; i += 1) {
-    const chain = prototypeChainInheritanceOrder(sources[i]);
-    for (let c = 0; c < chain.length; c += 1) {
-      const sourcePrototype = chain[c];
-      const names = Object.getOwnPropertyNames(sourcePrototype);
-      for (let j = 0; j < names.length; j += 1) {
-        const key = names[j];
-        if (key === 'constructor') continue;
-        const desc = Object.getOwnPropertyDescriptor(sourcePrototype, key);
-        if (desc) Object.defineProperty(destProto, key, desc);
-      }
-    }
-  }
-};
 
 copyPrototypeDescriptors(
   [BaseElement, TransformElement, CVBaseElement, HierarchyElement, FrameElement, RenderableElement, ITextElement],

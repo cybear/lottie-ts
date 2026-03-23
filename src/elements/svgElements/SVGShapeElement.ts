@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any -- SVG style / mask graph mirrors PropertyFactory */
-import { prototypeChainInheritanceOrder } from '../../utils/functionExtensions';
+import { copyPrototypeDescriptors } from '../../utils/functionExtensions';
 import { getLocationHref } from '../../main';
 import ShapePropertyFactory from '../../utils/shapes/ShapeProperty';
 import type { ShapePropertyFactoryApi } from '../../utils/shapes/shapePropertyFactoryTypes';
@@ -412,23 +412,6 @@ class SVGShapeElement {
 
 const svgShapeRenderInnerContent = SVGShapeElement.prototype.renderInnerContent;
 const svgShapeDestroy = SVGShapeElement.prototype.destroy;
-
-const copyPrototypeDescriptors = (sources: Array<{ prototype: object }>, destination: { prototype: object }) => {
-  const destProto = destination.prototype;
-  for (let i = 0; i < sources.length; i += 1) {
-    const chain = prototypeChainInheritanceOrder(sources[i]);
-    for (let c = 0; c < chain.length; c += 1) {
-      const sourcePrototype = chain[c];
-      const names = Object.getOwnPropertyNames(sourcePrototype);
-      for (let j = 0; j < names.length; j += 1) {
-        const key = names[j];
-        if (key === 'constructor') continue;
-        const desc = Object.getOwnPropertyDescriptor(sourcePrototype, key);
-        if (desc) Object.defineProperty(destProto, key, desc);
-      }
-    }
-  }
-};
 
 copyPrototypeDescriptors(
   [BaseElement, TransformElement, SVGBaseElement, IShapeElement, HierarchyElement, FrameElement, RenderableDOMElement],

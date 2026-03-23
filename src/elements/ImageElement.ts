@@ -1,4 +1,4 @@
-import { prototypeChainInheritanceOrder } from '../utils/functionExtensions';
+import { copyPrototypeDescriptors } from '../utils/functionExtensions';
 
 import createNS from '../utils/helpers/svg_elements';
 import type { GlobalData, ImageAssetData, RefIdLayerData, SlotManagerLike } from '../types/lottieRuntime';
@@ -55,23 +55,6 @@ class IImageElement {
 }
 
 const imageSourceRectAtTime = IImageElement.prototype.sourceRectAtTime;
-
-const copyPrototypeDescriptors = (sources: Array<{ prototype: object }>, destination: { prototype: object }) => {
-  const destProto = destination.prototype;
-  for (let i = 0; i < sources.length; i += 1) {
-    const chain = prototypeChainInheritanceOrder(sources[i]);
-    for (let c = 0; c < chain.length; c += 1) {
-      const sourcePrototype = chain[c];
-      const names = Object.getOwnPropertyNames(sourcePrototype);
-      for (let j = 0; j < names.length; j += 1) {
-        const key = names[j];
-        if (key === 'constructor') continue;
-        const desc = Object.getOwnPropertyDescriptor(sourcePrototype, key);
-        if (desc) Object.defineProperty(destProto, key, desc);
-      }
-    }
-  }
-};
 
 copyPrototypeDescriptors(
   [BaseElement, TransformElement, SVGBaseElement, HierarchyElement, FrameElement, RenderableDOMElement],

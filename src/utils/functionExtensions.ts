@@ -21,6 +21,10 @@ function prototypeChainInheritanceOrder(ctor: Constructor): object[] {
  * Across `sources`, **later** entries still win on key collision (same as before).
  */
 function extendPrototype(sources: Constructor[], destination: Constructor): void {
+  copyPrototypeDescriptors(sources, destination);
+}
+
+function copyPrototypeDescriptors(sources: Constructor[], destination: Constructor): void {
   const destProto = destination.prototype as object;
   const len = sources.length;
   for (let i = 0; i < len; i += 1) {
@@ -42,4 +46,4 @@ function getDescriptor(object: object, prop: string): PropertyDescriptor | undef
   return Object.getOwnPropertyDescriptor(object, prop);
 }
 
-export { extendPrototype, getDescriptor, prototypeChainInheritanceOrder };
+export { extendPrototype, copyPrototypeDescriptors, getDescriptor, prototypeChainInheritanceOrder };
