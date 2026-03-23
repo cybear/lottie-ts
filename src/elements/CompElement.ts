@@ -1,4 +1,4 @@
-import { extendPrototype } from '../utils/functionExtensions';
+import { prototypeChainInheritanceOrder } from '../utils/functionExtensions';
 import type { CompChildElement, CompLayerData, GlobalData } from '../types/lottieRuntime';
 import BaseElement from './BaseElement';
 import TransformElement from './helpers/TransformElement';
@@ -119,7 +119,29 @@ const icompPrepareFrame = ICompElement.prototype.prepareFrame;
 const icompRenderInnerContent = ICompElement.prototype.renderInnerContent;
 const icompDestroy = ICompElement.prototype.destroy;
 
-extendPrototype([BaseElement, TransformElement, HierarchyElement, FrameElement, RenderableDOMElement], ICompElement);
+const copyPrototypeDescriptors = (sources: Array<{ prototype: object }>, destination: { prototype: object }) => {
+  const destProto = destination.prototype;
+  for (let i = 0; i < sources.length; i += 1) {
+    const chain = prototypeChainInheritanceOrder(sources[i]);
+    for (let c = 0; c < chain.length; c += 1) {
+      const sourcePrototype = chain[c];
+      const names = Object.getOwnPropertyNames(sourcePrototype);
+      for (let j = 0; j < names.length; j += 1) {
+        const key = names[j];
+        if (key === 'constructor') continue;
+        const desc = Object.getOwnPropertyDescriptor(sourcePrototype, key);
+        if (desc) {
+          Object.defineProperty(destProto, key, desc);
+        }
+      }
+    }
+  }
+};
+
+copyPrototypeDescriptors(
+  [BaseElement, TransformElement, HierarchyElement, FrameElement, RenderableDOMElement],
+  ICompElement,
+);
 
 ICompElement.prototype.initElement = icompInitElement;
 ICompElement.prototype.prepareFrame = icompPrepareFrame;
