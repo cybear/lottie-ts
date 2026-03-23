@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any -- hybrid HTML/SVG text paths */
-import { extendPrototype } from '../../utils/functionExtensions';
+import { prototypeChainInheritanceOrder } from '../../utils/functionExtensions';
 import { createSizedArray } from '../../utils/helpers/arrays';
 import createNS from '../../utils/helpers/svg_elements';
 import createTag from '../../utils/helpers/html_elements';
@@ -353,7 +353,24 @@ class HTextElement {
 
 const hTextRenderInnerContent = HTextElement.prototype.renderInnerContent;
 
-extendPrototype(
+const copyPrototypeDescriptors = (sources: Array<{ prototype: object }>, destination: { prototype: object }) => {
+  const destProto = destination.prototype;
+  for (let i = 0; i < sources.length; i += 1) {
+    const chain = prototypeChainInheritanceOrder(sources[i]);
+    for (let c = 0; c < chain.length; c += 1) {
+      const sourcePrototype = chain[c];
+      const names = Object.getOwnPropertyNames(sourcePrototype);
+      for (let j = 0; j < names.length; j += 1) {
+        const key = names[j];
+        if (key === 'constructor') continue;
+        const desc = Object.getOwnPropertyDescriptor(sourcePrototype, key);
+        if (desc) Object.defineProperty(destProto, key, desc);
+      }
+    }
+  }
+};
+
+copyPrototypeDescriptors(
   [BaseElement, TransformElement, HBaseElement, HierarchyElement, FrameElement, RenderableDOMElement, ITextElement],
   HTextElement,
 );
