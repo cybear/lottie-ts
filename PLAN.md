@@ -452,7 +452,7 @@ Section 5 in `tests/verification/puppeteer-test.cjs`:
 | `docs/migration/from-lottie-web.md` | Drop-in swap guide, what changed, new capabilities |
 | `.github/workflows/docs.yml` | Build + deploy to GitHub Pages on push to `main` |
 
-**Goal:** publish a proper documentation site at `https://bsod.github.io/lottie-ts/`
+**Goal:** publish a proper documentation site at `https://cybear.github.io/lottie-ts/`
 that replaces `airbnb.io/lottie` as the canonical reference for lottie-ts users.
 
 ### Why GitHub Pages
@@ -562,7 +562,7 @@ jobs:
 ### Step 9.5 — Enable GitHub Pages in repo settings
 
 - Go to Settings → Pages → Source: **GitHub Actions**
-- After first deploy, verify `https://bsod.github.io/lottie-ts/` loads correctly
+- After first deploy, verify `https://cybear.github.io/lottie-ts/` loads correctly
 - Update README badge and all internal links
 
 ### Step 9.6 — Wiki seed (optional shortcut)
