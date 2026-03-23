@@ -1,4 +1,4 @@
-import { extendPrototype } from '../../utils/functionExtensions';
+import { copyPrototypeDescriptors } from '../../utils/functionExtensions';
 import createNS from '../../utils/helpers/svg_elements';
 import createTag from '../../utils/helpers/html_elements';
 import type { GlobalData, SolidColorLayerData } from '../../types/lottieRuntime';
@@ -37,7 +37,7 @@ class HSolidElement {
     this.layerElement.appendChild(rect);
   }
 }
-extendPrototype(
+copyPrototypeDescriptors(
   [BaseElement, TransformElement, HBaseElement, HierarchyElement, FrameElement, RenderableDOMElement],
   HSolidElement,
 );

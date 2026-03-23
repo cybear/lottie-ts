@@ -1,4 +1,4 @@
-import { extendPrototype } from '../../utils/functionExtensions';
+import { copyPrototypeDescriptors } from '../../utils/functionExtensions';
 import { createSizedArray } from '../../utils/helpers/arrays';
 import PropertyFactory from '../../utils/PropertyFactory';
 import BaseRenderer from '../../renderers/BaseRenderer';
@@ -86,7 +86,7 @@ class HCompElement {
 
 const hcompCreateContainerElements = HCompElement.prototype.createContainerElements;
 
-extendPrototype([BaseRenderer, HybridRendererBase, ICompElement, HBaseElement], HCompElement);
+copyPrototypeDescriptors([BaseRenderer, HybridRendererBase, ICompElement, HBaseElement], HCompElement);
 
 HCompElement.prototype._createBaseContainerElements = HCompElement.prototype.createContainerElements;
 HCompElement.prototype.createContainerElements = hcompCreateContainerElements;

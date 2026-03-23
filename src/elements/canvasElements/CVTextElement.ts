@@ -1,4 +1,4 @@
-import { extendPrototype } from '../../utils/functionExtensions';
+import { copyPrototypeDescriptors } from '../../utils/functionExtensions';
 import { createSizedArray } from '../../utils/helpers/arrays';
 import createTag from '../../utils/helpers/html_elements';
 import RenderableElement from '../helpers/RenderableElement';
@@ -333,7 +333,7 @@ class CVTextElement {
 /** Shared 2D context for font metrics (one per module, same as former prototype field). */
 const cvTextMeasureContext = (createTag('canvas') as HTMLCanvasElement).getContext('2d')!;
 
-extendPrototype(
+copyPrototypeDescriptors(
   [BaseElement, TransformElement, CVBaseElement, HierarchyElement, FrameElement, RenderableElement, ITextElement],
   CVTextElement,
 );

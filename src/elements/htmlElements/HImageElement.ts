@@ -1,4 +1,4 @@
-import { extendPrototype } from '../../utils/functionExtensions';
+import { copyPrototypeDescriptors } from '../../utils/functionExtensions';
 import createNS from '../../utils/helpers/svg_elements';
 import RenderableElement from '../helpers/RenderableElement';
 import BaseElement from '../BaseElement';
@@ -50,7 +50,7 @@ class HImageElement {
 
 const hImageCreateContent = HImageElement.prototype.createContent;
 
-extendPrototype(
+copyPrototypeDescriptors(
   [BaseElement, TransformElement, HBaseElement, HSolidElement, HierarchyElement, FrameElement, RenderableElement],
   HImageElement,
 );

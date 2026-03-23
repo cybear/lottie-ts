@@ -1,4 +1,4 @@
-import { extendPrototype } from '../../utils/functionExtensions';
+import { copyPrototypeDescriptors } from '../../utils/functionExtensions';
 import RenderableElement from '../helpers/RenderableElement';
 import BaseElement from '../BaseElement';
 import TransformElement from '../helpers/TransformElement';
@@ -24,7 +24,7 @@ class CVSolidElement {
     this.globalData.renderer.ctxFillRect(0, 0, this.data.sw, this.data.sh);
   }
 }
-extendPrototype(
+copyPrototypeDescriptors(
   [BaseElement, TransformElement, CVBaseElement, HierarchyElement, FrameElement, RenderableElement],
   CVSolidElement,
 );

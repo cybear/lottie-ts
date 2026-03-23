@@ -1,5 +1,6 @@
 const fs = require('fs');
 const { minify } = require("terser");
+const ts = require('typescript');
 const packageFile = require("../package.json");
 
 const buildFolder = 'build/player/';
@@ -19,7 +20,13 @@ function wrapScriptWithModule(code, build) {
 			let wrappedCode = fs.readFileSync(`${rootFolder}${moduleFileName}.ts`, "utf8");
 			wrappedCode = wrappedCode.replace('/* <%= contents %> */',code);
 			wrappedCode = wrappedCode.replace('[[BM_VERSION]]',bm_version);
-			resolve(wrappedCode);
+			const transpiled = ts.transpileModule(wrappedCode, {
+				compilerOptions: {
+					target: ts.ScriptTarget.ES5,
+					module: ts.ModuleKind.None,
+				},
+			});
+			resolve(transpiled.outputText);
 		} catch(err) {
 			reject(err);
 		}

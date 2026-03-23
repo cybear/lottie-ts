@@ -1,4 +1,4 @@
-import { extendPrototype } from '../../utils/functionExtensions';
+import { copyPrototypeDescriptors } from '../../utils/functionExtensions';
 import { createSizedArray } from '../../utils/helpers/arrays';
 import PropertyFactory from '../../utils/PropertyFactory';
 import BaseRenderer from '../../renderers/BaseRenderer';
@@ -77,7 +77,7 @@ class CVCompElement {
 const cvCompRenderInnerContent = CVCompElement.prototype.renderInnerContent;
 const cvCompDestroy = CVCompElement.prototype.destroy;
 
-extendPrototype([BaseRenderer, CanvasRendererBase, ICompElement, CVBaseElement], CVCompElement);
+copyPrototypeDescriptors([BaseRenderer, CanvasRendererBase, ICompElement, CVBaseElement], CVCompElement);
 
 CVCompElement.prototype.renderInnerContent = cvCompRenderInnerContent;
 CVCompElement.prototype.destroy = cvCompDestroy;

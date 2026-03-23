@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any -- style rows mirror PropertyFactory / gradient graphs not yet modeled */
 import { degToRads, bmFloor } from '../../utils/common';
 
-import { extendPrototype } from '../../utils/functionExtensions';
+import { copyPrototypeDescriptors } from '../../utils/functionExtensions';
 import PropertyFactory from '../../utils/PropertyFactory';
 import RenderableElement from '../helpers/RenderableElement';
 import BaseElement from '../BaseElement';
@@ -589,7 +589,7 @@ class CVShapeElement {
 const cvShapeCreateContent = CVShapeElement.prototype.createContent;
 const cvShapeDestroy = CVShapeElement.prototype.destroy;
 
-extendPrototype(
+copyPrototypeDescriptors(
   [BaseElement, TransformElement, CVBaseElement, IShapeElement, HierarchyElement, FrameElement, RenderableElement],
   CVShapeElement,
 );

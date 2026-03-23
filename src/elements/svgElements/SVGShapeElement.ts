@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any -- SVG style / mask graph mirrors PropertyFactory */
-import { extendPrototype } from '../../utils/functionExtensions';
+import { copyPrototypeDescriptors } from '../../utils/functionExtensions';
 import { getLocationHref } from '../../main';
 import ShapePropertyFactory from '../../utils/shapes/ShapeProperty';
 import type { ShapePropertyFactoryApi } from '../../utils/shapes/shapePropertyFactoryTypes';
@@ -413,7 +413,7 @@ class SVGShapeElement {
 const svgShapeRenderInnerContent = SVGShapeElement.prototype.renderInnerContent;
 const svgShapeDestroy = SVGShapeElement.prototype.destroy;
 
-extendPrototype(
+copyPrototypeDescriptors(
   [BaseElement, TransformElement, SVGBaseElement, IShapeElement, HierarchyElement, FrameElement, RenderableDOMElement],
   SVGShapeElement,
 );

@@ -28,7 +28,8 @@ interface MaskOpacityProp {
   _mdf?: boolean;
 }
 
-interface MaskShapeProp {
+/** Shape property for a mask path (`viewData[i].prop` on SVG; canvas stores this shape directly on `viewData[i]`). */
+export interface MaskShapeProp {
   v: MaskPathNodes;
   _mdf?: boolean;
   k?: boolean;

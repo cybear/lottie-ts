@@ -1,4 +1,4 @@
-import { extendPrototype } from '../utils/functionExtensions';
+import { copyPrototypeDescriptors } from '../utils/functionExtensions';
 import type { CompChildElement, CompLayerData, GlobalData } from '../types/lottieRuntime';
 import BaseElement from './BaseElement';
 import TransformElement from './helpers/TransformElement';
@@ -119,7 +119,10 @@ const icompPrepareFrame = ICompElement.prototype.prepareFrame;
 const icompRenderInnerContent = ICompElement.prototype.renderInnerContent;
 const icompDestroy = ICompElement.prototype.destroy;
 
-extendPrototype([BaseElement, TransformElement, HierarchyElement, FrameElement, RenderableDOMElement], ICompElement);
+copyPrototypeDescriptors(
+  [BaseElement, TransformElement, HierarchyElement, FrameElement, RenderableDOMElement],
+  ICompElement,
+);
 
 ICompElement.prototype.initElement = icompInitElement;
 ICompElement.prototype.prepareFrame = icompPrepareFrame;

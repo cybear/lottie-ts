@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any -- HTML shape bbox + inherited SVG shape graph */
 import { bmPow, bmMax, bmMin, bmSqrt } from '../../utils/common';
-import { extendPrototype } from '../../utils/functionExtensions';
+import { copyPrototypeDescriptors } from '../../utils/functionExtensions';
 import createNS from '../../utils/helpers/svg_elements';
 import RenderableElement from '../helpers/RenderableElement';
 import BaseElement from '../BaseElement';
@@ -291,7 +291,7 @@ class HShapeElement {
 const hShapeCreateContent = HShapeElement.prototype.createContent;
 const hShapeRenderInnerContent = HShapeElement.prototype.renderInnerContent;
 
-extendPrototype(
+copyPrototypeDescriptors(
   [
     BaseElement,
     TransformElement,

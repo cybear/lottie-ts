@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any -- text spans, glyph comps, matrix layout */
-import { extendPrototype } from '../../utils/functionExtensions';
+import { copyPrototypeDescriptors } from '../../utils/functionExtensions';
 import { createSizedArray } from '../../utils/helpers/arrays';
 import createNS from '../../utils/helpers/svg_elements';
 import BaseElement from '../BaseElement';
@@ -385,7 +385,7 @@ class SVGTextLottieElement {
 const svgTextSourceRectAtTime = SVGTextLottieElement.prototype.sourceRectAtTime;
 const svgTextRenderInnerContent = SVGTextLottieElement.prototype.renderInnerContent;
 
-extendPrototype(
+copyPrototypeDescriptors(
   [BaseElement, TransformElement, SVGBaseElement, HierarchyElement, FrameElement, RenderableDOMElement, ITextElement],
   SVGTextLottieElement,
 );

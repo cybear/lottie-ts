@@ -14,7 +14,7 @@ For the first time, designers can create **and ship** beautiful animations witho
 
 
 
-# View documentation, FAQ, help, examples, and more at [bsod.github.io/lottie-ts](https://bsod.github.io/lottie-ts/)
+# View documentation, FAQ, help, examples, and more at [cybear.github.io/lottie-ts](https://cybear.github.io/lottie-ts/)
 
 
 

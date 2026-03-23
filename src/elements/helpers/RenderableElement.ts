@@ -16,8 +16,10 @@ class RenderableElement {
   _mdf!: boolean;
   _isFirstFrame!: boolean;
 
-  declare hide: () => void;
-  declare show: () => void;
+  /** DOM / hybrid layers override via `RenderableDOMElement`; canvas stacks may replace via `extendPrototype`. */
+  hide() {}
+
+  show() {}
 
   initRenderable() {
     // layer's visibility related to inpoint and outpoint. Rename isVisible to isInRange

@@ -1,4 +1,4 @@
-import { extendPrototype } from '../../utils/functionExtensions';
+import { copyPrototypeDescriptors } from '../../utils/functionExtensions';
 import { createSizedArray } from '../../utils/helpers/arrays';
 import PropertyFactory from '../../utils/PropertyFactory';
 import BaseRenderer from '../../renderers/BaseRenderer';
@@ -48,7 +48,7 @@ class SVGCompElement {
   }
 }
 
-extendPrototype([BaseRenderer, SVGRendererBase, ICompElement, SVGBaseElement], SVGCompElement);
+copyPrototypeDescriptors([BaseRenderer, SVGRendererBase, ICompElement, SVGBaseElement], SVGCompElement);
 
 registerSVGCompElement(SVGCompElement);
 

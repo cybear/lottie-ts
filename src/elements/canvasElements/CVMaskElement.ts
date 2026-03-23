@@ -2,7 +2,7 @@ import { createSizedArray } from '../../utils/helpers/arrays';
 
 import ShapePropertyFactory from '../../utils/shapes/ShapeProperty';
 import type { ShapePropertyFactoryApi } from '../../utils/shapes/shapePropertyFactoryTypes';
-import MaskElement from '../../mask';
+import type { MaskShapeProp } from '../../mask';
 import type {
   GlobalData,
   MaskDefinitionJson,
@@ -25,31 +25,20 @@ export interface CVMaskLayerHost {
   addRenderableComponent(c: RenderableComponentEntry): void;
 }
 
-interface MaskShapeVertices {
-  v: number[][];
-  o: number[][];
-  i: number[][];
-  _length: number;
-  c?: boolean;
-}
-
-/** Return value of `getShapeProp` for mask path (type 3). */
-interface CVMaskShapeProp {
-  v: MaskShapeVertices;
-}
+type MaskPathNodes = MaskShapeProp['v'];
 
 class CVMaskElement {
   declare data: MaskHostLayerData;
   declare element: CVMaskLayerHost;
   masksProperties: MaskDefinitionJson[];
-  viewData: CVMaskShapeProp[];
+  viewData: MaskShapeProp[];
   hasMasks: boolean;
 
   constructor(data: MaskHostLayerData, element: CVMaskLayerHost) {
     this.data = data;
     this.element = element;
     this.masksProperties = this.data.masksProperties || [];
-    this.viewData = createSizedArray(this.masksProperties.length) as CVMaskShapeProp[];
+    this.viewData = createSizedArray(this.masksProperties.length) as MaskShapeProp[];
     let i: number;
     const len = this.masksProperties.length;
     let hasMasks = false;
@@ -57,7 +46,7 @@ class CVMaskElement {
       if (this.masksProperties[i].mode !== 'n') {
         hasMasks = true;
       }
-      this.viewData[i] = shapeFactory.getShapeProp(this.element, this.masksProperties[i], 3) as CVMaskShapeProp;
+      this.viewData[i] = shapeFactory.getShapeProp(this.element, this.masksProperties[i], 3) as MaskShapeProp;
     }
     this.hasMasks = hasMasks;
     if (hasMasks) {
@@ -75,7 +64,7 @@ class CVMaskElement {
     const len = this.masksProperties.length;
     let pt: number[];
     let pts: number[];
-    let data: MaskShapeVertices;
+    let data: MaskPathNodes;
     ctx.beginPath();
     for (i = 0; i < len; i += 1) {
       if (this.masksProperties[i].mode !== 'n') {
@@ -103,13 +92,14 @@ class CVMaskElement {
     ctx.clip();
   }
 
+  /** Text-on-path (`TextAnimatorProperty`) expects the same shape as SVG `MaskElement.getMaskProperty` (a `MaskShapeProp`), not `viewData[i].prop`. */
+  getMaskProperty(pos: number): MaskShapeProp {
+    return this.viewData[pos];
+  }
+
   destroy() {
     this.element = null as unknown as CVMaskLayerHost;
   }
 }
-
-(
-  CVMaskElement.prototype as unknown as { getMaskProperty: typeof MaskElement.prototype.getMaskProperty }
-).getMaskProperty = MaskElement.prototype.getMaskProperty;
 
 export default CVMaskElement;

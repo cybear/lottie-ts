@@ -1,4 +1,4 @@
-import { extendPrototype } from '../utils/functionExtensions';
+import { copyPrototypeDescriptors } from '../utils/functionExtensions';
 
 import createNS from '../utils/helpers/svg_elements';
 import type { GlobalData, ImageAssetData, RefIdLayerData, SlotManagerLike } from '../types/lottieRuntime';
@@ -56,7 +56,7 @@ class IImageElement {
 
 const imageSourceRectAtTime = IImageElement.prototype.sourceRectAtTime;
 
-extendPrototype(
+copyPrototypeDescriptors(
   [BaseElement, TransformElement, SVGBaseElement, HierarchyElement, FrameElement, RenderableDOMElement],
   IImageElement,
 );

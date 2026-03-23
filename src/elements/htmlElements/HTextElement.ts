@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any -- hybrid HTML/SVG text paths */
-import { extendPrototype } from '../../utils/functionExtensions';
+import { copyPrototypeDescriptors } from '../../utils/functionExtensions';
 import { createSizedArray } from '../../utils/helpers/arrays';
 import createNS from '../../utils/helpers/svg_elements';
 import createTag from '../../utils/helpers/html_elements';
@@ -353,7 +353,7 @@ class HTextElement {
 
 const hTextRenderInnerContent = HTextElement.prototype.renderInnerContent;
 
-extendPrototype(
+copyPrototypeDescriptors(
   [BaseElement, TransformElement, HBaseElement, HierarchyElement, FrameElement, RenderableDOMElement, ITextElement],
   HTextElement,
 );

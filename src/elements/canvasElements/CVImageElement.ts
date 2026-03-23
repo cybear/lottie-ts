@@ -1,4 +1,4 @@
-import { extendPrototype } from '../../utils/functionExtensions';
+import { copyPrototypeDescriptors } from '../../utils/functionExtensions';
 import createTag from '../../utils/helpers/html_elements';
 import RenderableElement from '../helpers/RenderableElement';
 import BaseElement from '../BaseElement';
@@ -87,7 +87,7 @@ class CVImageElement {
 const cvImageCreateContent = CVImageElement.prototype.createContent;
 const cvImageDestroy = CVImageElement.prototype.destroy;
 
-extendPrototype(
+copyPrototypeDescriptors(
   [BaseElement, TransformElement, CVBaseElement, HierarchyElement, FrameElement, RenderableElement],
   CVImageElement,
 );

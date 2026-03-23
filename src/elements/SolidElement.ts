@@ -1,15 +1,13 @@
-import { extendPrototype } from '../utils/functionExtensions';
 import createNS from '../utils/helpers/svg_elements';
-import type { GlobalData, SolidColorLayerData } from '../types/lottieRuntime';
+import type { GlobalData, RefIdLayerData, SolidColorLayerData } from '../types/lottieRuntime';
 import IImageElement from './ImageElement';
 
-class ISolidElement {
-  declare initElement: (data: SolidColorLayerData, globalData: GlobalData, comp: unknown) => void;
+class ISolidElement extends IImageElement {
   declare data: SolidColorLayerData;
   declare layerElement: SVGElement;
 
   constructor(data: SolidColorLayerData, globalData: GlobalData, comp: unknown) {
-    this.initElement(data, globalData, comp);
+    super(data as unknown as RefIdLayerData, globalData, comp);
   }
 
   createContent() {
@@ -23,9 +21,5 @@ class ISolidElement {
     this.layerElement.appendChild(rect);
   }
 }
-
-const solidCreateContent = ISolidElement.prototype.createContent;
-extendPrototype([IImageElement], ISolidElement);
-ISolidElement.prototype.createContent = solidCreateContent;
 
 export default ISolidElement;

@@ -1,5 +1,4 @@
 import { degToRads } from '../../utils/common';
-import { extendPrototype } from '../../utils/functionExtensions';
 import PropertyFactory from '../../utils/PropertyFactory';
 import BaseElement from '../BaseElement';
 import HierarchyElement from '../helpers/HierarchyElement';
@@ -45,9 +44,8 @@ interface HierarchyCameraEntry {
   };
 }
 
-class HCameraElement {
+class HCameraElement extends BaseElement {
   declare initFrame: () => void;
-  declare initBaseData: (data: CameraLayerData, globalData: GlobalData, comp: unknown) => void;
   declare initHierarchy: () => void;
   declare prepareProperties: (num: number, isVisible: boolean) => void;
   declare globalData: GlobalData;
@@ -70,6 +68,7 @@ class HCameraElement {
   comp!: HybridCompWithThreeD;
 
   constructor(data: CameraLayerData, globalData: GlobalData, comp: unknown) {
+    super();
     this.initFrame();
     this.initBaseData(data, globalData, comp);
     this.initHierarchy();
@@ -237,6 +236,22 @@ class HCameraElement {
     return null;
   }
 }
-extendPrototype([BaseElement, FrameElement, HierarchyElement], HCameraElement);
+const getRequiredDescriptor = (proto: object, key: string): PropertyDescriptor => {
+  const desc = Object.getOwnPropertyDescriptor(proto, key);
+  if (!desc) {
+    throw new Error(`Missing descriptor for ${key}`);
+  }
+  return desc;
+};
+
+Object.defineProperties(HCameraElement.prototype, {
+  initFrame: getRequiredDescriptor(FrameElement.prototype, 'initFrame'),
+  prepareProperties: getRequiredDescriptor(FrameElement.prototype, 'prepareProperties'),
+  addDynamicProperty: getRequiredDescriptor(FrameElement.prototype, 'addDynamicProperty'),
+  initHierarchy: getRequiredDescriptor(HierarchyElement.prototype, 'initHierarchy'),
+  setHierarchy: getRequiredDescriptor(HierarchyElement.prototype, 'setHierarchy'),
+  setAsParent: getRequiredDescriptor(HierarchyElement.prototype, 'setAsParent'),
+  checkParenting: getRequiredDescriptor(HierarchyElement.prototype, 'checkParenting'),
+});
 
 export default HCameraElement;
