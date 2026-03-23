@@ -174,7 +174,7 @@ flowchart TB
 
 ### `extendPrototype` usage
 
-Call sites live mostly on **destination** layer/comp constructors. The helper itself is [`functionExtensions.ts`](../../src/utils/functionExtensions.ts). As of this revision, `extendPrototype(` appears in roughly **two dozen** element modules (some calls span multiple lines), plus **`ExpressionPropertyDecorator.ts`** (two calls onto shape property factory functions). **`RenderableDOMElement`** no longer calls `extendPrototype`. **`CVCompBaseElement`** only subclasses `BaseRenderer` and does **not** call `extendPrototype`.
+Call sites live mostly on **destination** layer/comp constructors. The helper itself is [`functionExtensions.ts`](../../src/utils/functionExtensions.ts). As of this revision, `extendPrototype(` appears in roughly **two dozen** element modules (some calls span multiple lines). **`RenderableDOMElement`** and **`ExpressionPropertyDecorator`** no longer call `extendPrototype`. **`CVCompBaseElement`** only subclasses `BaseRenderer` and does **not** call `extendPrototype`.
 
 ### Types already ES `class` (sources, not destinations)
 
@@ -228,7 +228,7 @@ These are `class` constructors whose **`prototype`** methods are still merged on
 
 **`ICompElement` / footage / audio / image:** Same save-restore pattern: **`ICompElement`** keeps **`initElement`**, **`prepareFrame`**, **`renderInnerContent`**, and **`destroy`** on the **`class`** and restores them after **`extendPrototype`** so they override **`RenderableDOMElement`** / chain correctly. **`FootageElement`** and **`AudioElement`** restore **`initExpressions`**; **`AudioElement`** and **`IImageElement`** restore **`sourceRectAtTime`** where the merged stack would overwrite.
 
-**Shape property factories (`ExpressionPropertyDecorator`):** **`extendPrototype([ShapeExpressions], ShapePropertyConstructorFunction)`** (and the keyframed twin) still applies **`ShapeExpressions`** to **constructor functions** defined inside the decorator’s closure, not to a top-level `class` export; leaving that avoids a large factory refactor with little typing gain.
+**Shape property factories (`ExpressionPropertyDecorator`):** Closure-local constructor functions still receive `ShapeExpressions` methods at runtime, but now via direct descriptor copy (no `extendPrototype` call at this site), preserving behavior without the mixin helper dependency.
 
 **Vitest / Rolldown / Vite:** The dev toolchain (Vitest → Vite / Rolldown) expects **`node:util`** features present on supported Node (**`styleText`**, **`parseEnv`**, etc.). **`package.json` `engines`** omits Node **21** entirely; use **20.19+**, **22.12+**, or **24+** (matching CI). We do not patch vendor bundles for older Node.
 
@@ -267,7 +267,7 @@ After each slice, run `npm test`, `npm run test:e2e`, and compare baselines wher
 ## Remaining work (Track B & Track A)
 
 - **`RenderableDOMElement` (Track B):** Landed as a direct `class extends RenderableElement` migration; keep watching for regressions where mixin order previously masked method collisions.
-- **`ExpressionPropertyDecorator` (Track B):** Still uses `extendPrototype` onto in-closure shape constructors; Track A uses the same **`any` / `this: any`** pattern as other expression modules—no `@ts-nocheck`.
+- **`ExpressionPropertyDecorator` (Track B):** Migrated off `extendPrototype`; closure constructors now copy `ShapeExpressions` methods directly. Track A still uses the same **`any` / `this: any`** pattern as other expression modules—no `@ts-nocheck`.
 - **Broad `@ts-nocheck` (src):** Confirm with **`rg '@ts-nocheck' src --glob '*.ts'`**; treat new pragmas as regressions. Historical inventory lived in earlier revisions of this doc.
 - **Runtime types (`src/types/`):** Grow **`GlobalData`**, **`comp`**, and JSON shapes (`ElementData` / per-`ty` layers) as callers are typed; avoid one giant “full Lottie schema” PR.
 - **Worker bundle:** `worker_wrapper.ts` mirrors DOM/canvas behavior; structural changes should stay in sync or share a tiny shared module if tree-shaking allows.

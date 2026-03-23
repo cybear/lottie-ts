@@ -1,5 +1,4 @@
 /* eslint-disable @typescript-eslint/no-explicit-any -- expression runtime hooks on property prototypes */
-import { extendPrototype } from '../functionExtensions';
 import { createSizedArray, createTypedArray } from '../helpers/arrays';
 import ShapePropertyFactory from '../shapes/ShapeProperty';
 import PropertyFactory from '../PropertyFactory';
@@ -339,6 +338,16 @@ function addPropertyDecorator() {
   const ShapePropertyConstructorFunction = (ShapePropertyFactory as any).getConstructorFunction();
   const KeyframedShapePropertyConstructorFunction = (ShapePropertyFactory as any).getKeyframedConstructorFunction();
 
+  function copyPrototypeMethods(source: object, destination: object) {
+    const names = Object.getOwnPropertyNames(source);
+    for (let i = 0; i < names.length; i += 1) {
+      const key = names[i];
+      if (key === 'constructor') continue;
+      const desc = Object.getOwnPropertyDescriptor(source, key);
+      if (desc) Object.defineProperty(destination, key, desc);
+    }
+  }
+
   class ShapeExpressions {
     vertices(this: any, prop: any, time?: any) {
       if (this.k) {
@@ -458,8 +467,8 @@ function addPropertyDecorator() {
   (ShapeExpressions.prototype as any).setGroupProperty = expressionHelpers.setGroupProperty;
   (ShapeExpressions.prototype as any).getValueAtTime = expressionHelpers.getStaticValueAtTime;
 
-  extendPrototype([ShapeExpressions], ShapePropertyConstructorFunction as any);
-  extendPrototype([ShapeExpressions], KeyframedShapePropertyConstructorFunction as any);
+  copyPrototypeMethods(ShapeExpressions.prototype, ShapePropertyConstructorFunction.prototype);
+  copyPrototypeMethods(ShapeExpressions.prototype, KeyframedShapePropertyConstructorFunction.prototype);
   KeyframedShapePropertyConstructorFunction.prototype.getValueAtTime = getShapeValueAtTime;
   KeyframedShapePropertyConstructorFunction.prototype.initiateExpression = (
     ExpressionManager as any
