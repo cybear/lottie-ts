@@ -42,10 +42,4 @@ function getDescriptor(object: object, prop: string): PropertyDescriptor | undef
   return Object.getOwnPropertyDescriptor(object, prop);
 }
 
-function createProxyFunction(prototype: Record<string, unknown>): new () => Record<string, unknown> {
-  function ProxyFunction() {}
-  ProxyFunction.prototype = prototype;
-  return ProxyFunction as unknown as new () => Record<string, unknown>;
-}
-
-export { extendPrototype, getDescriptor, createProxyFunction, prototypeChainInheritanceOrder };
+export { extendPrototype, getDescriptor, prototypeChainInheritanceOrder };
