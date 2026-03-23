@@ -260,7 +260,7 @@ After each slice, run `npm test`, `npm run test:e2e`, and compare baselines wher
 
 ### Track B (incremental, started)
 
-- **`CVMaskElement.getMaskProperty`:** Dropped the **`MaskElement.prototype`** copy; **`getMaskProperty(pos)`** now returns the canvas mask shape row (**`MaskShapeProp`**) so **`TextAnimatorProperty`** masked paths match SVG semantics. **`MaskShapeProp`** is exported from **`mask.ts`** for a single shared type.
+- **`CVMaskElement.getMaskProperty`:** Dropped the **`MaskElement.prototype`** copy; **`getMaskProperty(pos)`** now returns the canvas mask shape row (**`MaskShapeProp`**) so **`TextAnimatorProperty`** masked paths match SVG semantics. **`MaskShapeProp`** is exported from **`mask.ts`** for a single shared type. Unit coverage: **`tests/unit/mask.test.ts`** (**`MaskElement.prototype.getMaskProperty`** vs **`viewData[].prop`**, **`CVMaskElement.getMaskProperty`** identity, **`getShapeProp`…`3`**, **`addRenderableComponent`** when any mask is active).
 
 ---
 
